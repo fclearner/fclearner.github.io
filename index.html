@@ -136,7 +136,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-count">8</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -167,7 +167,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2022/06/13/VAD-marblenet/">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/06/09/PVAD2-engineering-loop/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -185,7 +185,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/06/13/VAD-marblenet/" class="post-title-link" itemprop="url">VAD-marblenet</a>
+          <a href="/2026/06/09/PVAD2-engineering-loop/" class="post-title-link" itemprop="url">Personal VAD 2.0 工程化：外部说话人嵌入与训练闭环</a>
         </h2>
 
         <div class="post-meta-container">
@@ -195,15 +195,9 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
+      
 
-      <time title="Created: 2022-06-13 19:43:47" itemprop="dateCreated datePublished" datetime="2022-06-13T19:43:47+08:00">2022-06-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-09 12:41:58" itemprop="dateModified" datetime="2026-06-09T12:41:58+08:00">2026-06-09</time>
+      <time title="Created: 2026-06-09 14:40:00 / Modified: 14:43:38" itemprop="dateCreated datePublished" datetime="2026-06-09T14:40:00+08:00">2026-06-09</time>
     </span>
 
   
@@ -216,162 +210,11 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2022/05/06/ASR-wenet-data-preprocess/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Alan Fang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/05/06/ASR-wenet-data-preprocess/" class="post-title-link" itemprop="url">ASR-wenet-data_preprocess</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2022-05-06 12:53:51" itemprop="dateCreated datePublished" datetime="2022-05-06T12:53:51+08:00">2022-05-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-09 12:41:58" itemprop="dateModified" datetime="2026-06-09T12:41:58+08:00">2026-06-09</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;wenet数据预处理</p>
+          <p>普通 VAD 只判断“有没有人声”，Personal VAD 还要判断“是不是目标说话人”。在端侧语音识别里，这个区别很关键：系统不仅要过滤静音和噪声，还要在多人说话场景下保留目标说话人的语音片段。</p>
+<p>这篇文章记录一次把 Personal VAD 2.0 论文思路落到可训练工程骨架时的设计取舍。重点是模型接口、外部 speaker embedding、数据 manifest、训练闭环和标签对齐风险。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2022/05/06/ASR-wenet-data-preprocess/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2022/04/30/ASR-wenet/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Alan Fang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/04/30/ASR-wenet/" class="post-title-link" itemprop="url">ASR-wenet</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-      
-
-      <time title="Created: 2022-04-30 17:14:39 / Modified: 17:17:25" itemprop="dateCreated datePublished" datetime="2022-04-30T17:14:39+08:00">2022-04-30</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;wenet学习、搭建记录</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2022/04/30/ASR-wenet/#more" rel="contents">
+              <a class="btn" href="/2026/06/09/PVAD2-engineering-loop/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
@@ -455,89 +298,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2022/04/22/ASR-Multilingual/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2021/08/30/wechat-AI/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Alan Fang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/08/30/wechat-AI/" class="post-title-link" itemprop="url">wechat-AI</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2021-08-30 21:42:06" itemprop="dateCreated datePublished" datetime="2021-08-30T21:42:06+08:00">2021-08-30</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-09 13:58:46" itemprop="dateModified" datetime="2026-06-09T13:58:46+08:00">2026-06-09</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;实现一个微信AI聊天，进行中。。。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/08/30/wechat-AI/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
@@ -975,9 +735,89 @@
 
 
 
-  <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" title="Next page" aria-label="Next page" href="/page/2/"><i class="fa fa-angle-right"></i></a>
-  </nav>
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2019/07/09/hexo-github-constructBlog/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Alan Fang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2019/07/09/hexo-github-constructBlog/" class="post-title-link" itemprop="url">Hexo&Github construct blog</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2019-07-09 16:59:17" itemprop="dateCreated datePublished" datetime="2019-07-09T16:59:17+08:00">2019-07-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2021-08-24 15:18:25" itemprop="dateModified" datetime="2021-08-24T15:18:25+08:00">2021-08-24</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>以前一直想自己写个博客网站，无奈一直没有时间，最近在师兄和好兄弟的推荐下，使用了hexo这一基于Node.js的静态博客框架，并将其托管于github上。总算是圆了个梦！</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2019/07/09/hexo-github-constructBlog/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
 
 </div>
   </main>
