@@ -61,6 +61,14 @@ git -C E:\workspace\github\MyBlog\blog\.deploy_publish push origin master
 
 If WSL GitHub credentials are configured later, `npm run deploy:pages:push -- "message"` can commit and push in one step.
 
-## Future Remote Source Hosting
+## Remote Source Hosting
 
-This source project now has local Git history, but it does not yet have a configured source remote. Create a separate source repository before relying on this as a durable backup. After a source remote exists, move the same `npm run verify` and Pages deploy command into GitHub Actions.
+This source project is pushed to the `source` branch of `fclearner/fclearner.github.io`. The `master` branch remains the GitHub Pages static output branch.
+
+Do not merge `source` into `master`. To update the source remote:
+
+```bash
+git push origin source
+```
+
+The included GitHub Actions workflow verifies source pushes. A future improvement can move the Pages publish step into CI after repository secrets and branch protection are configured.
