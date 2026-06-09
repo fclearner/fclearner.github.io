@@ -1,0 +1,33 @@
+# NexT theme overrides. Keep custom values here so npm theme upgrades do not
+# overwrite site-specific configuration.
+
+favicon:
+  small: /images/AlanFangicon16X16.png
+  medium: /images/AlanFangicon32X32.ico
+  apple_touch_icon: /images/apple-touch-icon-next.png
+  safari_pinned_tab: /images/logo.svg
+
+keywords: "Hexo, NexT"
+
+footer:
+  powered: false
+  theme:
+    enable: false
+    version: false
+
+menu:
+  home: / || fa fa-home
+  about: /about/ || fa fa-user
+  archives: /archives/ || fa fa-archive
+
+scheme: Mist
+
+toc:
+  enable: true
+  number: true
+  wrap: false
+
+creative_commons:
+  license: by-nc-sa
+  sidebar: false
+  post: false

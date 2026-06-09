@@ -1,0 +1,40 @@
+{
+  "name": "hexo-site",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "theme:link": "node tools/link-next-theme.mjs",
+    "clean": "hexo clean",
+    "generate": "npm run theme:link && hexo generate",
+    "build": "npm run clean && npm run generate",
+    "check:site": "node tools/check-generated-site.mjs",
+    "check:encoding": "node tools/check-source-encoding.mjs",
+    "verify": "npm run check:encoding && npm run build && npm run check:site && npm audit --omit=dev && npm exec --yes @fission-ai/openspec@latest -- validate --all --strict",
+    "deploy:pages": "node tools/deploy-pages.mjs",
+    "deploy:pages:push": "node tools/deploy-pages.mjs --push",
+    "serve": "npm run theme:link && hexo server",
+    "server": "npm run theme:link && hexo server",
+    "list:posts": "npm run theme:link && hexo list post",
+    "doctor": "hexo version"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "hexo": {
+    "version": "8.1.2"
+  },
+  "dependencies": {
+    "hexo": "^8.1.2",
+    "hexo-deployer-git": "^4.0.0",
+    "hexo-generator-archive": "^2.0.0",
+    "hexo-generator-category": "^2.0.0",
+    "hexo-generator-index": "^4.0.0",
+    "hexo-generator-tag": "^2.0.0",
+    "hexo-renderer-ejs": "^2.0.0",
+    "hexo-renderer-marked": "^7.0.1",
+    "hexo-renderer-nunjucks": "^2.0.0",
+    "hexo-renderer-stylus": "^3.0.1",
+    "hexo-server": "^3.0.0",
+    "hexo-theme-next": "^8.27.0"
+  }
+}
