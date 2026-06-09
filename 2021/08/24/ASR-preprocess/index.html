@@ -1,136 +1,50 @@
 <!DOCTYPE html>
-
-
-
-  
-
-
-<html class="theme-next mist use-motion" lang="">
+<html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-<meta name="theme-color" content="#222">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/AlanFangicon32X32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/AlanFangicon16X16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
 
 
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
+<script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js" defer></script>
 
-
-
-
-
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-  
-  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
-
-
-
-
-
-
-
-<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
-
-<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
-
-
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
-
-
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/AlanFangicon32X32.ico?v=5.1.4">
-
-
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/AlanFangicon16X16.png?v=5.1.4">
-
-
-  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
-
-
-
-
-
-  <meta name="keywords" content="ASR,Preprocess," />
-
-
-
-
-
-
-
-
-
-
-<meta name="description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;语音信号预处理相关流程简介, 包括预加重、分帧加窗、DFT、FBank等">
+    <meta name="description" content="前言&nbsp;&nbsp;&nbsp;&nbsp;语音信号预处理相关流程简介, 包括预加重、分帧加窗、DFT、FBank等">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ASR-preprocess">
-<meta property="og:url" content="http://yoursite.com/2021/08/24/ASR-preprocess/index.html">
+<meta property="og:url" content="https://alanfangblog.com/2021/08/24/ASR-preprocess/index.html">
 <meta property="og:site_name" content="AlanFangBlog">
-<meta property="og:description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;语音信号预处理相关流程简介, 包括预加重、分帧加窗、DFT、FBank等">
-<meta property="og:locale">
-<meta property="og:image" content="http://yoursite.com/2021/08/24/ASR-preprocess/preprocess_flow.png">
-<meta property="og:image" content="http://yoursite.com/2021/08/24/ASR-preprocess/mel_filter.png">
+<meta property="og:description" content="前言&nbsp;&nbsp;&nbsp;&nbsp;语音信号预处理相关流程简介, 包括预加重、分帧加窗、DFT、FBank等">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://alanfangblog.com/2021/08/24/ASR-preprocess/preprocess_flow.png">
+<meta property="og:image" content="https://alanfangblog.com/2021/08/24/ASR-preprocess/mel_filter.png">
 <meta property="article:published_time" content="2021-08-24T07:19:17.000Z">
-<meta property="article:modified_time" content="2022-07-13T03:05:40.993Z">
+<meta property="article:modified_time" content="2021-08-30T08:34:39.150Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="ASR">
 <meta property="article:tag" content="Preprocess">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://yoursite.com/2021/08/24/ASR-preprocess/preprocess_flow.png">
+<meta name="twitter:image" content="https://alanfangblog.com/2021/08/24/ASR-preprocess/preprocess_flow.png">
 
 
-
-<script type="text/javascript" id="hexo.configurations">
-  var NexT = window.NexT || {};
-  var CONFIG = {
-    root: '',
-    scheme: 'Mist',
-    version: '5.1.4',
-    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
-    fancybox: true,
-    tabs: true,
-    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
-    duoshuo: {
-      userId: '0',
-      author: 'Author'
-    },
-    algolia: {
-      applicationID: '',
-      apiKey: '',
-      indexName: '',
-      hits: {"per_page":10},
-      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
-    }
-  };
-</script>
+<link rel="canonical" href="https://alanfangblog.com/2021/08/24/ASR-preprocess/">
 
 
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2021/08/24/ASR-preprocess/","path":"2021/08/24/ASR-preprocess/","title":"ASR-preprocess"}</script>
 
-  <link rel="canonical" href="http://yoursite.com/2021/08/24/ASR-preprocess/"/>
-
-
-
-
-
-  <title>ASR-preprocess | AlanFangBlog</title>
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>ASR-preprocess | AlanFangBlog</title>
   
 
 
@@ -140,416 +54,222 @@
 
 
 
-<meta name="generator" content="Hexo 5.4.2"></head>
-
-<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
 
   
+
+
+
+
+
+
   
-    
-  
 
-  <div class="container sidebar-position-left page-post-detail">
-    <div class="headband"></div>
 
-    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
-      <div class="header-inner"><div class="site-brand-wrapper">
-  <div class="site-meta ">
-    
 
-    <div class="custom-logo-site-title">
-      <a href="/"  class="brand" rel="start">
-        <span class="logo-line-before"><i></i></span>
-        <span class="site-title">AlanFangBlog</span>
-        <span class="logo-line-after"><i></i></span>
-      </a>
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
     </div>
-      
-        <p class="site-subtitle"></p>
-      
   </div>
 
-  <div class="site-nav-toggle">
-    <button>
-      <span class="btn-bar"></span>
-      <span class="btn-bar"></span>
-      <span class="btn-bar"></span>
-    </button>
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">AlanFangBlog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
   </div>
 </div>
 
+
+
 <nav class="site-nav">
-  
-
-  
-    <ul id="menu" class="menu">
-      
-        
-        <li class="menu-item menu-item-home">
-          <a href="/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
-            
-            Home
-          </a>
-        </li>
-      
-        
-        <li class="menu-item menu-item-about">
-          <a href="/about/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
-            
-            About
-          </a>
-        </li>
-      
-        
-        <li class="menu-item menu-item-archives">
-          <a href="/archives/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
-            
-            Archives
-          </a>
-        </li>
-      
-
-      
-    </ul>
-  
-
-  
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+  </ul>
 </nav>
 
 
- </div>
-    </header>
 
-    <main id="main" class="main">
-      <div class="main-inner">
-        <div class="content-wrap">
-          <div id="content" class="content">
-            
 
-  <div id="posts" class="posts-expand">
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%AD%E9%9F%B3%E4%BF%A1%E5%8F%B7%E6%8F%90%E5%8F%96%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">语音信号提取流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A2%84%E5%8A%A0%E9%87%8D"><span class="nav-number">2.1.</span> <span class="nav-text">预加重</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Question-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E9%A2%84%E5%8A%A0%E9%87%8D%EF%BC%9F"><span class="nav-number">2.1.1.</span> <span class="nav-text">Question:为什么需要预加重？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-number">2.1.2.</span> <span class="nav-text">原理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%B8%A7%E5%8A%A0%E7%AA%97"><span class="nav-number">2.2.</span> <span class="nav-text">分帧加窗</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Question-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%88%86%E5%B8%A7%EF%BC%9F"><span class="nav-number">2.2.1.</span> <span class="nav-text">Question:为什么需要分帧？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%9F%E7%90%86-1"><span class="nav-number">2.2.2.</span> <span class="nav-text">原理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DFT"><span class="nav-number">2.3.</span> <span class="nav-text">DFT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FBank"><span class="nav-number">2.4.</span> <span class="nav-text">FBank</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A2%85%E5%B0%94%E6%BB%A4%E6%B3%A2%E5%99%A8%E7%BB%84%E8%AE%BE%E8%AE%A1"><span class="nav-number">2.5.</span> <span class="nav-text">梅尔滤波器组设计</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#References"><span class="nav-number">3.</span> <span class="nav-text">References</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Alan Fang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
     
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
 
   
 
-  
+
+<div class="post-block">
   
   
 
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/08/24/ASR-preprocess/">
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2021/08/24/ASR-preprocess/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
       <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Alan Fang">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
       <meta itemprop="name" content="AlanFangBlog">
+      <meta itemprop="description" content="">
     </span>
 
-    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="ASR-preprocess | AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
       <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ASR-preprocess
+        </h1>
 
-        
-        
-          <h1 class="post-title" itemprop="name headline">ASR-preprocess</h1>
-        
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
 
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-08-24T15:19:17+08:00">
-                2021-08-24
-              </time>
-            
+      <time title="Created: 2021-08-24 15:19:17" itemprop="dateCreated datePublished" datetime="2021-08-24T15:19:17+08:00">2021-08-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2021-08-30 16:34:39" itemprop="dateModified" datetime="2021-08-30T16:34:39+08:00">2021-08-30</time>
+    </span>
 
-            
-
-            
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2021/08/24/ASR-preprocess/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2021/08/24/ASR-preprocess/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/2021/08/24/ASR-preprocess/" class="leancloud_visitors" data-flag-title="ASR-preprocess">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">Visitors&#58;</span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
+  
+</div>
 
         </div>
       </header>
-    
 
     
     
     
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;语音信号预处理相关流程简介, 包括预加重、分帧加窗、DFT、FBank等<br><span id="more"></span></p>
-<h2 id="语音信号提取流程"><a href="#语音信号提取流程" class="headerlink" title="语音信号提取流程"></a>语音信号提取流程</h2><p><img src="/2021/08/24/ASR-preprocess/preprocess_flow.png" alt></p>
+    <div class="post-body" itemprop="articleBody"><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;语音信号预处理相关流程简介, 包括预加重、分帧加窗、DFT、FBank等</p>
+<span id="more"></span>
+<h2 id="语音信号提取流程"><a href="#语音信号提取流程" class="headerlink" title="语音信号提取流程"></a>语音信号提取流程</h2><p><img src="/2021/08/24/ASR-preprocess/preprocess_flow.png"></p>
 <p>(python代码可参考References部分的博客)</p>
 <h3 id="预加重"><a href="#预加重" class="headerlink" title="预加重"></a>预加重</h3><h4 id="Question-为什么需要预加重？"><a href="#Question-为什么需要预加重？" class="headerlink" title="Question:为什么需要预加重？"></a>Question:为什么需要预加重？</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;提高信号高频部分的能量,高频信号在传递过程中,衰减较快,包含更多的语音特征,n与n-1的变化幅度更大。</p>
-<h4 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;预加重是一个一阶高通滤波器，给定时域输入信号$x[n]$,预加重之后的信号为</p>
-<script type="math/tex; mode=display">y[n] = x[n] - \alpha x[n-1], \alpha \in [0.9, 1.0]</script><p>&nbsp;&nbsp;&nbsp;&nbsp;当信号为低频信号时，x变化较慢，$x[n]$与$x[n-1]$较为接近，低频信号的幅度会被大大抑制，同理，可保证高频信号特征的传递。</p>
-<h3 id="分帧加窗"><a href="#分帧加窗" class="headerlink" title="分帧加窗"></a>分帧加窗</h3><h4 id="Question-为什么需要分帧？"><a href="#Question-为什么需要分帧？" class="headerlink" title="Question:为什么需要分帧？"></a>Question:为什么需要分帧？</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;1、语音信号为非平稳信号，统计属性随时间变化。<br>&nbsp;&nbsp;&nbsp;&nbsp;2、语音信号同时具有短时平稳特性，一个声母/韵母的发音往往持续几十到几百毫秒。<br>&nbsp;&nbsp;&nbsp;&nbsp;3、语音识别以较小发音单元的识别进行，通常为音素、字或字节，需要滑动窗来提取短时片段。</p>
+<h4 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;预加重是一个一阶高通滤波器，给定时域输入信号$x[n]$,预加重之后的信号为<br>$$y[n] &#x3D; x[n] - \alpha x[n-1], \alpha \in [0.9, 1.0]$$<br>&nbsp;&nbsp;&nbsp;&nbsp;当信号为低频信号时，x变化较慢，$x[n]$与$x[n-1]$较为接近，低频信号的幅度会被大大抑制，同理，可保证高频信号特征的传递。</p>
+<h3 id="分帧加窗"><a href="#分帧加窗" class="headerlink" title="分帧加窗"></a>分帧加窗</h3><h4 id="Question-为什么需要分帧？"><a href="#Question-为什么需要分帧？" class="headerlink" title="Question:为什么需要分帧？"></a>Question:为什么需要分帧？</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;1、语音信号为非平稳信号，统计属性随时间变化。<br>&nbsp;&nbsp;&nbsp;&nbsp;2、语音信号同时具有短时平稳特性，一个声母&#x2F;韵母的发音往往持续几十到几百毫秒。<br>&nbsp;&nbsp;&nbsp;&nbsp;3、语音识别以较小发音单元的识别进行，通常为音素、字或字节，需要滑动窗来提取短时片段。</p>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;对于采样率为16kHz的信号，帧长、帧移一般为25ms、10ms，即400和160个采样点<br>&nbsp;&nbsp;&nbsp;&nbsp;帧长是一个窗口的长度，帧移是帧长减去连续两帧之间重叠的部分(overlap)。</p>
-<h4 id="原理-1"><a href="#原理-1" class="headerlink" title="原理"></a>原理</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;分帧的过程，在时域上，即用一个窗函数和原始信号进行相乘:</p>
-<script type="math/tex; mode=display">y[n] = w[n]x[n]</script><p>$w[n]$称为窗函数，常用的窗函数有<br>矩形窗：</p>
-<script type="math/tex; mode=display">w[n]=\left\{ \begin{aligned}{1,n\in [0,L-1] \\ 0,otherwise}\end{aligned}\right.</script><p>汉明窗(Hamming):</p>
-<script type="math/tex; mode=display">w[n]=\left\{ \begin{aligned}{0.54-0.46\cos\frac{2\pi n}{L} ,n\in [0,L-1] \\ 0,otherwise}\end{aligned}\right.</script><p>&nbsp;&nbsp;&nbsp;&nbsp;使用汉明窗:加窗的过程，实际上是在时域上将信号截断，窗函数与信号在时域相乘，就等于对应的频域表示进行卷积(*)，矩形窗主瓣窄，但是旁瓣较大，将其与原信号的频域表示进行卷积，就会导致频率泄漏</p>
+<h4 id="原理-1"><a href="#原理-1" class="headerlink" title="原理"></a>原理</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;分帧的过程，在时域上，即用一个窗函数和原始信号进行相乘:<br>$$y[n] &#x3D; w[n]x[n]$$<br>$w[n]$称为窗函数，常用的窗函数有<br>矩形窗：<br>$$w[n]&#x3D;\left{ \begin{aligned}{1,n\in [0,L-1] \ 0,otherwise}\end{aligned}\right. $$<br>汉明窗(Hamming):<br>$$w[n]&#x3D;\left{ \begin{aligned}{0.54-0.46\cos\frac{2\pi n}{L} ,n\in [0,L-1] \ 0,otherwise}\end{aligned}\right. $$</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;使用汉明窗:加窗的过程，实际上是在时域上将信号截断，窗函数与信号在时域相乘，就等于对应的频域表示进行卷积(*)，矩形窗主瓣窄，但是旁瓣较大，将其与原信号的频域表示进行卷积，就会导致频率泄漏</p>
 <h3 id="DFT"><a href="#DFT" class="headerlink" title="DFT"></a>DFT</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;将上一步分帧之后的语音帧，通过快速傅里叶变换由时域变换到频域，取DFT系数的模，得到谱特征,在此不做详细描述，可参考下列文章(压箱底系列)<br>&nbsp;&nbsp;&nbsp;&nbsp;DFT: <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/77347644">https://zhuanlan.zhihu.com/p/77347644</a><br>&nbsp;&nbsp;&nbsp;&nbsp;C语言-FFT蝶形运算：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/135259438">https://zhuanlan.zhihu.com/p/135259438</a><br>&nbsp;&nbsp;&nbsp;&nbsp;傅里叶变换的意义: <a target="_blank" rel="noopener" href="https://blog.csdn.net/guyuealian/article/details/72817527">https://blog.csdn.net/guyuealian/article/details/72817527</a><br>&nbsp;&nbsp;&nbsp;&nbsp;复数的物理意义: <a target="_blank" rel="noopener" href="https://www.zhihu.com/question/23234701">https://www.zhihu.com/question/23234701</a><br>&nbsp;&nbsp;&nbsp;&nbsp;信号频域与时域的区别:<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/21817515">https://www.zhihu.com/question/21817515</a></p>
 <h3 id="FBank"><a href="#FBank" class="headerlink" title="FBank"></a>FBank</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;DFT得到了每个频带上信号的能量，但是人耳对频率的感知不是等间隔的，近似于对数函数</p>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;将线性频率转换为梅尔频率，梅尔频率和线性频率转换关系</p>
-<script type="math/tex; mode=display">mel(f)=2595\log_{10}(1+\frac{f}{700})</script><p><img src="/2021/08/24/ASR-preprocess/mel_filter.png" alt></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;将线性频率转换为梅尔频率，梅尔频率和线性频率转换关系<br>$$mel(f)&#x3D;2595\log_{10}(1+\frac{f}{700})$$<br><img src="/2021/08/24/ASR-preprocess/mel_filter.png"></p>
 <h3 id="梅尔滤波器组设计"><a href="#梅尔滤波器组设计" class="headerlink" title="梅尔滤波器组设计"></a>梅尔滤波器组设计</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;(1)确定滤波器组个数P<br>&nbsp;&nbsp;&nbsp;&nbsp;(2)根据采样率fs，DFT点数N，滤波器个数P，在梅尔域上等间隔的产生每个滤波器的起始频率、中间频率和截至频率，注意，上一个滤波器的中间频率为下一个滤波器的起始频率（存在overlap）<br>&nbsp;&nbsp;&nbsp;&nbsp;(3)将梅尔域上每个三角滤波器的起始、中间和截止频率转换线性频率域，并对DFT之后的谱特征进行滤波，得到P个滤波器组能量，进行log 操作，得到Fbank特征</p>
-<h3 id="MFCC"><a href="#MFCC" class="headerlink" title="MFCC"></a>MFCC</h3><p>MFCC特征组成(以40维为例):<br>&nbsp;&nbsp;&nbsp;&nbsp;13维静态系数 + 13维一阶差分系数 + 13维二阶差分系数 + 1维帧能量</p>
-<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><p>[1]《语音信号预处理及python代码实现博客:<br>&nbsp;&nbsp;&nbsp;&nbsp;<a target="_blank" rel="noopener" href="https://www.cnblogs.com/lxp-never/p/10918590.html#blogTitle7》">https://www.cnblogs.com/lxp-never/p/10918590.html#blogTitle7》</a></p>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><p>[1]《语音信号预处理及python代码实现博客:<br>&nbsp;&nbsp;&nbsp;&nbsp;<a target="_blank" rel="noopener" href="https://www.cnblogs.com/lxp-never/p/10918590.html#blogTitle7%E3%80%8B">https://www.cnblogs.com/lxp-never/p/10918590.html#blogTitle7》</a></p>
 
-      
     </div>
-    
-    
-    
 
     
-
     
-
     
 
     <footer class="post-footer">
-      
-        <div class="post-tags">
-          
-            <a href="/tags/ASR/" rel="tag"># ASR</a>
-          
-            <a href="/tags/Preprocess/" rel="tag"># Preprocess</a>
-          
-        </div>
-      
-
-      
-      
-      
-
-      
-        <div class="post-nav">
-          <div class="post-nav-next post-nav-item">
-            
-              <a href="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/" rel="next" title="CCA application in SSVEP frequency detection">
-                <i class="fa fa-chevron-left"></i> CCA application in SSVEP frequency detection
-              </a>
-            
+          <div class="post-tags">
+              <a href="/tags/ASR/" rel="tag"># ASR</a>
+              <a href="/tags/Preprocess/" rel="tag"># Preprocess</a>
           </div>
 
-          <span class="post-nav-divider"></span>
-
-          <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2021/08/24/ASR-LAS-model/" rel="prev" title="ASR-LAS-model">
-                ASR-LAS-model <i class="fa fa-chevron-right"></i>
-              </a>
-            
-          </div>
-        </div>
-      
-
-      
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-
-    <div class="post-spread">
-      
-    </div>
-  </div>
-
-
-          </div>
-          
-
-
-          
-
-  
-    <div class="comments" id="comments">
-    </div>
-  
-
-
-
-        </div>
         
-          
-  
-  <div class="sidebar-toggle">
-    <div class="sidebar-toggle-line-wrap">
-      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
-      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
-      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
-    </div>
-  </div>
 
-  <aside id="sidebar" class="sidebar">
-    
-    <div class="sidebar-inner">
-
-      
-
-      
-        <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
-            Table of Contents
-          </li>
-          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
-            Overview
-          </li>
-        </ul>
-      
-
-      <section class="site-overview-wrap sidebar-panel">
-        <div class="site-overview">
-          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-            
-              <p class="site-author-name" itemprop="name"></p>
-              <p class="site-description motion-element" itemprop="description"></p>
-          </div>
-
-          <nav class="site-state motion-element">
-
-            
-              <div class="site-state-item site-state-posts">
-              
-                <a href="/archives/%7C%7C%20archive">
-              
-                  <span class="site-state-item-count">11</span>
-                  <span class="site-state-item-name">posts</span>
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/" rel="prev" title="CCA application in SSVEP frequency detection">
+                  <i class="fa fa-angle-left"></i> CCA application in SSVEP frequency detection
                 </a>
-              </div>
-            
-
-            
-
-            
-              
-              
-              <div class="site-state-item site-state-tags">
-                
-                  <span class="site-state-item-count">17</span>
-                  <span class="site-state-item-name">tags</span>
-                
-              </div>
-            
-
-          </nav>
-
-          
-
-          
-
-          
-          
-
-          
-          
-
-          
-
-        </div>
-      </section>
-
-      
-      <!--noindex-->
-        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
-          <div class="post-toc">
-
-            
-              
-            
-
-            
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%AD%E9%9F%B3%E4%BF%A1%E5%8F%B7%E6%8F%90%E5%8F%96%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">语音信号提取流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A2%84%E5%8A%A0%E9%87%8D"><span class="nav-number">2.1.</span> <span class="nav-text">预加重</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Question-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E9%A2%84%E5%8A%A0%E9%87%8D%EF%BC%9F"><span class="nav-number">2.1.1.</span> <span class="nav-text">Question:为什么需要预加重？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-number">2.1.2.</span> <span class="nav-text">原理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%B8%A7%E5%8A%A0%E7%AA%97"><span class="nav-number">2.2.</span> <span class="nav-text">分帧加窗</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Question-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%88%86%E5%B8%A7%EF%BC%9F"><span class="nav-number">2.2.1.</span> <span class="nav-text">Question:为什么需要分帧？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%9F%E7%90%86-1"><span class="nav-number">2.2.2.</span> <span class="nav-text">原理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DFT"><span class="nav-number">2.3.</span> <span class="nav-text">DFT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FBank"><span class="nav-number">2.4.</span> <span class="nav-text">FBank</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A2%85%E5%B0%94%E6%BB%A4%E6%B3%A2%E5%99%A8%E7%BB%84%E8%AE%BE%E8%AE%A1"><span class="nav-number">2.5.</span> <span class="nav-text">梅尔滤波器组设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MFCC"><span class="nav-number">2.6.</span> <span class="nav-text">MFCC</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#References"><span class="nav-number">3.</span> <span class="nav-text">References</span></a></li></ol></div>
-            
-
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/08/24/ASR-LAS-model/" rel="next" title="ASR-LAS-model">
+                  ASR-LAS-model <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
           </div>
-        </section>
-      <!--/noindex-->
-      
-
-      
-
-    </div>
-  </aside>
-
-
-        
-      </div>
-    </main>
-
-    <footer id="footer" class="footer">
-      <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
-  <span class="with-love">
-    <i class="fa fa-user"></i>
-  </span>
-  <span class="author" itemprop="copyrightHolder">Alan Fang</span>
-
-  
+    </footer>
+  </article>
 </div>
 
 
@@ -557,321 +277,39 @@
 
 
 
+</div>
+  </main>
 
+  <footer class="footer">
+    <div class="footer-inner">
 
-
-        
-
-
-
-
-
-
-
-        
-      </div>
-    </footer>
-
-    
-      <div class="back-to-top">
-        <i class="fa fa-arrow-up"></i>
-        
-      </div>
-    
-
-    
-
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Alan Fang</span>
   </div>
 
-  
-
-<script type="text/javascript">
-  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
-    window.Promise = null;
-  }
-</script>
-
-
-
-
-
-
-
-
+    </div>
+  </footer>
 
   
-
-
-
-
-
-
-
-
-
-
-
-
-  
-  
-    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
-  
-
-
-  
-
-
-  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
-
-  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
-
-
-
-  
-  
-
-  
-  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
-<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
-
-
-
-  
-
-
-  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
-
-
-
-  
-
-
-  
-
-
-
-
-	
-
-
-
-
-
-  
-
-
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
-  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
-  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
-  
-  <script type="text/javascript">
-    var GUEST = ['nick','mail','link'];
-    var guest = 'nick,mail,link';
-    guest = guest.split(',').filter(item=>{
-      return GUEST.indexOf(item)>-1;
-    });
-    new Valine({
-        el: '#comments' ,
-        verify: false,
-        notify: false,
-        appId: '4TSz1t4vXIlKVJ2sL2AE70PY-gzGzoHsz',
-        appKey: '7M93zOpcGilqVvIpXhta3vMA',
-        placeholder: 'leave your comments if you have some ideas',
-        avatar:'mm',
-        guest_info:guest,
-        pageSize:'10' || 10,
-    });
-  </script>
-
-
-
-  
-
-
-
-
-
-  
-
-  
-  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
-  <script>AV.initialize("4TSz1t4vXIlKVJ2sL2AE70PY-gzGzoHsz", "7M93zOpcGilqVvIpXhta3vMA");</script>
-  <script>
-    function showTime(Counter) {
-      var query = new AV.Query(Counter);
-      var entries = [];
-      var $visitors = $(".leancloud_visitors");
-
-      $visitors.each(function () {
-        entries.push( $(this).attr("id").trim() );
-      });
-
-      query.containedIn('url', entries);
-      query.find()
-        .done(function (results) {
-          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
-
-          if (results.length === 0) {
-            $visitors.find(COUNT_CONTAINER_REF).text(0);
-            return;
-          }
-
-          for (var i = 0; i < results.length; i++) {
-            var item = results[i];
-            var url = item.get('url');
-            var time = item.get('time');
-            var element = document.getElementById(url);
-
-            $(element).find(COUNT_CONTAINER_REF).text(time);
-          }
-          for(var i = 0; i < entries.length; i++) {
-            var url = entries[i];
-            var element = document.getElementById(url);
-            var countSpan = $(element).find(COUNT_CONTAINER_REF);
-            if( countSpan.text() == '') {
-              countSpan.text(0);
-            }
-          }
-        })
-        .fail(function (object, error) {
-          console.log("Error: " + error.code + " " + error.message);
-        });
-    }
-
-    function addCount(Counter) {
-      var $visitors = $(".leancloud_visitors");
-      var url = $visitors.attr('id').trim();
-      var title = $visitors.attr('data-flag-title').trim();
-      var query = new AV.Query(Counter);
-
-      query.equalTo("url", url);
-      query.find({
-        success: function(results) {
-          if (results.length > 0) {
-            var counter = results[0];
-            counter.fetchWhenSave(true);
-            counter.increment("time");
-            counter.save(null, {
-              success: function(counter) {
-                var $element = $(document.getElementById(url));
-                $element.find('.leancloud-visitors-count').text(counter.get('time'));
-              },
-              error: function(counter, error) {
-                console.log('Failed to save Visitor num, with error message: ' + error.message);
-              }
-            });
-          } else {
-            var newcounter = new Counter();
-            /* Set ACL */
-            var acl = new AV.ACL();
-            acl.setPublicReadAccess(true);
-            acl.setPublicWriteAccess(true);
-            newcounter.setACL(acl);
-            /* End Set ACL */
-            newcounter.set("title", title);
-            newcounter.set("url", url);
-            newcounter.set("time", 1);
-            newcounter.save(null, {
-              success: function(newcounter) {
-                var $element = $(document.getElementById(url));
-                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
-              },
-              error: function(newcounter, error) {
-                console.log('Failed to create');
-              }
-            });
-          }
-        },
-        error: function(error) {
-          console.log('Error:' + error.code + " " + error.message);
-        }
-      });
-    }
-
-    $(function() {
-      var Counter = AV.Object.extend("Counter");
-      if ($('.leancloud_visitors').length == 1) {
-        addCount(Counter);
-      } else if ($('.post-title-link').length > 1) {
-        showTime(Counter);
-      }
-    });
-  </script>
-
-
-
-  
-
-  
-
-  
-  
-
-  
-  
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Config({
-        tex2jax: {
-          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
-          processEscapes: true,
-          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-        }
-      });
-    </script>
-
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Queue(function() {
-        var all = MathJax.Hub.getAllJax(), i;
-        for (i=0; i < all.length; i += 1) {
-          all[i].SourceElement().parentNode.className += ' has-jax';
-        }
-      });
-    </script>
-    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-  
-
-
-  
-
-  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
 
 </body>
 </html>
