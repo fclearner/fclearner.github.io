@@ -4,7 +4,7 @@ import path from 'node:path';
 const root = process.cwd();
 const publicDir = path.join(root, 'public');
 const sourcePostsDir = path.join(root, 'source', '_posts');
-const expectedPostCount = 11;
+const expectedPostCount = 8;
 const errors = [];
 const warnings = [];
 
@@ -92,10 +92,8 @@ if (!errors.length) {
     'about/index.html',
     'about/index/Mydraw1.jpg',
     'archives/index.html',
-    'archives/page/2/index.html',
-    '2022/06/13/VAD-marblenet/index.html',
-    '2022/05/06/ASR-wenet-data-preprocess/index.html',
-    '2021/08/24/ASR-LAS-model/LAS_flow.png'
+    '2021/08/24/ASR-LAS-model/LAS_flow.png',
+    '2026/06/09/PVAD2-engineering-loop/index.html'
   ];
   for (const rel of criticalFiles) {
     if (!exists(path.join(publicDir, rel))) fail(`Missing generated file: public/${rel}`);
@@ -107,6 +105,10 @@ if (!errors.length) {
     '/about/index.html/Mydraw1.jpg',
     'Deep learing',
     '/tags/Deep-learing/',
+    '/2022/06/13/VAD-marblenet/',
+    '/2022/05/06/ASR-wenet-data-preprocess/',
+    '/2022/04/30/ASR-wenet/',
+    '/2021/08/30/wechat-AI/',
     'template not found',
     'Cannot GET /ASR-LAS-model'
   ];
@@ -127,6 +129,37 @@ if (!errors.length) {
       if (resolved && !exists(resolved)) {
         fail(`Broken local reference in ${path.relative(root, file)}: ${target} -> ${path.relative(root, resolved)}`);
       }
+    }
+  }
+  const pvadArticleFiles = [
+    path.join(sourcePostsDir, 'PVAD2-engineering-loop.md'),
+    path.join(publicDir, '2026', '06', '09', 'PVAD2-engineering-loop', 'index.html')
+  ];
+  const forbiddenPvadDisclosures = [
+    'E:\\workspace',
+    'E:/workspace',
+    '/mnt/e/workspace',
+    'C:\\Users',
+    '/root/',
+    'SeetaCloud',
+    'connect.westd',
+    '10515',
+    'personal_vad2',
+    'Personal-vad-2.0.git',
+    'RTX 5090'
+  ];
+  const requiredPvadReferences = [
+    'https://github.com/fclearner/Personal-vad-2.0'
+  ];
+
+  for (const file of pvadArticleFiles) {
+    if (!exists(file)) continue;
+    const content = read(file);
+    for (const pattern of forbiddenPvadDisclosures) {
+      if (content.includes(pattern)) fail(`Found forbidden PVAD disclosure ${JSON.stringify(pattern)} in ${path.relative(root, file)}`);
+    }
+    for (const pattern of requiredPvadReferences) {
+      if (!content.includes(pattern)) fail(`Missing required PVAD reference ${JSON.stringify(pattern)} in ${path.relative(root, file)}`);
     }
   }
 
