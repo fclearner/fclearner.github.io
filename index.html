@@ -197,7 +197,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2026-06-09 14:40:00 / Modified: 14:43:38" itemprop="dateCreated datePublished" datetime="2026-06-09T14:40:00+08:00">2026-06-09</time>
+      <time title="Created: 2026-06-09 14:40:00 / Modified: 14:57:31" itemprop="dateCreated datePublished" datetime="2026-06-09T14:40:00+08:00">2026-06-09</time>
     </span>
 
   
@@ -212,6 +212,7 @@
     <div class="post-body" itemprop="articleBody">
           <p>普通 VAD 只判断“有没有人声”，Personal VAD 还要判断“是不是目标说话人”。在端侧语音识别里，这个区别很关键：系统不仅要过滤静音和噪声，还要在多人说话场景下保留目标说话人的语音片段。</p>
 <p>这篇文章记录一次把 Personal VAD 2.0 论文思路落到可训练工程骨架时的设计取舍。重点是模型接口、外部 speaker embedding、数据 manifest、训练闭环和标签对齐风险。</p>
+<p>项目代码：<a target="_blank" rel="noopener" href="https://github.com/fclearner/Personal-vad-2.0">https://github.com/fclearner/Personal-vad-2.0</a>。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2026/06/09/PVAD2-engineering-loop/#more" rel="contents">
