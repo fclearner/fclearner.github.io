@@ -4,7 +4,7 @@ import path from 'node:path';
 const root = process.cwd();
 const publicDir = path.join(root, 'public');
 const sourcePostsDir = path.join(root, 'source', '_posts');
-const expectedPostCount = 9;
+const expectedPostCount = 15;
 const errors = [];
 const warnings = [];
 
@@ -94,7 +94,13 @@ if (!errors.length) {
     'archives/index.html',
     '2021/08/24/ASR-LAS-model/LAS_flow.png',
     '2026/06/09/PVAD2-engineering-loop/index.html',
-    '2026/06/10/OpenSource-AI-Engineering-Roundup/index.html'
+    '2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/index.html',
+    '2026/06/10/Speech-LLM-Audio-Token-Alignment/index.html',
+    '2026/06/10/ASR-Data-Quality-Pipeline-Open-Source/index.html',
+    '2026/06/10/PEFT-Engineering-Tradeoffs/index.html',
+    '2026/06/10/LLM-Speech-Inference-Serving-Observability/index.html',
+    '2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/index.html',
+    '2026/06/10/Agentic-Coding-Governance/index.html'
   ];
   for (const rel of criticalFiles) {
     if (!exists(path.join(publicDir, rel))) fail(`Missing generated file: public/${rel}`);
@@ -110,6 +116,7 @@ if (!errors.length) {
     '/2022/05/06/ASR-wenet-data-preprocess/',
     '/2022/04/30/ASR-wenet/',
     '/2021/08/30/wechat-AI/',
+    '/2026/06/10/OpenSource-AI-Engineering-Roundup/',
     'template not found',
     'Cannot GET /ASR-LAS-model'
   ];
@@ -165,15 +172,48 @@ if (!errors.length) {
   }
 
 
-  const roundupArticleFiles = [
-    path.join(sourcePostsDir, 'OpenSource-AI-Engineering-Roundup.md'),
-    path.join(publicDir, '2026', '06', '10', 'OpenSource-AI-Engineering-Roundup', 'index.html')
+  const seriesArticles = [
+    {
+      source: 'AI-Adaptive-RAG-Retrieval-Scheduling.md',
+      html: ['2026', '06', '10', 'AI-Adaptive-RAG-Retrieval-Scheduling', 'index.html'],
+      required: ['Adaptive RAG', 'Self-RAG', 'GraphRAG', 'retriever']
+    },
+    {
+      source: 'Speech-LLM-Audio-Token-Alignment.md',
+      html: ['2026', '06', '10', 'Speech-LLM-Audio-Token-Alignment', 'index.html'],
+      required: ['Qwen3-ASR', 'Qwen-Omni', 'WeNet', 'CTC']
+    },
+    {
+      source: 'ASR-Data-Quality-Pipeline-Open-Source.md',
+      html: ['2026', '06', '10', 'ASR-Data-Quality-Pipeline-Open-Source', 'index.html'],
+      required: ['ASR', 'pseudo-label', 'WER', 'reason code']
+    },
+    {
+      source: 'PEFT-Engineering-Tradeoffs.md',
+      html: ['2026', '06', '10', 'PEFT-Engineering-Tradeoffs', 'index.html'],
+      required: ['PEFT', 'LoRA', 'Prefix-Tuning', 'QLoRA']
+    },
+    {
+      source: 'LLM-Speech-Inference-Serving-Observability.md',
+      html: ['2026', '06', '10', 'LLM-Speech-Inference-Serving-Observability', 'index.html'],
+      required: ['vLLM', 'SGLang', 'Triton', 'p99']
+    },
+    {
+      source: 'ASR-Noise-Structured-Extraction-Evaluation.md',
+      html: ['2026', '06', '10', 'ASR-Noise-Structured-Extraction-Evaluation', 'index.html'],
+      required: ['ASR', 'NER', 'precision', 'recall']
+    },
+    {
+      source: 'Agentic-Coding-Governance.md',
+      html: ['2026', '06', '10', 'Agentic-Coding-Governance', 'index.html'],
+      required: ['Agentic Coding', 'MCP', 'reviewer', 'integrator']
+    }
   ];
-  const forbiddenRoundupDisclosures = [
-    'E:\workspace',
+  const forbiddenSeriesDisclosures = [
+    'E:\\workspace',
     'E:/workspace',
     '/mnt/e/workspace',
-    'C:\Users',
+    'C:\\Users',
     '/root/',
     'PROJECT_CONTEXT',
     'MONICA_',
@@ -199,24 +239,21 @@ if (!errors.length) {
     '\u4e1a\u52a1',
     'idea'
   ];
-  const requiredRoundupReferences = [
-    'Adaptive RAG',
-    'ASR',
-    'PEFT',
-    'Qwen',
-    'WeNet',
-    'vLLM',
-    '\u5f00\u6e90'
-  ];
 
-  for (const file of roundupArticleFiles) {
-    if (!exists(file)) continue;
-    const content = read(file);
-    for (const pattern of forbiddenRoundupDisclosures) {
-      if (content.includes(pattern)) fail(`Found forbidden AI roundup disclosure ${JSON.stringify(pattern)} in ${path.relative(root, file)}`);
-    }
-    for (const pattern of requiredRoundupReferences) {
-      if (!content.includes(pattern)) fail(`Missing required AI roundup reference ${JSON.stringify(pattern)} in ${path.relative(root, file)}`);
+  for (const article of seriesArticles) {
+    const articleFiles = [
+      path.join(sourcePostsDir, article.source),
+      path.join(publicDir, ...article.html)
+    ];
+    for (const file of articleFiles) {
+      if (!exists(file)) continue;
+      const content = read(file);
+      for (const pattern of forbiddenSeriesDisclosures) {
+        if (content.includes(pattern)) fail(`Found forbidden AI series disclosure ${JSON.stringify(pattern)} in ${path.relative(root, file)}`);
+      }
+      for (const pattern of article.required) {
+        if (!content.includes(pattern)) fail(`Missing required AI series reference ${JSON.stringify(pattern)} in ${path.relative(root, file)}`);
+      }
     }
   }
   if (postUrls.size !== expectedPostCount) {
