@@ -4,7 +4,7 @@ import path from 'node:path';
 const root = process.cwd();
 const publicDir = path.join(root, 'public');
 const sourcePostsDir = path.join(root, 'source', '_posts');
-const expectedPostCount = 8;
+const expectedPostCount = 9;
 const errors = [];
 const warnings = [];
 
@@ -93,7 +93,8 @@ if (!errors.length) {
     'about/index/Mydraw1.jpg',
     'archives/index.html',
     '2021/08/24/ASR-LAS-model/LAS_flow.png',
-    '2026/06/09/PVAD2-engineering-loop/index.html'
+    '2026/06/09/PVAD2-engineering-loop/index.html',
+    '2026/06/10/OpenSource-AI-Engineering-Roundup/index.html'
   ];
   for (const rel of criticalFiles) {
     if (!exists(path.join(publicDir, rel))) fail(`Missing generated file: public/${rel}`);
@@ -163,6 +164,61 @@ if (!errors.length) {
     }
   }
 
+
+  const roundupArticleFiles = [
+    path.join(sourcePostsDir, 'OpenSource-AI-Engineering-Roundup.md'),
+    path.join(publicDir, '2026', '06', '10', 'OpenSource-AI-Engineering-Roundup', 'index.html')
+  ];
+  const forbiddenRoundupDisclosures = [
+    'E:\workspace',
+    'E:/workspace',
+    '/mnt/e/workspace',
+    'C:\Users',
+    '/root/',
+    'PROJECT_CONTEXT',
+    'MONICA_',
+    'PingAn',
+    '\u5e73\u5b89',
+    '\u4fdd\u9669',
+    '\u5ba2\u6237',
+    '\u5ba2\u670d',
+    '\u8f66\u9669',
+    '\u62a5\u6848',
+    '\u836f\u54c1',
+    '\u533b\u7597',
+    'full-duplex',
+    'duplex',
+    'LMDeploy',
+    'lmdeploy-cpp-logits-duplex',
+    'fclearner_cpp_logits',
+    'connect.westd',
+    'SeetaCloud',
+    '10515',
+    '50051',
+    '18080',
+    '\u4e1a\u52a1',
+    'idea'
+  ];
+  const requiredRoundupReferences = [
+    'Adaptive RAG',
+    'ASR',
+    'PEFT',
+    'Qwen',
+    'WeNet',
+    'vLLM',
+    '\u5f00\u6e90'
+  ];
+
+  for (const file of roundupArticleFiles) {
+    if (!exists(file)) continue;
+    const content = read(file);
+    for (const pattern of forbiddenRoundupDisclosures) {
+      if (content.includes(pattern)) fail(`Found forbidden AI roundup disclosure ${JSON.stringify(pattern)} in ${path.relative(root, file)}`);
+    }
+    for (const pattern of requiredRoundupReferences) {
+      if (!content.includes(pattern)) fail(`Missing required AI roundup reference ${JSON.stringify(pattern)} in ${path.relative(root, file)}`);
+    }
+  }
   if (postUrls.size !== expectedPostCount) {
     fail(`Expected ${expectedPostCount} generated post URLs, found ${postUrls.size}.`);
   }
