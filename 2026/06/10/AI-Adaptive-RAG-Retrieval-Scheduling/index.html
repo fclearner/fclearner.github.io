@@ -28,7 +28,7 @@
 <meta property="og:description" content="RAG 的第一阶段很直观：把文档切块，向量化，按相似度取回若干段，再交给 LLM 生成答案。这个流程足够实用，但它默认了一个强假设：模型在生成前就知道自己需要什么信息。复杂问题里，这个假设经常不成立。 更值得关注的方向是 Adaptive RAG。它不是单纯换一个向量库，而是把检索变成生成过程中的调度动作：什么时候检索、检索什么、检索几次、是否改写查询、是否把证据图谱化，都由任务状态决定。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T09:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-10T04:32:37.669Z">
+<meta property="article:modified_time" content="2026-06-10T08:26:25.398Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="AI">
 <meta property="article:tag" content="LLM">
@@ -132,7 +132,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%BA%E5%AE%9A%E6%A3%80%E7%B4%A2%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">固定检索的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E7%B1%BB%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6"><span class="nav-number">2.</span> <span class="nav-text">四类触发机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GraphRAG-%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="nav-number">3.</span> <span class="nav-text">GraphRAG 的位置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E6%BA%90%E8%90%BD%E5%9C%B0%E6%8E%A5%E5%8F%A3"><span class="nav-number">4.</span> <span class="nav-text">开源落地接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%E4%B8%8D%E8%A6%81%E5%8F%AA%E7%9C%8B%E6%9C%80%E7%BB%88%E7%AD%94%E6%A1%88"><span class="nav-number">5.</span> <span class="nav-text">评测不要只看最终答案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%BA%E5%AE%9A%E6%A3%80%E7%B4%A2%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">固定检索的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E7%B1%BB%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6"><span class="nav-number">2.</span> <span class="nav-text">四类触发机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GraphRAG-%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="nav-number">3.</span> <span class="nav-text">GraphRAG 的位置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E6%BA%90%E8%90%BD%E5%9C%B0%E6%8E%A5%E5%8F%A3"><span class="nav-number">4.</span> <span class="nav-text">开源落地接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%E4%B8%8D%E8%A6%81%E5%8F%AA%E7%9C%8B%E6%9C%80%E7%BB%88%E7%AD%94%E6%A1%88"><span class="nav-number">5.</span> <span class="nav-text">评测不要只看最终答案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Retrieval-decision-log"><span class="nav-number">7.</span> <span class="nav-text">Retrieval decision log</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -145,12 +145,12 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-count">17</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>
@@ -207,7 +207,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2026-06-10 17:00:00 / Modified: 12:32:37" itemprop="dateCreated datePublished" datetime="2026-06-10T17:00:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:00:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:00:00+08:00">2026-06-10</time>
     </span>
 
   
@@ -253,6 +253,8 @@
 </ul>
 <p>如果只看最终答案准确率，很难知道系统是因为检索做对了，还是模型靠参数记忆猜对了。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Adaptive RAG 的核心不是“多检索几次”，而是让检索成为可观测、可调度、可评测的动作。真正的工程分界线也不在向量库品牌，而在系统是否能回答：这次检索为什么发生，拿到了什么证据，证据如何进入上下文，答案为什么可信。</p>
+<h2 id="Retrieval-decision-log"><a href="#Retrieval-decision-log" class="headerlink" title="Retrieval decision log"></a>Retrieval decision log</h2><p>Adaptive RAG should keep a decision log for every answer. A useful record contains the trigger reason, rewritten query, retriever type, top evidence, discarded evidence, final context window, and fallback path.</p>
+<p>This log turns retrieval from a hidden prompt side effect into an auditable policy. When an answer is wrong, the error can be assigned to trigger timing, query decomposition, recall, reranking, context compression, or generation not following evidence. That split is more actionable than only judging the final answer.</p>
 
     </div>
 

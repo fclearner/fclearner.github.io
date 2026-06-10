@@ -28,7 +28,7 @@
 <meta property="og:description" content="在 ASR 输出上做 NER 或结构化抽取，不能只把它当成普通文本任务。语音转写会带来插入、删除、替换、同音错误和边界错位，导致实体在参考文本和识别文本中的位置天然不稳定。 如果仍然用严格字符 span 评测，很多可接受的识别会被误判为错误，真正严重的问题反而可能被掩盖。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T09:50:00.000Z">
-<meta property="article:modified_time" content="2026-06-10T04:32:37.674Z">
+<meta property="article:modified_time" content="2026-06-10T08:26:25.454Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="ASR">
 <meta property="article:tag" content="Evaluation">
@@ -132,7 +132,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ASR-%E5%99%AA%E5%A3%B0%E6%94%B9%E5%8F%98%E4%BA%86%E8%AF%84%E6%B5%8B%E5%AF%B9%E8%B1%A1"><span class="nav-number">1.</span> <span class="nav-text">ASR 噪声改变了评测对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A4%E9%98%B6%E6%AE%B5%E8%AF%84%E6%B5%8B%E6%9B%B4%E7%A8%B3"><span class="nav-number">2.</span> <span class="nav-text">两阶段评测更稳</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E7%B3%8A%E5%8C%B9%E9%85%8D%E4%B8%8D%E6%98%AF%E6%94%BE%E6%9D%BE%E6%A0%87%E5%87%86"><span class="nav-number">3.</span> <span class="nav-text">模糊匹配不是放松标准</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%94%99%E8%AF%AF%E5%BD%92%E5%9B%A0%E6%AF%94%E5%8D%95%E4%B8%AA-F1-%E6%9B%B4%E6%9C%89%E7%94%A8"><span class="nav-number">4.</span> <span class="nav-text">错误归因比单个 F1 更有用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E6%BA%90%E5%B7%A5%E5%85%B7%E5%BD%A2%E6%80%81"><span class="nav-number">5.</span> <span class="nav-text">开源工具形态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ASR-%E5%99%AA%E5%A3%B0%E6%94%B9%E5%8F%98%E4%BA%86%E8%AF%84%E6%B5%8B%E5%AF%B9%E8%B1%A1"><span class="nav-number">1.</span> <span class="nav-text">ASR 噪声改变了评测对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A4%E9%98%B6%E6%AE%B5%E8%AF%84%E6%B5%8B%E6%9B%B4%E7%A8%B3"><span class="nav-number">2.</span> <span class="nav-text">两阶段评测更稳</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E7%B3%8A%E5%8C%B9%E9%85%8D%E4%B8%8D%E6%98%AF%E6%94%BE%E6%9D%BE%E6%A0%87%E5%87%86"><span class="nav-number">3.</span> <span class="nav-text">模糊匹配不是放松标准</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%94%99%E8%AF%AF%E5%BD%92%E5%9B%A0%E6%AF%94%E5%8D%95%E4%B8%AA-F1-%E6%9B%B4%E6%9C%89%E7%94%A8"><span class="nav-number">4.</span> <span class="nav-text">错误归因比单个 F1 更有用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E6%BA%90%E5%B7%A5%E5%85%B7%E5%BD%A2%E6%80%81"><span class="nav-number">5.</span> <span class="nav-text">开源工具形态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Alignment-aware-scorer"><span class="nav-number">7.</span> <span class="nav-text">Alignment-aware scorer</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -145,12 +145,12 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-count">17</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>
@@ -207,7 +207,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2026-06-10 17:50:00 / Modified: 12:32:37" itemprop="dateCreated datePublished" datetime="2026-06-10T17:50:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:50:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:50:00+08:00">2026-06-10</time>
     </span>
 
   
@@ -257,6 +257,8 @@
 <p>输出包括样本级报告、实体级 precision&#x2F;recall&#x2F;F1、错误归因分布和可人工复核的 bad case 列表。</p>
 <p>这类工具不需要绑定特定模型，反而更适合开源：它提供的是评测语言，而不是某个单点模型。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>ASR 噪声下的结构化抽取评测，核心是把文本错误、实体错误和归一化错误拆开。只有错误类型被看见，系统优化才有方向。</p>
+<h2 id="Alignment-aware-scorer"><a href="#Alignment-aware-scorer" class="headerlink" title="Alignment-aware scorer"></a>Alignment-aware scorer</h2><p>Noisy ASR text should be scored with an alignment-aware extractor. The scorer first aligns reference and hypothesis text, then evaluates entity value, entity type, local window match, normalization result, and error source.</p>
+<p>This avoids treating every span mismatch as an extraction failure. Some misses come from ASR substitution or deletion, some from normalization, and some from the downstream extractor. The repair path is different for each category.</p>
 
     </div>
 
@@ -266,8 +268,8 @@
 
     <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Open-Source/" rel="tag"># Open Source</a>
               <a href="/tags/ASR/" rel="tag"># ASR</a>
+              <a href="/tags/Open-Source/" rel="tag"># Open Source</a>
               <a href="/tags/Evaluation/" rel="tag"># Evaluation</a>
               <a href="/tags/NER/" rel="tag"># NER</a>
           </div>

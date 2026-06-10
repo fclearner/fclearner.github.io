@@ -136,12 +136,12 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-count">17</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>
@@ -158,6 +158,162 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/06/10/Speech-Batch-Consistency-Debugging/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Alan Fang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/06/10/Speech-Batch-Consistency-Debugging/" class="post-title-link" itemprop="url">音频模型 Batch 一致性排查：从有效输入区间到逐层 diff</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2026-06-10 18:20:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T18:20:00+08:00">2026-06-10</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>音频模型在 batch size 改变后输出不一致，是很常见但容易误判的问题。不要一开始就怀疑最后的解码结果。更稳的排查顺序是：先证明输入等价，再证明 mask 和有效长度等价，最后逐层定位数值差异从哪里开始放大。</p>
+<p>这篇文章整理一套通用排查协议，适用于 ASR、VAD、speaker model 和其他时序音频模型。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/06/10/Speech-Batch-Consistency-Debugging/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Alan Fang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/" class="post-title-link" itemprop="url">实时语音 Turn-taking 评测：从端点检测到可接话判断</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2026-06-10 18:10:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T18:10:00+08:00">2026-06-10</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>实时语音交互里，端点检测只能回答“声音是否停止”，不能直接回答“系统现在是否应该接话”。更有用的建模目标是 turn-taking：判断当前轮次是否完整、是否需要继续等待、是否允许系统响应，以及错误响应会带来什么交互代价。</p>
+<p>这类问题适合公开讨论，因为它不依赖具体场景。核心是标签定义、输入噪声、延迟预算和评测切分。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -197,7 +353,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2026-06-10 18:00:00 / Modified: 12:32:37" itemprop="dateCreated datePublished" datetime="2026-06-10T18:00:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 18:00:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T18:00:00+08:00">2026-06-10</time>
     </span>
 
   
@@ -275,7 +431,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2026-06-10 17:50:00 / Modified: 12:32:37" itemprop="dateCreated datePublished" datetime="2026-06-10T17:50:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:50:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:50:00+08:00">2026-06-10</time>
     </span>
 
   
@@ -353,7 +509,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2026-06-10 17:40:00 / Modified: 12:32:37" itemprop="dateCreated datePublished" datetime="2026-06-10T17:40:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:40:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:40:00+08:00">2026-06-10</time>
     </span>
 
   
@@ -431,7 +587,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2026-06-10 17:30:00 / Modified: 12:32:37" itemprop="dateCreated datePublished" datetime="2026-06-10T17:30:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:30:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:30:00+08:00">2026-06-10</time>
     </span>
 
   
@@ -509,7 +665,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2026-06-10 17:20:00 / Modified: 12:32:37" itemprop="dateCreated datePublished" datetime="2026-06-10T17:20:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:20:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:20:00+08:00">2026-06-10</time>
     </span>
 
   
@@ -587,7 +743,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2026-06-10 17:10:00 / Modified: 12:32:37" itemprop="dateCreated datePublished" datetime="2026-06-10T17:10:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:10:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:10:00+08:00">2026-06-10</time>
     </span>
 
   
@@ -665,7 +821,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2026-06-10 17:00:00 / Modified: 12:32:37" itemprop="dateCreated datePublished" datetime="2026-06-10T17:00:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:00:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:00:00+08:00">2026-06-10</time>
     </span>
 
   
@@ -741,9 +897,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-09 14:40:00 / Modified: 14:57:31" itemprop="dateCreated datePublished" datetime="2026-06-09T14:40:00+08:00">2026-06-09</time>
+      <time title="Created: 2026-06-09 14:40:00" itemprop="dateCreated datePublished" datetime="2026-06-09T14:40:00+08:00">2026-06-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-10 16:26:25" itemprop="dateModified" datetime="2026-06-10T16:26:25+08:00">2026-06-10</time>
     </span>
 
   
@@ -762,172 +924,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2026/06/09/PVAD2-engineering-loop/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2022/04/22/ASR-Multilingual/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Alan Fang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/04/22/ASR-Multilingual/" class="post-title-link" itemprop="url">ASR-Multilingual</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2022-04-22 16:21:18" itemprop="dateCreated datePublished" datetime="2022-04-22T16:21:18+08:00">2022-04-22</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2022-04-30 16:49:32" itemprop="dateModified" datetime="2022-04-30T16:49:32+08:00">2022-04-30</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;多语种语音识别overview</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2022/04/22/ASR-Multilingual/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2021/08/29/ASR-CTC/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Alan Fang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/08/29/ASR-CTC/" class="post-title-link" itemprop="url">ASR-CTC</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2021-08-29 14:46:28" itemprop="dateCreated datePublished" datetime="2021-08-29T14:46:28+08:00">2021-08-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2021-09-08 17:53:50" itemprop="dateModified" datetime="2021-09-08T17:53:50+08:00">2021-09-08</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CTC(Connectionist Temporal Classification)可以在未对输入序列与输出标签进行FA(Force Alignment)的情况下完成时序对齐及分类工作，主要用于语音识别及手写识别[1]。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/08/29/ASR-CTC/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>

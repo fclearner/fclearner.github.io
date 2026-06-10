@@ -28,7 +28,7 @@
 <meta property="og:description" content="PEFT 经常被理解成“少训练一些参数”。这个理解没有错，但不够工程化。真正的选择不是参数量越少越好，而是在训练显存、推理开销、上下文占用、适配能力、部署形态和工具生态之间做权衡。 不同 PEFT 方法适合解决不同问题。先定义约束，再选方法，比直接比较榜单更可靠。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T09:30:00.000Z">
-<meta property="article:modified_time" content="2026-06-10T04:32:37.675Z">
+<meta property="article:modified_time" content="2026-06-10T08:26:25.433Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="Fine-tuning">
 <meta property="article:tag" content="LLM">
@@ -132,7 +132,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#LoRA-%E7%9A%84%E7%A8%B3%E5%AE%9A%E5%8C%BA%E9%97%B4"><span class="nav-number">1.</span> <span class="nav-text">LoRA 的稳定区间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Prefix-%E5%92%8C-Prompt-Tuning-%E7%9A%84%E4%BB%A3%E4%BB%B7"><span class="nav-number">2.</span> <span class="nav-text">Prefix 和 Prompt Tuning 的代价</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#QLoRA-%E7%9A%84%E9%97%A8%E6%A7%9B"><span class="nav-number">3.</span> <span class="nav-text">QLoRA 的门槛</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BB%E5%8A%A1%E7%B1%BB%E5%9E%8B%E5%86%B3%E5%AE%9A%E4%B8%8A%E9%99%90"><span class="nav-number">4.</span> <span class="nav-text">任务类型决定上限</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2%E6%98%AF%E9%80%89%E6%8B%A9%E7%9A%84%E4%B8%80%E9%83%A8%E5%88%86"><span class="nav-number">5.</span> <span class="nav-text">部署是选择的一部分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#LoRA-%E7%9A%84%E7%A8%B3%E5%AE%9A%E5%8C%BA%E9%97%B4"><span class="nav-number">1.</span> <span class="nav-text">LoRA 的稳定区间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Prefix-%E5%92%8C-Prompt-Tuning-%E7%9A%84%E4%BB%A3%E4%BB%B7"><span class="nav-number">2.</span> <span class="nav-text">Prefix 和 Prompt Tuning 的代价</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#QLoRA-%E7%9A%84%E9%97%A8%E6%A7%9B"><span class="nav-number">3.</span> <span class="nav-text">QLoRA 的门槛</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BB%E5%8A%A1%E7%B1%BB%E5%9E%8B%E5%86%B3%E5%AE%9A%E4%B8%8A%E9%99%90"><span class="nav-number">4.</span> <span class="nav-text">任务类型决定上限</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2%E6%98%AF%E9%80%89%E6%8B%A9%E7%9A%84%E4%B8%80%E9%83%A8%E5%88%86"><span class="nav-number">5.</span> <span class="nav-text">部署是选择的一部分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Adapter-registry"><span class="nav-number">7.</span> <span class="nav-text">Adapter registry</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -145,12 +145,12 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-count">17</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>
@@ -207,7 +207,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2026-06-10 17:30:00 / Modified: 12:32:37" itemprop="dateCreated datePublished" datetime="2026-06-10T17:30:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:30:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:30:00+08:00">2026-06-10</time>
     </span>
 
   
@@ -252,6 +252,8 @@
 </ol>
 <p>这些问题会直接影响服务复杂度。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>PEFT 是工程组件库，不是单一算法。LoRA、Prefix、P-Tuning、QLoRA 的核心差异，不只是训练参数量，而是它们如何改变训练图、上下文窗口、推理路径和版本管理。把这些成本写清楚，实验结果才可复用。</p>
+<h2 id="Adapter-registry"><a href="#Adapter-registry" class="headerlink" title="Adapter registry"></a>Adapter registry</h2><p>PEFT needs an adapter registry, not only a folder of checkpoints. Each adapter should record base model, dataset version, target modules, rank, alpha, dropout, learning rate, quantization config, evaluation set, and merge status.</p>
+<p>This registry is what makes LoRA or QLoRA operationally safe. It lets teams compare adapters, roll back a bad merge, keep training data and model behavior aligned, and avoid confusing a prompt change with an adapter change.</p>
 
     </div>
 
