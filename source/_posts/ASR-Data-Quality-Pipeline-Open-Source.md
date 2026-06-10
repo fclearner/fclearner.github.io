@@ -69,3 +69,9 @@ WER/CER 是必要指标，但不是充分指标。对于很多语音系统，更
 ## 小结
 
 ASR 数据流水线的目标不是“尽量多清洗”，而是建立可解释的数据决策系统。每个样本为什么进入训练集、为什么被丢弃、为什么指标变化，都应该能从日志和报告里找到依据。
+
+## Data card 与 reason code
+
+A reusable ASR data pipeline should generate a data card for every sample. The card can include audio profile, text-normalization result, segmentation boundary, pseudo-label source, model disagreement, rule hits, manual-review status, and final action.
+
+The important field is the reason code. Keeping, dropping, or rewriting a sample should be explainable later. Without that audit trail, a training regression cannot be traced back to a data decision.

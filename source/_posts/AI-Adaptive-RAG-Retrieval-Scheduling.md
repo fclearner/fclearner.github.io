@@ -65,3 +65,9 @@ Adaptive RAG 的评测应该拆成阶段指标：
 ## 小结
 
 Adaptive RAG 的核心不是“多检索几次”，而是让检索成为可观测、可调度、可评测的动作。真正的工程分界线也不在向量库品牌，而在系统是否能回答：这次检索为什么发生，拿到了什么证据，证据如何进入上下文，答案为什么可信。
+
+## Retrieval decision log
+
+Adaptive RAG should keep a decision log for every answer. A useful record contains the trigger reason, rewritten query, retriever type, top evidence, discarded evidence, final context window, and fallback path.
+
+This log turns retrieval from a hidden prompt side effect into an auditable policy. When an answer is wrong, the error can be assigned to trigger timing, query decomposition, recall, reranking, context compression, or generation not following evidence. That split is more actionable than only judging the final answer.

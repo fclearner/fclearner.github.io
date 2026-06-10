@@ -62,3 +62,9 @@ PEFT 对不同任务的适配能力不同。
 ## 小结
 
 PEFT 是工程组件库，不是单一算法。LoRA、Prefix、P-Tuning、QLoRA 的核心差异，不只是训练参数量，而是它们如何改变训练图、上下文窗口、推理路径和版本管理。把这些成本写清楚，实验结果才可复用。
+
+## Adapter registry
+
+PEFT needs an adapter registry, not only a folder of checkpoints. Each adapter should record base model, dataset version, target modules, rank, alpha, dropout, learning rate, quantization config, evaluation set, and merge status.
+
+This registry is what makes LoRA or QLoRA operationally safe. It lets teams compare adapters, roll back a bad merge, keep training data and model behavior aligned, and avoid confusing a prompt change with an adapter change.

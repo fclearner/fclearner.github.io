@@ -4,7 +4,7 @@ import path from 'node:path';
 const root = process.cwd();
 const publicDir = path.join(root, 'public');
 const sourcePostsDir = path.join(root, 'source', '_posts');
-const expectedPostCount = 15;
+const expectedPostCount = 17;
 const errors = [];
 const warnings = [];
 
@@ -100,7 +100,9 @@ if (!errors.length) {
     '2026/06/10/PEFT-Engineering-Tradeoffs/index.html',
     '2026/06/10/LLM-Speech-Inference-Serving-Observability/index.html',
     '2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/index.html',
-    '2026/06/10/Agentic-Coding-Governance/index.html'
+    '2026/06/10/Agentic-Coding-Governance/index.html',
+    '2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/index.html',
+    '2026/06/10/Speech-Batch-Consistency-Debugging/index.html'
   ];
   for (const rel of criticalFiles) {
     if (!exists(path.join(publicDir, rel))) fail(`Missing generated file: public/${rel}`);
@@ -207,6 +209,16 @@ if (!errors.length) {
       source: 'Agentic-Coding-Governance.md',
       html: ['2026', '06', '10', 'Agentic-Coding-Governance', 'index.html'],
       required: ['Agentic Coding', 'MCP', 'reviewer', 'integrator']
+    },
+    {
+      source: 'Realtime-Speech-Turn-Taking-Evaluation.md',
+      html: ['2026', '06', '10', 'Realtime-Speech-Turn-Taking-Evaluation', 'index.html'],
+      required: ['Turn-taking', 'semantic end', 'partial', 'latency']
+    },
+    {
+      source: 'Speech-Batch-Consistency-Debugging.md',
+      html: ['2026', '06', '10', 'Speech-Batch-Consistency-Debugging', 'index.html'],
+      required: ['batch', 'mask', 'dtype', 'subsampling']
     }
   ];
   const forbiddenSeriesDisclosures = [
