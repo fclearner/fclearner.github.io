@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/AlanFangicon32X32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/AlanFangicon16X16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="在 ASR 输出上做 NER 或结构化抽取，不能只把它当成普通文本任务。语音转写会带来插入、删除、替换、同音错误和边界错位，导致实体在参考文本和识别文本中的位置天然不稳定。 如果仍然用严格字符 span 评测，很多可接受的识别会被误判为错误，真正严重的问题反而可能被掩盖。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ASR 噪声下的结构化抽取评测：从文本相似到实体归因">
+<meta property="og:url" content="https://alanfangblog.com/2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/index.html">
+<meta property="og:site_name" content="AlanFangBlog">
+<meta property="og:description" content="在 ASR 输出上做 NER 或结构化抽取，不能只把它当成普通文本任务。语音转写会带来插入、删除、替换、同音错误和边界错位，导致实体在参考文本和识别文本中的位置天然不稳定。 如果仍然用严格字符 span 评测，很多可接受的识别会被误判为错误，真正严重的问题反而可能被掩盖。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-06-10T09:50:00.000Z">
+<meta property="article:modified_time" content="2026-06-10T04:32:37.674Z">
+<meta property="article:author" content="Alan Fang">
+<meta property="article:tag" content="ASR">
+<meta property="article:tag" content="Evaluation">
+<meta property="article:tag" content="NER">
+<meta property="article:tag" content="Open Source">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://alanfangblog.com/2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/","path":"2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/","title":"ASR 噪声下的结构化抽取评测：从文本相似到实体归因"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>ASR 噪声下的结构化抽取评测：从文本相似到实体归因 | AlanFangBlog</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">AlanFangBlog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ASR-%E5%99%AA%E5%A3%B0%E6%94%B9%E5%8F%98%E4%BA%86%E8%AF%84%E6%B5%8B%E5%AF%B9%E8%B1%A1"><span class="nav-number">1.</span> <span class="nav-text">ASR 噪声改变了评测对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A4%E9%98%B6%E6%AE%B5%E8%AF%84%E6%B5%8B%E6%9B%B4%E7%A8%B3"><span class="nav-number">2.</span> <span class="nav-text">两阶段评测更稳</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E7%B3%8A%E5%8C%B9%E9%85%8D%E4%B8%8D%E6%98%AF%E6%94%BE%E6%9D%BE%E6%A0%87%E5%87%86"><span class="nav-number">3.</span> <span class="nav-text">模糊匹配不是放松标准</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%94%99%E8%AF%AF%E5%BD%92%E5%9B%A0%E6%AF%94%E5%8D%95%E4%B8%AA-F1-%E6%9B%B4%E6%9C%89%E7%94%A8"><span class="nav-number">4.</span> <span class="nav-text">错误归因比单个 F1 更有用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E6%BA%90%E5%B7%A5%E5%85%B7%E5%BD%A2%E6%80%81"><span class="nav-number">5.</span> <span class="nav-text">开源工具形态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">小结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Alan Fang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Alan Fang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="ASR 噪声下的结构化抽取评测：从文本相似到实体归因 | AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ASR 噪声下的结构化抽取评测：从文本相似到实体归因
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2026-06-10 17:50:00 / Modified: 12:32:37" itemprop="dateCreated datePublished" datetime="2026-06-10T17:50:00+08:00">2026-06-10</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>在 ASR 输出上做 NER 或结构化抽取，不能只把它当成普通文本任务。语音转写会带来插入、删除、替换、同音错误和边界错位，导致实体在参考文本和识别文本中的位置天然不稳定。</p>
+<p>如果仍然用严格字符 span 评测，很多可接受的识别会被误判为错误，真正严重的问题反而可能被掩盖。</p>
+<span id="more"></span>
+
+<h2 id="ASR-噪声改变了评测对象"><a href="#ASR-噪声改变了评测对象" class="headerlink" title="ASR 噪声改变了评测对象"></a>ASR 噪声改变了评测对象</h2><p>普通 NER 评测默认输入文本是稳定的，实体 span 可以精确定位。ASR 场景里，输入本身就是模型输出，错误会先发生在转写阶段。</p>
+<p>例如一个实体被识别成同音近似词，结构化抽取模型可能仍能恢复语义；也可能 ASR 多插入几个字，导致后续 span 全部错位。严格按字符位置对齐，会把这些情况混在一起。</p>
+<p>因此评测目标应该从“span 是否完全相等”扩展为“关键信息是否被正确恢复，以及错误来自哪里”。</p>
+<h2 id="两阶段评测更稳"><a href="#两阶段评测更稳" class="headerlink" title="两阶段评测更稳"></a>两阶段评测更稳</h2><p>第一阶段评估 ASR 文本本身：WER、CER、关键词召回、数字和专名错误类型。</p>
+<p>第二阶段评估结构化抽取结果：实体类型是否正确，实体值是否可接受，归一化结果是否一致，缺失和误报分别是多少。</p>
+<p>这两阶段要能关联。否则抽取失败时，很难判断是 ASR 没听对，还是抽取模型没有理解。</p>
+<h2 id="模糊匹配不是放松标准"><a href="#模糊匹配不是放松标准" class="headerlink" title="模糊匹配不是放松标准"></a>模糊匹配不是放松标准</h2><p>ASR 噪声下需要允许局部模糊匹配，但这不等于随意放宽标准。合理的做法是把匹配规则显式化：</p>
+<ul>
+<li>文本规范化后比较；</li>
+<li>在局部窗口内匹配实体；</li>
+<li>对同音、数字读法和简繁差异单独处理；</li>
+<li>对不同实体类型使用不同容忍度；</li>
+<li>输出 exact、partial、normalized 三类结果。</li>
+</ul>
+<p>这样可以保留评测的可解释性。</p>
+<h2 id="错误归因比单个-F1-更有用"><a href="#错误归因比单个-F1-更有用" class="headerlink" title="错误归因比单个 F1 更有用"></a>错误归因比单个 F1 更有用</h2><p>实体 F1 能说明总体效果，但不能指导修复。更有价值的是错误归因：</p>
+<ul>
+<li>ASR 删除导致实体缺失；</li>
+<li>ASR 替换导致实体值错误；</li>
+<li>文本规范化导致格式不一致；</li>
+<li>抽取模型漏召回；</li>
+<li>抽取模型误报；</li>
+<li>后处理归一化失败。</li>
+</ul>
+<p>有了归因，后续才知道应该改 ASR、改抽取模型、改 normalizer，还是改评测规则。</p>
+<h2 id="开源工具形态"><a href="#开源工具形态" class="headerlink" title="开源工具形态"></a>开源工具形态</h2><p>一个通用评测工具可以设计成三层输入：</p>
+<ol>
+<li>REF：参考文本和实体标注；</li>
+<li>HYP：ASR 文本和抽取结果；</li>
+<li>normalization config：实体类型、匹配窗口、归一化规则。</li>
+</ol>
+<p>输出包括样本级报告、实体级 precision&#x2F;recall&#x2F;F1、错误归因分布和可人工复核的 bad case 列表。</p>
+<p>这类工具不需要绑定特定模型，反而更适合开源：它提供的是评测语言，而不是某个单点模型。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>ASR 噪声下的结构化抽取评测，核心是把文本错误、实体错误和归一化错误拆开。只有错误类型被看见，系统优化才有方向。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Open-Source/" rel="tag"># Open Source</a>
+              <a href="/tags/ASR/" rel="tag"># ASR</a>
+              <a href="/tags/Evaluation/" rel="tag"># Evaluation</a>
+              <a href="/tags/NER/" rel="tag"># NER</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/" rel="prev" title="LLM 与语音模型推理服务：队列、流式与可观测性">
+                  <i class="fa fa-angle-left"></i> LLM 与语音模型推理服务：队列、流式与可观测性
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/06/10/Agentic-Coding-Governance/" rel="next" title="Agentic Coding 工程治理：多模型协作的角色、权限与验证闭环">
+                  Agentic Coding 工程治理：多模型协作的角色、权限与验证闭环 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Alan Fang</span>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
