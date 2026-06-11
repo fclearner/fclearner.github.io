@@ -57,7 +57,7 @@ giscus:
   repo: fclearner/fclearner.github.io
   repo_id: MDEwOlJlcG9zaXRvcnkxOTQwMTgyMjk=
   category: Announcements
-  category_id:
+  category_id: DIC_kwDOC5B7tc4C-7pW
   mapping: pathname
   strict: false
   reactions_enabled: true
