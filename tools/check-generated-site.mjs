@@ -93,6 +93,7 @@ if (!errors.length) {
     'about/index.html',
     'about/index/Mydraw1.jpg',
     'archives/index.html',
+    'js/third-party/comments/utterances.js',
     '2021/08/24/ASR-LAS-model/LAS_flow.png',
     '2026/06/09/PVAD2-engineering-loop/index.html',
     '2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/index.html',
@@ -161,6 +162,24 @@ if (!errors.length) {
     }
   }
   if (!searchTriggerFound) fail('Generated HTML does not contain the NexT local-search trigger.');
+
+  const representativeCommentPage = path.join(publicDir, '2026', '06', '10', 'AI-Adaptive-RAG-Retrieval-Scheduling', 'index.html');
+  if (exists(representativeCommentPage)) {
+    const commentHtml = read(representativeCommentPage);
+    const requiredCommentSnippets = [
+      'utterances-container',
+      '/js/third-party/comments/utterances.js',
+      '"active":"utterances"',
+      '"repo":"fclearner/fclearner.github.io"',
+      '"issue_term":"pathname"'
+    ];
+    for (const snippet of requiredCommentSnippets) {
+      if (!commentHtml.includes(snippet)) {
+        fail(`Missing Utterances comment snippet ${JSON.stringify(snippet)} in ${path.relative(root, representativeCommentPage)}.`);
+      }
+    }
+  }
+
   const pvadArticleFiles = [
     path.join(sourcePostsDir, 'PVAD2-engineering-loop.md'),
     path.join(publicDir, '2026', '06', '09', 'PVAD2-engineering-loop', 'index.html')

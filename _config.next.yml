@@ -38,17 +38,16 @@ local_search:
   unescape: true
   preload: false
 
-# Comments are intentionally disabled until a provider is authorized.
-# For this static GitHub Pages blog, utterances is the lowest-maintenance
-# path because it stores comments in GitHub Issues instead of a custom DB.
+# GitHub-backed comments. Utterances stores comments in GitHub Issues, so the
+# static site does not need a custom database or backend service.
 comments:
   style: tabs
-  active:
+  active: utterances
   storage: true
   lazyload: true
 
 utterances:
-  enable: false
+  enable: true
   repo: fclearner/fclearner.github.io
   issue_term: pathname
   theme: preferred-color-scheme

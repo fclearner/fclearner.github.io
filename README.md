@@ -34,7 +34,11 @@ generates `public/search.xml` with `hexo-generator-searchdb`, and NexT performs
 the search in the browser.
 
 Comments are different because static hosting cannot store visitor input by
-itself. Recommended options:
+itself. This blog uses `utterances`, which stores comments in GitHub Issues for
+`fclearner/fclearner.github.io`; no custom database or backend service is
+required.
+
+Provider options considered:
 
 - `utterances`: stores comments in GitHub Issues; no custom database or server,
   but the Utterances GitHub App must be installed for the target repository.
@@ -44,9 +48,9 @@ itself. Recommended options:
 - `isso` or `remark42`: fully self-hosted; requires running a service and
   maintaining its storage/database.
 
-The repository currently keeps comments disabled and includes an Utterances
-configuration scaffold in `_config.next.yml`. Enable it only after the GitHub
-provider setup is complete.
+For comments to accept new input on the live site, the Utterances GitHub App
+must be installed for `fclearner/fclearner.github.io`, and Issues must be
+enabled on that repository.
 
 ## Source And Deploy Repositories
 

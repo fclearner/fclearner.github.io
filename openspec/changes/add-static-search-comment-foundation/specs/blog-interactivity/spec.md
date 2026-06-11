@@ -10,10 +10,11 @@ The public blog SHALL provide site search without requiring a server-side databa
 - **THEN** a static search index exists in the generated public output
 - **AND** the theme configuration exposes a search trigger in the rendered site.
 
-### Requirement: Comment provider decision boundary
-The public blog SHALL document comment provider choices and SHALL NOT enable a live third-party or self-hosted comment service until the provider is configured.
+### Requirement: GitHub-backed comments
+The public blog SHALL use a GitHub-backed comment provider without requiring a custom database or backend service.
 
-#### Scenario: Comments are not yet provider-authorized
+#### Scenario: Blog is generated with comments enabled
 - **WHEN** the blog is generated
-- **THEN** no third-party comment widget is loaded
-- **AND** the repository documents which providers avoid a custom database and which providers require self-hosted service/storage.
+- **THEN** post pages include an Utterances comment container
+- **AND** the Utterances loader is configured for the public GitHub Pages repository
+- **AND** the repository documents the GitHub App and Issues prerequisites.
