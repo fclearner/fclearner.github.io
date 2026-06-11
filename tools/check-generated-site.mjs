@@ -4,7 +4,7 @@ import path from 'node:path';
 const root = process.cwd();
 const publicDir = path.join(root, 'public');
 const sourcePostsDir = path.join(root, 'source', '_posts');
-const expectedPostCount = 17;
+const expectedPostCount = 18;
 const errors = [];
 const warnings = [];
 
@@ -103,7 +103,8 @@ if (!errors.length) {
     '2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/index.html',
     '2026/06/10/Agentic-Coding-Governance/index.html',
     '2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/index.html',
-    '2026/06/10/Speech-Batch-Consistency-Debugging/index.html'
+    '2026/06/10/Speech-Batch-Consistency-Debugging/index.html',
+    '2026/06/11/Speech-Dialog-Data-Synthesis-Quality-Gates/index.html'
   ];
   for (const rel of criticalFiles) {
     if (!exists(path.join(publicDir, rel))) fail(`Missing generated file: public/${rel}`);
@@ -287,6 +288,11 @@ if (!errors.length) {
       source: 'Speech-Batch-Consistency-Debugging.md',
       html: ['2026', '06', '10', 'Speech-Batch-Consistency-Debugging', 'index.html'],
       required: ['batch', 'mask', 'dtype', 'subsampling']
+    },
+    {
+      source: 'Speech-Dialog-Data-Synthesis-Quality-Gates.md',
+      html: ['2026', '06', '11', 'Speech-Dialog-Data-Synthesis-Quality-Gates', 'index.html'],
+      required: ['schema', 'quality_flags', 'n-best', 'reason code']
     }
   ];
   const forbiddenSeriesDisclosures = [
