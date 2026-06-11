@@ -15,31 +15,6 @@
       </tags>
   </entry>
   <entry>
-    <title>ASR-CTC</title>
-    <url>/2021/08/29/ASR-CTC/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CTC(Connectionist Temporal Classification)可以在未对输入序列与输出标签进行FA(Force Alignment)的情况下完成时序对齐及分类工作，主要用于语音识别及手写识别[1]。</p>
-<span id="more"></span>
-<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CTC的工作原理如下图所示[1]:</p>
-<p><img src="/2021/08/29/ASR-CTC/CTC.png"></p>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;以ASR为例，给定语音信号输入序列$X&#x3D;[x_1, x_2,…, x_T]$，输出序列记为$Y&#x3D;[y_1, y_2, …, y_U]$，当前需要找到$X$到$Y$的精确映射。<br>&nbsp;&nbsp;&nbsp;&nbsp;因以下几点的存在使得寻找映射的工作比较困难：<br>1)X和Y是可变的序列<br>2)X和Y的长度比率不是固定的<br>3)X和Y的对应关系事先无法确定<br>&nbsp;&nbsp;&nbsp;&nbsp;CTC不仅解决了以上的问题，还基于给定的输入序列$X$得出了$Y$的概率分布，可通过使用该概率分布推断可能的输出或评估输出的概率。<br>&nbsp;&nbsp;&nbsp;&nbsp;目标：<br>1)损失函数:驱使概率分布更接近准确的输出，计算Y在给定输入X下的概率分布($P(Y|X)$)<br>2)推论:最大化$P(Y|X)$，即<br>$$Y^* &#x3D; \arg\max_{Y}P(Y|X)$$</p>
-<h2 id="时序对齐"><a href="#时序对齐" class="headerlink" title="时序对齐"></a>时序对齐</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;论文举例 cat：<br>$$input(X): [x1, x2, x3, x4, x5, x6]\<br>alignment:  [ c,  c,  a,  a,  a,  t]\<br>output(Y):  [ c,      a,          t]$$</p>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;实现时序对齐的几个问题:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1)输入和输出可能无法完全对应，比如输入有长时间的静音<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2)[h,h,e,l,l,l,o]可能会被识别成helo，实际为hello</p>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;为实现时序对齐，解决上述问题，论文提出的方案(remarkable):<br>$$引入空白字符\epsilon$$<br>&nbsp;&nbsp;&nbsp;&nbsp;作用是指代静音，区分字符相似的单词(如hello和helo)<br>&nbsp;&nbsp;&nbsp;&nbsp;基于此，hello的输入序列可以表示为[h,h,e,$\epsilon$,$\epsilon$,l,l,l,$\epsilon$,l,l,o]，去除重复字符后为[h,e,$\epsilon$,l,$\epsilon$,l,o]，去除空白字符后表示为[h,e,l,l,o]</p>
-<h2 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CTC使用RNN作为训练网络，在每一步都会生成输出序列的概率分布，其中对于每一对$(X,Y)$，其条件概率为：<br>$$p(Y|X) &#x3D; \sum_{A\in A_{X,Y}} {\prod_{t&#x3D;1}^T p_t(a_t|X)}$$<br>&nbsp;&nbsp;&nbsp;&nbsp;CTC loss的计算十分费时，论文使用动态规划对计算过程进行了优化，合并同一time step的相同输出，如下图所示:<br><img src="/2021/08/29/ASR-CTC/CTC_dp.png"><br>&nbsp;&nbsp;&nbsp;&nbsp;CTC算法的预测序列为<br>$$Z &#x3D; [\epsilon, y_1, \epsilon, y_2, \epsilon, y_3, …, \epsilon, y_U, \epsilon]$$</p>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;当前字符为空白字符$\epsilon$时，下一个字符有两种可能:空白字符或$Z$序列中的下一个字符。<br>&nbsp;&nbsp;&nbsp;&nbsp;当前字符不是空白字符时，下一个字符有三种可能:当前字符、空白字符或$Z$序列中的下一个字符。<br>&nbsp;&nbsp;&nbsp;&nbsp;下图为CTC的计算过程:<br><img src="/2021/08/29/ASR-CTC/CTC_compute.png"></p>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;基于动态规划，可用前向和后向概率计算CTC的loss，计算过程可参考[2]。<br>&nbsp;&nbsp;&nbsp;&nbsp;对于训练集D，CTC的loss计算可归纳为下式:<br>$$\sum_{(X,Y)\in D}{-\log p(Y|X)}$$<br>&nbsp;&nbsp;&nbsp;&nbsp;参考博客[3]，CTC的loss函数求解如下图所示:<br><img src="/2021/08/29/ASR-CTC/CTC_loss.png"><br>&nbsp;&nbsp;&nbsp;&nbsp;其中的z就是博客前半部分讨论的y，<br><img src="/2021/08/29/ASR-CTC/CTC_loss_def.png"></p>
-<h2 id="推论"><a href="#推论" class="headerlink" title="推论"></a>推论</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;由于直接暴力计算，$𝒑(𝒛│𝒙)$的复杂度非常高，论文中提及了greedy search和beam search两种方法[4]：<br>&nbsp;&nbsp;&nbsp;&nbsp;greedy search:每个时间片均取该时间片概率最高的节点作为输出<br>&nbsp;&nbsp;&nbsp;&nbsp;beam search:Beam Search是寻找全局最优值和Greedy Search在查找时间和模型精度的一个折中</p>
-<h2 id="CTC与HMM"><a href="#CTC与HMM" class="headerlink" title="CTC与HMM"></a>CTC与HMM</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;作者借鉴HMM的Forward-Backward算法思路，利用动态规划算法求解[3]。</p>
-<h2 id="CTC缺陷"><a href="#CTC缺陷" class="headerlink" title="CTC缺陷"></a>CTC缺陷</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CTC假设每个时间片之间是相互独立，这种假设使输出丢失了时间片之间的语义信息，因此在CTC后部添加语言模型可有一定的优化效果。</p>
-<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><p>[1] <a href="https://distill.pub/2017/ctc/">https://distill.pub/2017/ctc/</a> Sequence Modeling With CTC<br>[2] <a href="https://xiaodu.io/ctc-explained/">https://xiaodu.io/ctc-explained/</a><br>[3] <a href="https://xiaodu.io/ctc-explained/">https://xiaodu.io/ctc-explained/</a><br>[4] <a href="https://zhuanlan.zhihu.com/p/42719047">https://zhuanlan.zhihu.com/p/42719047</a></p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>ASR-Classic</tag>
-        <tag>Loss</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Adaptive RAG：从相似度检索到信息需求调度</title>
     <url>/2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/</url>
     <content><![CDATA[<p>RAG 的第一阶段很直观：把文档切块，向量化，按相似度取回若干段，再交给 LLM 生成答案。这个流程足够实用，但它默认了一个强假设：模型在生成前就知道自己需要什么信息。复杂问题里，这个假设经常不成立。</p>
@@ -84,6 +59,31 @@
         <tag>RAG</tag>
         <tag>LLM</tag>
         <tag>Open Source</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ASR-CTC</title>
+    <url>/2021/08/29/ASR-CTC/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CTC(Connectionist Temporal Classification)可以在未对输入序列与输出标签进行FA(Force Alignment)的情况下完成时序对齐及分类工作，主要用于语音识别及手写识别[1]。</p>
+<span id="more"></span>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CTC的工作原理如下图所示[1]:</p>
+<p><img src="/2021/08/29/ASR-CTC/CTC.png"></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;以ASR为例，给定语音信号输入序列$X&#x3D;[x_1, x_2,…, x_T]$，输出序列记为$Y&#x3D;[y_1, y_2, …, y_U]$，当前需要找到$X$到$Y$的精确映射。<br>&nbsp;&nbsp;&nbsp;&nbsp;因以下几点的存在使得寻找映射的工作比较困难：<br>1)X和Y是可变的序列<br>2)X和Y的长度比率不是固定的<br>3)X和Y的对应关系事先无法确定<br>&nbsp;&nbsp;&nbsp;&nbsp;CTC不仅解决了以上的问题，还基于给定的输入序列$X$得出了$Y$的概率分布，可通过使用该概率分布推断可能的输出或评估输出的概率。<br>&nbsp;&nbsp;&nbsp;&nbsp;目标：<br>1)损失函数:驱使概率分布更接近准确的输出，计算Y在给定输入X下的概率分布($P(Y|X)$)<br>2)推论:最大化$P(Y|X)$，即<br>$$Y^* &#x3D; \arg\max_{Y}P(Y|X)$$</p>
+<h2 id="时序对齐"><a href="#时序对齐" class="headerlink" title="时序对齐"></a>时序对齐</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;论文举例 cat：<br>$$input(X): [x1, x2, x3, x4, x5, x6]\<br>alignment:  [ c,  c,  a,  a,  a,  t]\<br>output(Y):  [ c,      a,          t]$$</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;实现时序对齐的几个问题:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1)输入和输出可能无法完全对应，比如输入有长时间的静音<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2)[h,h,e,l,l,l,o]可能会被识别成helo，实际为hello</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;为实现时序对齐，解决上述问题，论文提出的方案(remarkable):<br>$$引入空白字符\epsilon$$<br>&nbsp;&nbsp;&nbsp;&nbsp;作用是指代静音，区分字符相似的单词(如hello和helo)<br>&nbsp;&nbsp;&nbsp;&nbsp;基于此，hello的输入序列可以表示为[h,h,e,$\epsilon$,$\epsilon$,l,l,l,$\epsilon$,l,l,o]，去除重复字符后为[h,e,$\epsilon$,l,$\epsilon$,l,o]，去除空白字符后表示为[h,e,l,l,o]</p>
+<h2 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CTC使用RNN作为训练网络，在每一步都会生成输出序列的概率分布，其中对于每一对$(X,Y)$，其条件概率为：<br>$$p(Y|X) &#x3D; \sum_{A\in A_{X,Y}} {\prod_{t&#x3D;1}^T p_t(a_t|X)}$$<br>&nbsp;&nbsp;&nbsp;&nbsp;CTC loss的计算十分费时，论文使用动态规划对计算过程进行了优化，合并同一time step的相同输出，如下图所示:<br><img src="/2021/08/29/ASR-CTC/CTC_dp.png"><br>&nbsp;&nbsp;&nbsp;&nbsp;CTC算法的预测序列为<br>$$Z &#x3D; [\epsilon, y_1, \epsilon, y_2, \epsilon, y_3, …, \epsilon, y_U, \epsilon]$$</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;当前字符为空白字符$\epsilon$时，下一个字符有两种可能:空白字符或$Z$序列中的下一个字符。<br>&nbsp;&nbsp;&nbsp;&nbsp;当前字符不是空白字符时，下一个字符有三种可能:当前字符、空白字符或$Z$序列中的下一个字符。<br>&nbsp;&nbsp;&nbsp;&nbsp;下图为CTC的计算过程:<br><img src="/2021/08/29/ASR-CTC/CTC_compute.png"></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;基于动态规划，可用前向和后向概率计算CTC的loss，计算过程可参考[2]。<br>&nbsp;&nbsp;&nbsp;&nbsp;对于训练集D，CTC的loss计算可归纳为下式:<br>$$\sum_{(X,Y)\in D}{-\log p(Y|X)}$$<br>&nbsp;&nbsp;&nbsp;&nbsp;参考博客[3]，CTC的loss函数求解如下图所示:<br><img src="/2021/08/29/ASR-CTC/CTC_loss.png"><br>&nbsp;&nbsp;&nbsp;&nbsp;其中的z就是博客前半部分讨论的y，<br><img src="/2021/08/29/ASR-CTC/CTC_loss_def.png"></p>
+<h2 id="推论"><a href="#推论" class="headerlink" title="推论"></a>推论</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;由于直接暴力计算，$𝒑(𝒛│𝒙)$的复杂度非常高，论文中提及了greedy search和beam search两种方法[4]：<br>&nbsp;&nbsp;&nbsp;&nbsp;greedy search:每个时间片均取该时间片概率最高的节点作为输出<br>&nbsp;&nbsp;&nbsp;&nbsp;beam search:Beam Search是寻找全局最优值和Greedy Search在查找时间和模型精度的一个折中</p>
+<h2 id="CTC与HMM"><a href="#CTC与HMM" class="headerlink" title="CTC与HMM"></a>CTC与HMM</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;作者借鉴HMM的Forward-Backward算法思路，利用动态规划算法求解[3]。</p>
+<h2 id="CTC缺陷"><a href="#CTC缺陷" class="headerlink" title="CTC缺陷"></a>CTC缺陷</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CTC假设每个时间片之间是相互独立，这种假设使输出丢失了时间片之间的语义信息，因此在CTC后部添加语言模型可有一定的优化效果。</p>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><p>[1] <a href="https://distill.pub/2017/ctc/">https://distill.pub/2017/ctc/</a> Sequence Modeling With CTC<br>[2] <a href="https://xiaodu.io/ctc-explained/">https://xiaodu.io/ctc-explained/</a><br>[3] <a href="https://xiaodu.io/ctc-explained/">https://xiaodu.io/ctc-explained/</a><br>[4] <a href="https://zhuanlan.zhihu.com/p/42719047">https://zhuanlan.zhihu.com/p/42719047</a></p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>ASR-Classic</tag>
+        <tag>Loss</tag>
       </tags>
   </entry>
   <entry>
@@ -317,27 +317,6 @@
       </tags>
   </entry>
   <entry>
-    <title>CCA application in SSVEP frequency detection</title>
-    <url>/2019/07/15/CCA-application-in-SSVEP-frequency-detection/</url>
-    <content><![CDATA[<h2 id="典型相关分析在稳态视觉诱发电位频率识别方面的应用"><a href="#典型相关分析在稳态视觉诱发电位频率识别方面的应用" class="headerlink" title="典型相关分析在稳态视觉诱发电位频率识别方面的应用"></a>典型相关分析在稳态视觉诱发电位频率识别方面的应用</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;随着脑机接口的快速发展，典型相关分析在稳态视觉诱发电位频率识别方面占据着重要的地位，由于脑电信号非线性的特征，使得机器学习算法在该领域的使用不具备优势，而比较信号同向变化相似率的CCA算法却取得了十分出色的效果。本文将对于CCA在SSVEP方面的应用发展以及优缺点进行介绍，希望为国内的脑机接口博客发展做出贡献。</p>
-<span id="more"></span>
-<h3 id="Question-1-什么是CCA？"><a href="#Question-1-什么是CCA？" class="headerlink" title="Question 1: 什么是CCA？"></a>Question 1: 什么是CCA？</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;CCA是一个多变量的统计方法，当有两组数据时使用，可能有一些潜在的相关性。CCA将普通的相关性扩展到两组变量。首先，CCA为两个集合找到一对称为正则变量的线性组合，使两个正则变量之间的相关性最大化。然后找到第二对，与第一对正则变量不相关，但相关性次之。构造正则变量的过程一直持续下去，直到正则变量对的数目等于较小集合中变量的数目。系数描述了两个集合之间的相关关系。但脑电信号中应用时只考虑了最大相关系数[1]。</p>
-<h3 id="Question-2-什么是SSVEP？"><a href="#Question-2-什么是SSVEP？" class="headerlink" title="Question 2: 什么是SSVEP？"></a>Question 2: 什么是SSVEP？</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;稳态状态视觉诱发电位(SSVEP)可定义为由快速重复的视觉刺激诱发的周期性诱发电位，其频率一般大于6hz。SSVEP由若干离散的频率分量组成。与ssvep相关的频率范围通常包括视觉刺激的基频及其谐波[1]。<br>&nbsp;&nbsp;&nbsp;&nbsp;SSVEP采集时以不同频率的光标闪烁刺激大脑产生相应频率的电信号，如下图所示:<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_collect.jpg"><br>&nbsp;&nbsp;&nbsp;&nbsp;SSVEP信号经过傅里叶变换后，可在刺激信号及其谐波处看到明显的尖峰，如下图所示:</p>
-<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_signal.png"></p>
-<h4 id="CCA在SSVEP中的应用"><a href="#CCA在SSVEP中的应用" class="headerlink" title="CCA在SSVEP中的应用"></a>CCA在SSVEP中的应用</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;CCA使用了两种信号，一个是用于刺激大脑的闪烁信号，另一个是大脑相应产生的SSVEP信号。<br>&nbsp;&nbsp;&nbsp;&nbsp;闪烁信号由于具有特定的频率，因此可根据傅里叶级数分解为$\sin 2{\pi}ft$, $\cos 2{\pi}ft$, $\sin 4{\pi}ft$…<br>&nbsp;&nbsp;&nbsp;&nbsp;如下式总结：<br>$$y(t) &#x3D; { y1(t) y2(t) y3(t) y4(t) y5(t) y6(t)} &#x3D; { \sin 2{\pi}ft \cos 2{\pi}ft \sin 4{\pi}ft \cos 4{\pi}ft \sin 6{\pi}ft \cos 6{\pi}ft}$$<br>$$t&#x3D;\frac1S, \frac2S, …, \frac{T}{S}, T是采样点数, S是采样率 $$<br>&nbsp;&nbsp;&nbsp;&nbsp;高阶谐波可忽略，这里取六个谐波信号。<br>&nbsp;&nbsp;&nbsp;&nbsp;SSVEP信号源自大脑上的不同通道，在[1]中，选择的通道为B2, Oz, O2, POz, D2, O1, PO7和PO1,共八个。<br>&nbsp;&nbsp;&nbsp;&nbsp;CCA的结构如下图所示：<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCA.png"><br>公式如下图所示（太复杂，不想用markdown写了）<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCAFormula.png"><br>&nbsp;&nbsp;&nbsp;&nbsp;将分母设为1,该式可变为一个约束优化问题，可以用广义特征值分解的方式求解，具体的求解流程可以参考CCA的<a href="https://www.cnblogs.com/pinard/p/6288716.html">其他博客</a>。<br>&nbsp;&nbsp;&nbsp;&nbsp;本文只做大体框架的梳理。</p>
-<h3 id="Question-3-CCA的缺陷？"><a href="#Question-3-CCA的缺陷？" class="headerlink" title="Question 3: CCA的缺陷？"></a>Question 3: CCA的缺陷？</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;典型相关分析自 2006 年 Lin 等人将其应用于脑机接口以来，因其结合了空间滤波、特征提取及分类功能而深受研究者的喜爱，并且在 SSVEP 信号处理中有着极为优秀的精度。但该算法仍然存在如下问题：<br>&nbsp;&nbsp;&nbsp;&nbsp;1）相位漂移问题。每个受试者对于同种视觉刺激具有不同的反应时滞，从而产生了脑电数据的相位漂移问题，当相位漂移问题存在时，数据训练往往会产生较大的偏差。<br>&nbsp;&nbsp;&nbsp;&nbsp;2） CCA 主要用于线性信号的处理，而脑电信号为非线性信号。在 CCA 的相关实验中，假设脑电信号为刺激频率的线性输出，但实际混杂了部分环境噪声及伪迹。CCA 在 2s 以上的长时间片中的表现极为优秀，但因为其未考虑脑电信号非线性的特性，在 1s 以内短时间片处理时仍存在不足之处。<br>&nbsp;&nbsp;&nbsp;&nbsp;近年来，研究者针对以上问题提出了很多不同的优化方案，包括使用脑电数据替代刺激信号作为参考信号以及利用数学公式计算受试者的相位偏移等。</p>
-<h3 id="CCA-extend"><a href="#CCA-extend" class="headerlink" title="CCA extend"></a>CCA extend</h3><h4 id="DCCA-深度典型相关分析算法"><a href="#DCCA-深度典型相关分析算法" class="headerlink" title="DCCA(深度典型相关分析算法)"></a>DCCA(深度典型相关分析算法)</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;关于非线性信号处理问题，研究者们尝试加入非线性算法进行优化处理。而近年来获得研究者们青睐的深度学习算法具备着较为优秀的非线性数据处理能力，如下图所示，通过多层神经网络表达典型相关分析算法的基础结构，并在此基础加入非线性处理相关算法，构建基于皮尔逊相关系数的特征提取模型，从而达到非线性信号分析处理的效果。<br>&nbsp;&nbsp;&nbsp;&nbsp;深度典型相关分析算法将网络模型分为两部分，一部分为参考信号的训练网络，一部分为待检测脑电信号的训练网络，网络结构的核心部分为典型相关分析算法的多层网络实现。深度典型相关分析算法利用训练数据获取单个受试者的空间滤波权值矩阵，因该权值矩阵经过多层网络，因此获得了更好的非线性优化效果，最后单个受试者的相关脑电数据在测试时即可获得较好的优化效果[2]。<br>&nbsp;&nbsp;&nbsp;&nbsp;深度典型相关分析的缺陷是，其使用了深度神经网络这一需要大量训练数据的算法结构，而实际采集时脑电数据获取困难，数据量较少，另外，深度神经网络虽解决了 CCA 算法中存在的非线性信号精度丢失问题，但对于相位漂移问题缺乏较好的优化措施。<br>DCCA原理图：<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/DCCA.png"></p>
-<h4 id="TRCA-任务组成相关分析算法"><a href="#TRCA-任务组成相关分析算法" class="headerlink" title="TRCA(任务组成相关分析算法)"></a>TRCA(任务组成相关分析算法)</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;TRCA 算法从脑电数据本身出发，将脑电数据视为任务相关及任务不相关两部分，通过最大化同一类脑电数据的协方差，构建了能够提取任务相关成分的权值矩阵，即实现了一个性能优秀的空间滤波数学模型，从而在利用皮尔逊相关系数进行分类时可以获得更为出色的优化效果，其处理流程如下图所示[3]。<br>&nbsp;&nbsp;&nbsp;&nbsp;TRCA 算法的参考信号使用了多通道脑电数据的均值，使得待检测脑电数据与参考信号可通过同一空间滤波权值矩阵提取任务相关特征，从而增大参考信号与检测信号的相关程度。实际算法处理过程中，需基于一定数量的训练数据获得空间滤波所需的权值矩阵以进行有效的任务相关特征提取。<br>&nbsp;&nbsp;&nbsp;&nbsp;相对于 CCA 算法，TRCA 在短时间片数据处理中具有极大的优势。相较深度典型相关分析算法，TRCA 算法的训练数据需求相对较少，并且训练效果好，无需构建复杂的网络模型。<br>TRCA算法原理图:</p>
-<img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/TRCA.png" width=256 height=256/>
-
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1]《Frequency Recognition Based on Canonical Correlation Analysis for SSVEP-Based BCIs》<br>[2]《Deep canonical correlation analysis》<br>[3]《Enhancing detection of SSVEPs for a high­speed brain speller using task­related component analysis》</p>
-]]></content>
-      <tags>
-        <tag>CCA</tag>
-        <tag>EEG</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>LLM 与语音模型推理服务：队列、流式与可观测性</title>
     <url>/2026/06/10/LLM-Speech-Inference-Serving-Observability/</url>
     <content><![CDATA[<p>推理服务的性能问题，很多时候不在单次 GPU forward，而在排队、预处理、batch 调度、流式输出、取消机制和可观测性之间。模型越大，单次推理越重要；系统越复杂，队列和状态越容易成为真正瓶颈。</p>
@@ -391,6 +370,27 @@
       </tags>
   </entry>
   <entry>
+    <title>CCA application in SSVEP frequency detection</title>
+    <url>/2019/07/15/CCA-application-in-SSVEP-frequency-detection/</url>
+    <content><![CDATA[<h2 id="典型相关分析在稳态视觉诱发电位频率识别方面的应用"><a href="#典型相关分析在稳态视觉诱发电位频率识别方面的应用" class="headerlink" title="典型相关分析在稳态视觉诱发电位频率识别方面的应用"></a>典型相关分析在稳态视觉诱发电位频率识别方面的应用</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;随着脑机接口的快速发展，典型相关分析在稳态视觉诱发电位频率识别方面占据着重要的地位，由于脑电信号非线性的特征，使得机器学习算法在该领域的使用不具备优势，而比较信号同向变化相似率的CCA算法却取得了十分出色的效果。本文将对于CCA在SSVEP方面的应用发展以及优缺点进行介绍，希望为国内的脑机接口博客发展做出贡献。</p>
+<span id="more"></span>
+<h3 id="Question-1-什么是CCA？"><a href="#Question-1-什么是CCA？" class="headerlink" title="Question 1: 什么是CCA？"></a>Question 1: 什么是CCA？</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;CCA是一个多变量的统计方法，当有两组数据时使用，可能有一些潜在的相关性。CCA将普通的相关性扩展到两组变量。首先，CCA为两个集合找到一对称为正则变量的线性组合，使两个正则变量之间的相关性最大化。然后找到第二对，与第一对正则变量不相关，但相关性次之。构造正则变量的过程一直持续下去，直到正则变量对的数目等于较小集合中变量的数目。系数描述了两个集合之间的相关关系。但脑电信号中应用时只考虑了最大相关系数[1]。</p>
+<h3 id="Question-2-什么是SSVEP？"><a href="#Question-2-什么是SSVEP？" class="headerlink" title="Question 2: 什么是SSVEP？"></a>Question 2: 什么是SSVEP？</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;稳态状态视觉诱发电位(SSVEP)可定义为由快速重复的视觉刺激诱发的周期性诱发电位，其频率一般大于6hz。SSVEP由若干离散的频率分量组成。与ssvep相关的频率范围通常包括视觉刺激的基频及其谐波[1]。<br>&nbsp;&nbsp;&nbsp;&nbsp;SSVEP采集时以不同频率的光标闪烁刺激大脑产生相应频率的电信号，如下图所示:<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_collect.jpg"><br>&nbsp;&nbsp;&nbsp;&nbsp;SSVEP信号经过傅里叶变换后，可在刺激信号及其谐波处看到明显的尖峰，如下图所示:</p>
+<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_signal.png"></p>
+<h4 id="CCA在SSVEP中的应用"><a href="#CCA在SSVEP中的应用" class="headerlink" title="CCA在SSVEP中的应用"></a>CCA在SSVEP中的应用</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;CCA使用了两种信号，一个是用于刺激大脑的闪烁信号，另一个是大脑相应产生的SSVEP信号。<br>&nbsp;&nbsp;&nbsp;&nbsp;闪烁信号由于具有特定的频率，因此可根据傅里叶级数分解为$\sin 2{\pi}ft$, $\cos 2{\pi}ft$, $\sin 4{\pi}ft$…<br>&nbsp;&nbsp;&nbsp;&nbsp;如下式总结：<br>$$y(t) &#x3D; { y1(t) y2(t) y3(t) y4(t) y5(t) y6(t)} &#x3D; { \sin 2{\pi}ft \cos 2{\pi}ft \sin 4{\pi}ft \cos 4{\pi}ft \sin 6{\pi}ft \cos 6{\pi}ft}$$<br>$$t&#x3D;\frac1S, \frac2S, …, \frac{T}{S}, T是采样点数, S是采样率 $$<br>&nbsp;&nbsp;&nbsp;&nbsp;高阶谐波可忽略，这里取六个谐波信号。<br>&nbsp;&nbsp;&nbsp;&nbsp;SSVEP信号源自大脑上的不同通道，在[1]中，选择的通道为B2, Oz, O2, POz, D2, O1, PO7和PO1,共八个。<br>&nbsp;&nbsp;&nbsp;&nbsp;CCA的结构如下图所示：<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCA.png"><br>公式如下图所示（太复杂，不想用markdown写了）<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCAFormula.png"><br>&nbsp;&nbsp;&nbsp;&nbsp;将分母设为1,该式可变为一个约束优化问题，可以用广义特征值分解的方式求解，具体的求解流程可以参考CCA的<a href="https://www.cnblogs.com/pinard/p/6288716.html">其他博客</a>。<br>&nbsp;&nbsp;&nbsp;&nbsp;本文只做大体框架的梳理。</p>
+<h3 id="Question-3-CCA的缺陷？"><a href="#Question-3-CCA的缺陷？" class="headerlink" title="Question 3: CCA的缺陷？"></a>Question 3: CCA的缺陷？</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;典型相关分析自 2006 年 Lin 等人将其应用于脑机接口以来，因其结合了空间滤波、特征提取及分类功能而深受研究者的喜爱，并且在 SSVEP 信号处理中有着极为优秀的精度。但该算法仍然存在如下问题：<br>&nbsp;&nbsp;&nbsp;&nbsp;1）相位漂移问题。每个受试者对于同种视觉刺激具有不同的反应时滞，从而产生了脑电数据的相位漂移问题，当相位漂移问题存在时，数据训练往往会产生较大的偏差。<br>&nbsp;&nbsp;&nbsp;&nbsp;2） CCA 主要用于线性信号的处理，而脑电信号为非线性信号。在 CCA 的相关实验中，假设脑电信号为刺激频率的线性输出，但实际混杂了部分环境噪声及伪迹。CCA 在 2s 以上的长时间片中的表现极为优秀，但因为其未考虑脑电信号非线性的特性，在 1s 以内短时间片处理时仍存在不足之处。<br>&nbsp;&nbsp;&nbsp;&nbsp;近年来，研究者针对以上问题提出了很多不同的优化方案，包括使用脑电数据替代刺激信号作为参考信号以及利用数学公式计算受试者的相位偏移等。</p>
+<h3 id="CCA-extend"><a href="#CCA-extend" class="headerlink" title="CCA extend"></a>CCA extend</h3><h4 id="DCCA-深度典型相关分析算法"><a href="#DCCA-深度典型相关分析算法" class="headerlink" title="DCCA(深度典型相关分析算法)"></a>DCCA(深度典型相关分析算法)</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;关于非线性信号处理问题，研究者们尝试加入非线性算法进行优化处理。而近年来获得研究者们青睐的深度学习算法具备着较为优秀的非线性数据处理能力，如下图所示，通过多层神经网络表达典型相关分析算法的基础结构，并在此基础加入非线性处理相关算法，构建基于皮尔逊相关系数的特征提取模型，从而达到非线性信号分析处理的效果。<br>&nbsp;&nbsp;&nbsp;&nbsp;深度典型相关分析算法将网络模型分为两部分，一部分为参考信号的训练网络，一部分为待检测脑电信号的训练网络，网络结构的核心部分为典型相关分析算法的多层网络实现。深度典型相关分析算法利用训练数据获取单个受试者的空间滤波权值矩阵，因该权值矩阵经过多层网络，因此获得了更好的非线性优化效果，最后单个受试者的相关脑电数据在测试时即可获得较好的优化效果[2]。<br>&nbsp;&nbsp;&nbsp;&nbsp;深度典型相关分析的缺陷是，其使用了深度神经网络这一需要大量训练数据的算法结构，而实际采集时脑电数据获取困难，数据量较少，另外，深度神经网络虽解决了 CCA 算法中存在的非线性信号精度丢失问题，但对于相位漂移问题缺乏较好的优化措施。<br>DCCA原理图：<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/DCCA.png"></p>
+<h4 id="TRCA-任务组成相关分析算法"><a href="#TRCA-任务组成相关分析算法" class="headerlink" title="TRCA(任务组成相关分析算法)"></a>TRCA(任务组成相关分析算法)</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;TRCA 算法从脑电数据本身出发，将脑电数据视为任务相关及任务不相关两部分，通过最大化同一类脑电数据的协方差，构建了能够提取任务相关成分的权值矩阵，即实现了一个性能优秀的空间滤波数学模型，从而在利用皮尔逊相关系数进行分类时可以获得更为出色的优化效果，其处理流程如下图所示[3]。<br>&nbsp;&nbsp;&nbsp;&nbsp;TRCA 算法的参考信号使用了多通道脑电数据的均值，使得待检测脑电数据与参考信号可通过同一空间滤波权值矩阵提取任务相关特征，从而增大参考信号与检测信号的相关程度。实际算法处理过程中，需基于一定数量的训练数据获得空间滤波所需的权值矩阵以进行有效的任务相关特征提取。<br>&nbsp;&nbsp;&nbsp;&nbsp;相对于 CCA 算法，TRCA 在短时间片数据处理中具有极大的优势。相较深度典型相关分析算法，TRCA 算法的训练数据需求相对较少，并且训练效果好，无需构建复杂的网络模型。<br>TRCA算法原理图:</p>
+<img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/TRCA.png" width=256 height=256/>
+
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1]《Frequency Recognition Based on Canonical Correlation Analysis for SSVEP-Based BCIs》<br>[2]《Deep canonical correlation analysis》<br>[3]《Enhancing detection of SSVEPs for a high­speed brain speller using task­related component analysis》</p>
+]]></content>
+      <tags>
+        <tag>CCA</tag>
+        <tag>EEG</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>PEFT 工程取舍：LoRA、Prefix 与低成本适配的边界</title>
     <url>/2026/06/10/PEFT-Engineering-Tradeoffs/</url>
     <content><![CDATA[<p>PEFT 经常被理解成“少训练一些参数”。这个理解没有错，但不够工程化。真正的选择不是参数量越少越好，而是在训练显存、推理开销、上下文占用、适配能力、部署形态和工具生态之间做权衡。</p>
@@ -434,123 +434,6 @@
         <tag>Open Source</tag>
         <tag>PEFT</tag>
         <tag>Fine-tuning</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>实时语音 Turn-taking 评测：从端点检测到可接话判断</title>
-    <url>/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/</url>
-    <content><![CDATA[<p>实时语音交互里，端点检测只能回答“声音是否停止”，不能直接回答“系统现在是否应该接话”。更有用的建模目标是 turn-taking：判断当前轮次是否完整、是否需要继续等待、是否允许系统响应，以及错误响应会带来什么交互代价。</p>
-<p>这类问题适合公开讨论，因为它不依赖具体场景。核心是标签定义、输入噪声、延迟预算和评测切分。</p>
-<span id="more"></span>
-
-<h2 id="标签不是一个-end"><a href="#标签不是一个-end" class="headerlink" title="标签不是一个 end"></a>标签不是一个 end</h2><p>一个可用的标签体系至少要区分几类状态：</p>
-<ul>
-<li>continue listening：用户大概率还会继续说；</li>
-<li>semantic end：语义上已经形成完整表达；</li>
-<li>response-ready：系统可以开始响应；</li>
-<li>hold：语义可能完整，但仍建议等待；</li>
-<li>interruption risk：系统现在响应可能造成打断。</li>
-</ul>
-<p>如果所有状态都压成一个 end 标签，模型会把声学停顿、语义完成和可接话动作混在一起。离线 F1 可能不错，在线体验仍然不稳定。</p>
-<h2 id="输入要按噪声分层"><a href="#输入要按噪声分层" class="headerlink" title="输入要按噪声分层"></a>输入要按噪声分层</h2><p>Turn-taking 评测不应该只用干净文本。建议至少准备三组输入：</p>
-<ol>
-<li>clean transcript，用来测语义判断上限；</li>
-<li>final ASR transcript，用来测真实识别误差下的判断；</li>
-<li>partial ASR transcript，用来测流式中间态。</li>
-</ol>
-<p>三组结果的差异可以回答一个关键问题：错误来自语义判断本身，还是来自 ASR 插入、删除、替换和 partial 不稳定。</p>
-<h2 id="评测指标"><a href="#评测指标" class="headerlink" title="评测指标"></a>评测指标</h2><p>常规 precision、recall、F1 仍然有用，但不够。实时交互还需要动作级指标：</p>
-<ul>
-<li>false response：过早接话；</li>
-<li>late response：等待过久；</li>
-<li>missed response：该接话时没有接；</li>
-<li>interruption recovery：误打断后能否恢复；</li>
-<li>first-action latency：第一次动作延迟；</li>
-<li>final-decision stability：partial 更新后决策是否频繁反复。</li>
-</ul>
-<p>这些指标比单一 end accuracy 更接近真实系统质量。</p>
-<h2 id="一个最小评测闭环"><a href="#一个最小评测闭环" class="headerlink" title="一个最小评测闭环"></a>一个最小评测闭环</h2><p>可以从一个小闭环开始：</p>
-<ol>
-<li>收集短句、长句、停顿、修正、重复、半句话等样本；</li>
-<li>标注 semantic end、response-ready 和 hold；</li>
-<li>用 clean transcript 训练或评估上限；</li>
-<li>加入 final ASR text，测识别噪声损失；</li>
-<li>加入 partial text，测流式稳定性；</li>
-<li>把错误分成过早、过晚、误打断、未恢复。</li>
-</ol>
-<p>这个闭环能把“模型是否理解语义”和“系统是否适合实时交互”分开看。</p>
-<h2 id="工程注意点"><a href="#工程注意点" class="headerlink" title="工程注意点"></a>工程注意点</h2><p>线上系统需要保留 event log：partial 输入、时间戳、模型判断、动作、取消、恢复和最终输出。没有这些日志，就很难解释一次错误响应是由文本变化、模型阈值、状态机还是服务延迟造成的。</p>
-<p>Turn-taking 的目标不是追求最早响应，而是在低延迟和低打断之间找到可控平衡。</p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>Open Source</tag>
-        <tag>Evaluation</tag>
-        <tag>Speech</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>音频模型 Batch 一致性排查：从有效输入区间到逐层 diff</title>
-    <url>/2026/06/10/Speech-Batch-Consistency-Debugging/</url>
-    <content><![CDATA[<p>音频模型在 batch size 改变后输出不一致，是很常见但容易误判的问题。不要一开始就怀疑最后的解码结果。更稳的排查顺序是：先证明输入等价，再证明 mask 和有效长度等价，最后逐层定位数值差异从哪里开始放大。</p>
-<p>这篇文章整理一套通用排查协议，适用于 ASR、VAD、speaker model 和其他时序音频模型。</p>
-<span id="more"></span>
-
-<h2 id="先定义什么叫一致"><a href="#先定义什么叫一致" class="headerlink" title="先定义什么叫一致"></a>先定义什么叫一致</h2><p>一致性可以分三层：</p>
-<ul>
-<li>数值一致：有效区域 hidden states 差异在阈值内；</li>
-<li>决策一致：分类标签、token 或分数排序不变；</li>
-<li>指标一致：WER、F1、recall 等整体指标不随 batch policy 漂移。</li>
-</ul>
-<p>很多线上系统真正需要的是决策一致，而不是逐位相同。先定义目标，才能避免把所有浮点差异都当成故障。</p>
-<h2 id="有效输入区间优先"><a href="#有效输入区间优先" class="headerlink" title="有效输入区间优先"></a>有效输入区间优先</h2><p>排查时只比较有效输入区间，不要把 padding 区混进去。建议固定：</p>
-<ol>
-<li>输入样本顺序；</li>
-<li>sampling rate 和 feature extraction；</li>
-<li>padding value；</li>
-<li>valid length；</li>
-<li>attention mask 或 padding mask；</li>
-<li>inference mode、dropout、random seed；</li>
-<li>dtype 和 device。</li>
-</ol>
-<p>如果这些条件没固定，batch&#x3D;1 和 batch&gt;1 的差异没有解释价值。</p>
-<h2 id="逐层-diff"><a href="#逐层-diff" class="headerlink" title="逐层 diff"></a>逐层 diff</h2><p>最小复现可以这样做：</p>
-<ol>
-<li>同一条样本单独推理一次；</li>
-<li>把同一条样本放进混合 batch 再推理一次；</li>
-<li>对齐有效长度；</li>
-<li>保存每层输入输出的 max diff、mean diff、cosine similarity；</li>
-<li>找到差异第一次明显放大的层。</li>
-</ol>
-<p>定位到层之后，再检查该层的 mask broadcast、normalization、cache、subsampling、kernel path 和 dtype 转换。</p>
-<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><p>几类问题最常见：</p>
-<ul>
-<li>padding 区参与了 attention 或 pooling；</li>
-<li>valid length 在 subsampling 后没有同步更新；</li>
-<li>mask 维度广播错误；</li>
-<li>batch normalization 或统计层在推理模式下状态不一致；</li>
-<li>mixed precision 在不同 batch shape 下走了不同 kernel；</li>
-<li>streaming cache 没有按样本隔离。</li>
-</ul>
-<p>这些问题会在最终输出里表现得很混乱，但逐层 diff 通常能把范围缩小。</p>
-<h2 id="回归测试"><a href="#回归测试" class="headerlink" title="回归测试"></a>回归测试</h2><p>修复后应保留 batch consistency regression：</p>
-<ul>
-<li>batch&#x3D;1；</li>
-<li>batch&#x3D;2；</li>
-<li>长短混合；</li>
-<li>全短样本；</li>
-<li>全长样本；</li>
-<li>不同 dtype；</li>
-<li>不同设备或后端。</li>
-</ul>
-<p>每组都只比较有效区域，并同时记录数值差异和决策差异。这样后续升级推理框架、kernel、量化策略或 batch policy 时，问题能被提前发现。</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Batch 一致性排查的关键是顺序。先证明输入和 mask 等价，再逐层找差异，不要直接从最终文本或最终分类结果反推原因。对时序模型来说，有效长度、padding、subsampling 和 dtype 往往比最后一层更早决定问题走向。</p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>Open Source</tag>
-        <tag>Inference</tag>
-        <tag>Debugging</tag>
       </tags>
   </entry>
   <entry>
@@ -707,6 +590,169 @@
       </tags>
   </entry>
   <entry>
+    <title>实时语音 Turn-taking 评测：从端点检测到可接话判断</title>
+    <url>/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/</url>
+    <content><![CDATA[<p>实时语音交互里，端点检测只能回答“声音是否停止”，不能直接回答“系统现在是否应该接话”。更有用的建模目标是 turn-taking：判断当前轮次是否完整、是否需要继续等待、是否允许系统响应，以及错误响应会带来什么交互代价。</p>
+<p>这类问题适合公开讨论，因为它不依赖具体场景。核心是标签定义、输入噪声、延迟预算和评测切分。</p>
+<span id="more"></span>
+
+<h2 id="标签不是一个-end"><a href="#标签不是一个-end" class="headerlink" title="标签不是一个 end"></a>标签不是一个 end</h2><p>一个可用的标签体系至少要区分几类状态：</p>
+<ul>
+<li>continue listening：用户大概率还会继续说；</li>
+<li>semantic end：语义上已经形成完整表达；</li>
+<li>response-ready：系统可以开始响应；</li>
+<li>hold：语义可能完整，但仍建议等待；</li>
+<li>interruption risk：系统现在响应可能造成打断。</li>
+</ul>
+<p>如果所有状态都压成一个 end 标签，模型会把声学停顿、语义完成和可接话动作混在一起。离线 F1 可能不错，在线体验仍然不稳定。</p>
+<h2 id="输入要按噪声分层"><a href="#输入要按噪声分层" class="headerlink" title="输入要按噪声分层"></a>输入要按噪声分层</h2><p>Turn-taking 评测不应该只用干净文本。建议至少准备三组输入：</p>
+<ol>
+<li>clean transcript，用来测语义判断上限；</li>
+<li>final ASR transcript，用来测真实识别误差下的判断；</li>
+<li>partial ASR transcript，用来测流式中间态。</li>
+</ol>
+<p>三组结果的差异可以回答一个关键问题：错误来自语义判断本身，还是来自 ASR 插入、删除、替换和 partial 不稳定。</p>
+<h2 id="评测指标"><a href="#评测指标" class="headerlink" title="评测指标"></a>评测指标</h2><p>常规 precision、recall、F1 仍然有用，但不够。实时交互还需要动作级指标：</p>
+<ul>
+<li>false response：过早接话；</li>
+<li>late response：等待过久；</li>
+<li>missed response：该接话时没有接；</li>
+<li>interruption recovery：误打断后能否恢复；</li>
+<li>first-action latency：第一次动作延迟；</li>
+<li>final-decision stability：partial 更新后决策是否频繁反复。</li>
+</ul>
+<p>这些指标比单一 end accuracy 更接近真实系统质量。</p>
+<h2 id="一个最小评测闭环"><a href="#一个最小评测闭环" class="headerlink" title="一个最小评测闭环"></a>一个最小评测闭环</h2><p>可以从一个小闭环开始：</p>
+<ol>
+<li>收集短句、长句、停顿、修正、重复、半句话等样本；</li>
+<li>标注 semantic end、response-ready 和 hold；</li>
+<li>用 clean transcript 训练或评估上限；</li>
+<li>加入 final ASR text，测识别噪声损失；</li>
+<li>加入 partial text，测流式稳定性；</li>
+<li>把错误分成过早、过晚、误打断、未恢复。</li>
+</ol>
+<p>这个闭环能把“模型是否理解语义”和“系统是否适合实时交互”分开看。</p>
+<h2 id="工程注意点"><a href="#工程注意点" class="headerlink" title="工程注意点"></a>工程注意点</h2><p>线上系统需要保留 event log：partial 输入、时间戳、模型判断、动作、取消、恢复和最终输出。没有这些日志，就很难解释一次错误响应是由文本变化、模型阈值、状态机还是服务延迟造成的。</p>
+<p>Turn-taking 的目标不是追求最早响应，而是在低延迟和低打断之间找到可控平衡。</p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>Open Source</tag>
+        <tag>Evaluation</tag>
+        <tag>Speech</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>音频模型 Batch 一致性排查：从有效输入区间到逐层 diff</title>
+    <url>/2026/06/10/Speech-Batch-Consistency-Debugging/</url>
+    <content><![CDATA[<p>音频模型在 batch size 改变后输出不一致，是很常见但容易误判的问题。不要一开始就怀疑最后的解码结果。更稳的排查顺序是：先证明输入等价，再证明 mask 和有效长度等价，最后逐层定位数值差异从哪里开始放大。</p>
+<p>这篇文章整理一套通用排查协议，适用于 ASR、VAD、speaker model 和其他时序音频模型。</p>
+<span id="more"></span>
+
+<h2 id="先定义什么叫一致"><a href="#先定义什么叫一致" class="headerlink" title="先定义什么叫一致"></a>先定义什么叫一致</h2><p>一致性可以分三层：</p>
+<ul>
+<li>数值一致：有效区域 hidden states 差异在阈值内；</li>
+<li>决策一致：分类标签、token 或分数排序不变；</li>
+<li>指标一致：WER、F1、recall 等整体指标不随 batch policy 漂移。</li>
+</ul>
+<p>很多线上系统真正需要的是决策一致，而不是逐位相同。先定义目标，才能避免把所有浮点差异都当成故障。</p>
+<h2 id="有效输入区间优先"><a href="#有效输入区间优先" class="headerlink" title="有效输入区间优先"></a>有效输入区间优先</h2><p>排查时只比较有效输入区间，不要把 padding 区混进去。建议固定：</p>
+<ol>
+<li>输入样本顺序；</li>
+<li>sampling rate 和 feature extraction；</li>
+<li>padding value；</li>
+<li>valid length；</li>
+<li>attention mask 或 padding mask；</li>
+<li>inference mode、dropout、random seed；</li>
+<li>dtype 和 device。</li>
+</ol>
+<p>如果这些条件没固定，batch&#x3D;1 和 batch&gt;1 的差异没有解释价值。</p>
+<h2 id="逐层-diff"><a href="#逐层-diff" class="headerlink" title="逐层 diff"></a>逐层 diff</h2><p>最小复现可以这样做：</p>
+<ol>
+<li>同一条样本单独推理一次；</li>
+<li>把同一条样本放进混合 batch 再推理一次；</li>
+<li>对齐有效长度；</li>
+<li>保存每层输入输出的 max diff、mean diff、cosine similarity；</li>
+<li>找到差异第一次明显放大的层。</li>
+</ol>
+<p>定位到层之后，再检查该层的 mask broadcast、normalization、cache、subsampling、kernel path 和 dtype 转换。</p>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><p>几类问题最常见：</p>
+<ul>
+<li>padding 区参与了 attention 或 pooling；</li>
+<li>valid length 在 subsampling 后没有同步更新；</li>
+<li>mask 维度广播错误；</li>
+<li>batch normalization 或统计层在推理模式下状态不一致；</li>
+<li>mixed precision 在不同 batch shape 下走了不同 kernel；</li>
+<li>streaming cache 没有按样本隔离。</li>
+</ul>
+<p>这些问题会在最终输出里表现得很混乱，但逐层 diff 通常能把范围缩小。</p>
+<h2 id="回归测试"><a href="#回归测试" class="headerlink" title="回归测试"></a>回归测试</h2><p>修复后应保留 batch consistency regression：</p>
+<ul>
+<li>batch&#x3D;1；</li>
+<li>batch&#x3D;2；</li>
+<li>长短混合；</li>
+<li>全短样本；</li>
+<li>全长样本；</li>
+<li>不同 dtype；</li>
+<li>不同设备或后端。</li>
+</ul>
+<p>每组都只比较有效区域，并同时记录数值差异和决策差异。这样后续升级推理框架、kernel、量化策略或 batch policy 时，问题能被提前发现。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Batch 一致性排查的关键是顺序。先证明输入和 mask 等价，再逐层找差异，不要直接从最终文本或最终分类结果反推原因。对时序模型来说，有效长度、padding、subsampling 和 dtype 往往比最后一层更早决定问题走向。</p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>Open Source</tag>
+        <tag>Inference</tag>
+        <tag>Debugging</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo&amp;Github construct blog</title>
+    <url>/2019/07/09/hexo-github-constructBlog/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>以前一直想自己写个博客网站，无奈一直没有时间，最近在师兄和好兄弟的推荐下，使用了hexo这一基于Node.js的静态博客框架，并将其托管于github上。总算是圆了个梦！</p>
+<span id="more"></span>
+<h2 id="搭建步骤"><a href="#搭建步骤" class="headerlink" title="搭建步骤"></a>搭建步骤</h2><ul>
+<li>github创建个人仓库</li>
+<li>安装git</li>
+<li>安装Node.js</li>
+<li>安装hexo</li>
+<li>上传博客内容至github仓库</li>
+<li>绑定域名</li>
+<li>其它</li>
+<li>附录</li>
+</ul>
+<h3 id="github搭建个人仓库"><a href="#github搭建个人仓库" class="headerlink" title="github搭建个人仓库"></a>github搭建个人仓库</h3><p>登录github,在github仓库中创建新仓库, 仓库名按:<strong>用户名.github.io</strong>的格式命名, 注意:这个用户名使用你的GitHub帐号名称代替，否则在博客创建时会出现无法工作的情况。</p>
+<h3 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h3><p>git是一个分散式版本控制软件，最初由林纳斯·托瓦兹创作，于2005年以GPL释出。最初目的是为更好地管理Linux核心开发而设计。请自行搜索git下载工具。<br>下载安装完成后，windows右键中即可出现git bash字样。<br><img src="/2019/07/09/hexo-github-constructBlog/gitbash.png"><br>以下步骤是为了省去每次上传github都需要繁复输入密码:</p>
+<h4 id="设置用户名和邮箱"><a href="#设置用户名和邮箱" class="headerlink" title="设置用户名和邮箱"></a>设置用户名和邮箱</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git config --global user.name &quot;你的GitHub用户名&quot;</span><br><span class="line">git config --global user.email &quot;你的GitHub注册邮箱&quot;</span><br></pre></td></tr></table></figure>
+<h4 id="生成ssh密钥文件"><a href="#生成ssh密钥文件" class="headerlink" title="生成ssh密钥文件"></a>生成ssh密钥文件</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa -C &quot;你的GitHub注册邮箱&quot;</span><br></pre></td></tr></table></figure>
+<h4 id="复制密钥"><a href="#复制密钥" class="headerlink" title="复制密钥"></a>复制密钥</h4><p>找到生成的.ssh的文件夹中的id_rsa.pub密钥, 将内容全部复制<br><img src="/2019/07/09/hexo-github-constructBlog/ssh.jpg"></p>
+<h4 id="新建SSH-key"><a href="#新建SSH-key" class="headerlink" title="新建SSH key"></a>新建SSH key</h4><p>打开GitHub_Settings_keys 页面, 新建new SSH Key, 将复制的内容写入key部分, title的名字可随意命名, 最后点击 Add SSH Key。<br><img src="/2019/07/09/hexo-github-constructBlog/newSSHKey.jpg"><br>添加成功后可按下图测试。<br><img src="/2019/07/09/hexo-github-constructBlog/SSHTest.jpg"></p>
+<h3 id="安装Node-js"><a href="#安装Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h3><p>请自行搜索Node.js进行安装, 安装完成后, 可按下图测试。<br><img src="/2019/07/09/hexo-github-constructBlog/NodeJsTest.jpg"></p>
+<h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><p>在命令行中输入</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
+<p>安装时间较长, 安装完成后, 初始化博客, 输入</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo init blog</span><br></pre></td></tr></table></figure>
+<p>下列为hexo常用命令:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo new myblogpage</span><br><span class="line">hexo g</span><br><span class="line">hexo s</span><br><span class="line">hexo d</span><br><span class="line">hexo clean</span><br></pre></td></tr></table></figure>
+<p>hexo new 可生成新的页面<br>hexo g 生成博客<br>hexo s 启动服务器预览<br>hexo d 部署至github仓库<br>hexo clean 清除缓存</p>
+<h3 id="上传博客内容至github仓库"><a href="#上传博客内容至github仓库" class="headerlink" title="上传博客内容至github仓库"></a>上传博客内容至github仓库</h3><p>首先将之前创建的github仓库与我们的博客相关联, 打开下图的_config.yml文件,该文件为hexo blog的设置文件,可在内部修改一些基础设置。<br><img src="/2019/07/09/hexo-github-constructBlog/BlogConfig1.jpg"><br>在文件的最后, 按下图编辑修改, 注意:由于语法格式问题, 冒号后请空一格, 否则无法正常工作。<br><img src="/2019/07/09/hexo-github-constructBlog/BlogConfig2.jpg"><br>设置完成后, 安装git部署插件, 输入</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure>
+<p>接着, 我们分别输入三条命令</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo clean </span><br><span class="line">hexo g </span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>
+<p>接着访问<strong>XXX.github.io</strong>, 你会发现你的博客已经上线。</p>
+<h3 id="绑定域名"><a href="#绑定域名" class="headerlink" title="绑定域名"></a>绑定域名</h3><p>上述步骤实现后, 博客已经可以正常上线, 接下来只需学会markdown的基础写作(超简单)即可正式发布博客。<br>但是若你不满足于XXX.github.io的网址形式, 想要个性化。那么即可购买域名与XXX.github.io进行绑定。以阿里云域名构建为例：<br>购买域名前,请确认你想构建的域名是否已存在。再进行购买。<br><img src="/2019/07/09/hexo-github-constructBlog/domain1.jpg"><br>域名购买成功后,按下图进入解析界面:<br><img src="/2019/07/09/hexo-github-constructBlog/domain2.jpg"><br>添加如下两个记录:<br><img src="/2019/07/09/hexo-github-constructBlog/domain3.jpg"><br>接着在github的仓库设置界面填入你的域名,保存<br><img src="/2019/07/09/hexo-github-constructBlog/domain4.jpg"><br>在本地blog&#x2F;source文件夹下, 新建CNAME记事本文件, 输入域名, 建议不要加www, 保存成<strong>所有文件</strong>而不是<strong>txt</strong>文件。<br>接着在blog目录下执行以下三条命令即可:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo clean</span><br><span class="line">hexo g</span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>
+<p>域名绑定成功！</p>
+<h3 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h3><p>如果你还想更换博客样式的话, 请查阅hexo更换主题相关内容, 常用的主题为next。<br>hexo图片加载缓慢时,可采用图床加快加载速度,具体请搜索hexo图床相关内容。</p>
+<p>[错误 Usage: hexo &lt; command &gt; 解决]<br>这是太长时间没使用hexo的缘故，hexo更新使得原来的本地服务不能使用，需要重新部署一下hexo本地服务器<br>在hexo的根目录下输入命令：npm install hexo-server –save<br>如果没有在hexo的根目录下输入该命令，则会报错找不到package.json文件</p>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><p>参考: <a href="https://zhuanlan.zhihu.com/p/26625249">https://zhuanlan.zhihu.com/p/26625249</a></p>
+]]></content>
+      <tags>
+        <tag>Blog</tag>
+        <tag>Github</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>语音大模型工程：音频 token、LLM 主干与对齐契约</title>
     <url>/2026/06/10/Speech-LLM-Audio-Token-Alignment/</url>
     <content><![CDATA[<p>语音大模型正在把 ASR、语音理解和多模态交互拉进 LLM 生态。Qwen3-ASR、Qwen-Omni、WeNet、CTC-AED 等路线背后都有同一个问题：音频表示如何进入语言模型，并且不破坏位置、mask、长度和训练目标的语义。</p>
@@ -756,52 +802,6 @@
         <tag>LLM</tag>
         <tag>Open Source</tag>
         <tag>Speech</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hexo&amp;Github construct blog</title>
-    <url>/2019/07/09/hexo-github-constructBlog/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>以前一直想自己写个博客网站，无奈一直没有时间，最近在师兄和好兄弟的推荐下，使用了hexo这一基于Node.js的静态博客框架，并将其托管于github上。总算是圆了个梦！</p>
-<span id="more"></span>
-<h2 id="搭建步骤"><a href="#搭建步骤" class="headerlink" title="搭建步骤"></a>搭建步骤</h2><ul>
-<li>github创建个人仓库</li>
-<li>安装git</li>
-<li>安装Node.js</li>
-<li>安装hexo</li>
-<li>上传博客内容至github仓库</li>
-<li>绑定域名</li>
-<li>其它</li>
-<li>附录</li>
-</ul>
-<h3 id="github搭建个人仓库"><a href="#github搭建个人仓库" class="headerlink" title="github搭建个人仓库"></a>github搭建个人仓库</h3><p>登录github,在github仓库中创建新仓库, 仓库名按:<strong>用户名.github.io</strong>的格式命名, 注意:这个用户名使用你的GitHub帐号名称代替，否则在博客创建时会出现无法工作的情况。</p>
-<h3 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h3><p>git是一个分散式版本控制软件，最初由林纳斯·托瓦兹创作，于2005年以GPL释出。最初目的是为更好地管理Linux核心开发而设计。请自行搜索git下载工具。<br>下载安装完成后，windows右键中即可出现git bash字样。<br><img src="/2019/07/09/hexo-github-constructBlog/gitbash.png"><br>以下步骤是为了省去每次上传github都需要繁复输入密码:</p>
-<h4 id="设置用户名和邮箱"><a href="#设置用户名和邮箱" class="headerlink" title="设置用户名和邮箱"></a>设置用户名和邮箱</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git config --global user.name &quot;你的GitHub用户名&quot;</span><br><span class="line">git config --global user.email &quot;你的GitHub注册邮箱&quot;</span><br></pre></td></tr></table></figure>
-<h4 id="生成ssh密钥文件"><a href="#生成ssh密钥文件" class="headerlink" title="生成ssh密钥文件"></a>生成ssh密钥文件</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa -C &quot;你的GitHub注册邮箱&quot;</span><br></pre></td></tr></table></figure>
-<h4 id="复制密钥"><a href="#复制密钥" class="headerlink" title="复制密钥"></a>复制密钥</h4><p>找到生成的.ssh的文件夹中的id_rsa.pub密钥, 将内容全部复制<br><img src="/2019/07/09/hexo-github-constructBlog/ssh.jpg"></p>
-<h4 id="新建SSH-key"><a href="#新建SSH-key" class="headerlink" title="新建SSH key"></a>新建SSH key</h4><p>打开GitHub_Settings_keys 页面, 新建new SSH Key, 将复制的内容写入key部分, title的名字可随意命名, 最后点击 Add SSH Key。<br><img src="/2019/07/09/hexo-github-constructBlog/newSSHKey.jpg"><br>添加成功后可按下图测试。<br><img src="/2019/07/09/hexo-github-constructBlog/SSHTest.jpg"></p>
-<h3 id="安装Node-js"><a href="#安装Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h3><p>请自行搜索Node.js进行安装, 安装完成后, 可按下图测试。<br><img src="/2019/07/09/hexo-github-constructBlog/NodeJsTest.jpg"></p>
-<h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><p>在命令行中输入</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
-<p>安装时间较长, 安装完成后, 初始化博客, 输入</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo init blog</span><br></pre></td></tr></table></figure>
-<p>下列为hexo常用命令:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo new myblogpage</span><br><span class="line">hexo g</span><br><span class="line">hexo s</span><br><span class="line">hexo d</span><br><span class="line">hexo clean</span><br></pre></td></tr></table></figure>
-<p>hexo new 可生成新的页面<br>hexo g 生成博客<br>hexo s 启动服务器预览<br>hexo d 部署至github仓库<br>hexo clean 清除缓存</p>
-<h3 id="上传博客内容至github仓库"><a href="#上传博客内容至github仓库" class="headerlink" title="上传博客内容至github仓库"></a>上传博客内容至github仓库</h3><p>首先将之前创建的github仓库与我们的博客相关联, 打开下图的_config.yml文件,该文件为hexo blog的设置文件,可在内部修改一些基础设置。<br><img src="/2019/07/09/hexo-github-constructBlog/BlogConfig1.jpg"><br>在文件的最后, 按下图编辑修改, 注意:由于语法格式问题, 冒号后请空一格, 否则无法正常工作。<br><img src="/2019/07/09/hexo-github-constructBlog/BlogConfig2.jpg"><br>设置完成后, 安装git部署插件, 输入</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure>
-<p>接着, 我们分别输入三条命令</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo clean </span><br><span class="line">hexo g </span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>
-<p>接着访问<strong>XXX.github.io</strong>, 你会发现你的博客已经上线。</p>
-<h3 id="绑定域名"><a href="#绑定域名" class="headerlink" title="绑定域名"></a>绑定域名</h3><p>上述步骤实现后, 博客已经可以正常上线, 接下来只需学会markdown的基础写作(超简单)即可正式发布博客。<br>但是若你不满足于XXX.github.io的网址形式, 想要个性化。那么即可购买域名与XXX.github.io进行绑定。以阿里云域名构建为例：<br>购买域名前,请确认你想构建的域名是否已存在。再进行购买。<br><img src="/2019/07/09/hexo-github-constructBlog/domain1.jpg"><br>域名购买成功后,按下图进入解析界面:<br><img src="/2019/07/09/hexo-github-constructBlog/domain2.jpg"><br>添加如下两个记录:<br><img src="/2019/07/09/hexo-github-constructBlog/domain3.jpg"><br>接着在github的仓库设置界面填入你的域名,保存<br><img src="/2019/07/09/hexo-github-constructBlog/domain4.jpg"><br>在本地blog&#x2F;source文件夹下, 新建CNAME记事本文件, 输入域名, 建议不要加www, 保存成<strong>所有文件</strong>而不是<strong>txt</strong>文件。<br>接着在blog目录下执行以下三条命令即可:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo clean</span><br><span class="line">hexo g</span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>
-<p>域名绑定成功！</p>
-<h3 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h3><p>如果你还想更换博客样式的话, 请查阅hexo更换主题相关内容, 常用的主题为next。<br>hexo图片加载缓慢时,可采用图床加快加载速度,具体请搜索hexo图床相关内容。</p>
-<p>[错误 Usage: hexo &lt; command &gt; 解决]<br>这是太长时间没使用hexo的缘故，hexo更新使得原来的本地服务不能使用，需要重新部署一下hexo本地服务器<br>在hexo的根目录下输入命令：npm install hexo-server –save<br>如果没有在hexo的根目录下输入该命令，则会报错找不到package.json文件</p>
-<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><p>参考: <a href="https://zhuanlan.zhihu.com/p/26625249">https://zhuanlan.zhihu.com/p/26625249</a></p>
-]]></content>
-      <tags>
-        <tag>Blog</tag>
-        <tag>Github</tag>
       </tags>
   </entry>
 </search>
