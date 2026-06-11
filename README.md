@@ -27,6 +27,27 @@ npm run verify
 npm run serve
 ```
 
+## Search And Comments
+
+Search is static and does not need a database or service. The Hexo build
+generates `public/search.xml` with `hexo-generator-searchdb`, and NexT performs
+the search in the browser.
+
+Comments are different because static hosting cannot store visitor input by
+itself. Recommended options:
+
+- `utterances`: stores comments in GitHub Issues; no custom database or server,
+  but the Utterances GitHub App must be installed for the target repository.
+- `giscus`: stores comments in GitHub Discussions; no custom database or server,
+  but Discussions and the Giscus app/config are required. The current NexT
+  package has built-in Utterances support; Giscus would need custom injection.
+- `isso` or `remark42`: fully self-hosted; requires running a service and
+  maintaining its storage/database.
+
+The repository currently keeps comments disabled and includes an Utterances
+configuration scaffold in `_config.next.yml`. Enable it only after the GitHub
+provider setup is complete.
+
 ## Source And Deploy Repositories
 
 This directory is the maintained Hexo source project. Generated output is ignored by Git:
@@ -41,7 +62,7 @@ The published GitHub Pages repository is `fclearner/fclearner.github.io`. Use th
 
 ## Publish Flow
 
-The source tree currently contains 15 posts: 7 retained posts after pruning empty and placeholder content, plus the PVAD technical article and 7 focused open-source AI engineering series articles. Before publishing, run:
+The source tree currently contains 17 posts: 7 retained posts after pruning empty and placeholder content, plus the PVAD technical article and 9 focused open-source AI engineering series articles. Before publishing, run:
 
 ```bash
 npm run verify

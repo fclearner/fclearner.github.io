@@ -89,6 +89,7 @@ if (!errors.length) {
 
   const criticalFiles = [
     'index.html',
+    'search.xml',
     'about/index.html',
     'about/index/Mydraw1.jpg',
     'archives/index.html',
@@ -108,6 +109,20 @@ if (!errors.length) {
     if (!exists(path.join(publicDir, rel))) fail(`Missing generated file: public/${rel}`);
   }
 
+  const searchXmlPath = path.join(publicDir, 'search.xml');
+  if (exists(searchXmlPath)) {
+    const searchXml = read(searchXmlPath);
+    const requiredSearchTerms = [
+      'Adaptive RAG',
+      'Personal VAD',
+      'Turn-taking',
+      'Batch'
+    ];
+    for (const term of requiredSearchTerms) {
+      if (!searchXml.includes(term)) fail(`public/search.xml is missing search term ${JSON.stringify(term)}.`);
+    }
+  }
+
   const htmlFiles = walk(publicDir, file => file.endsWith('.html'));
   const stalePatterns = [
     'http://yoursite.com',
@@ -124,8 +139,12 @@ if (!errors.length) {
   ];
 
   const postUrls = new Set();
+  let searchTriggerFound = false;
   for (const file of htmlFiles) {
     const html = read(file);
+    if (html.includes('menu-item-search') || html.includes('popup-trigger')) {
+      searchTriggerFound = true;
+    }
     for (const pattern of stalePatterns) {
       if (html.includes(pattern)) fail(`Found stale pattern ${JSON.stringify(pattern)} in ${path.relative(root, file)}`);
     }
@@ -141,6 +160,7 @@ if (!errors.length) {
       }
     }
   }
+  if (!searchTriggerFound) fail('Generated HTML does not contain the NexT local-search trigger.');
   const pvadArticleFiles = [
     path.join(sourcePostsDir, 'PVAD2-engineering-loop.md'),
     path.join(publicDir, '2026', '06', '09', 'PVAD2-engineering-loop', 'index.html')

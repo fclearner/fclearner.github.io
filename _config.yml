@@ -81,6 +81,14 @@ pagination_dir: page
 ## Themes: https://hexo.io/themes/
 theme: next
 
+# Static local search index. NexT loads this client-side, so search works on
+# GitHub Pages without a database or backend service.
+search:
+  path: search.xml
+  field: post
+  content: true
+  format: html
+
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:

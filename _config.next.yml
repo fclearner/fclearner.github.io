@@ -31,3 +31,24 @@ creative_commons:
   license: by-nc-sa
   sidebar: false
   post: false
+
+local_search:
+  enable: true
+  top_n_per_article: 3
+  unescape: true
+  preload: false
+
+# Comments are intentionally disabled until a provider is authorized.
+# For this static GitHub Pages blog, utterances is the lowest-maintenance
+# path because it stores comments in GitHub Issues instead of a custom DB.
+comments:
+  style: tabs
+  active:
+  storage: true
+  lazyload: true
+
+utterances:
+  enable: false
+  repo: fclearner/fclearner.github.io
+  issue_term: pathname
+  theme: preferred-color-scheme
