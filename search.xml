@@ -87,6 +87,95 @@
       </tags>
   </entry>
   <entry>
+    <title>ASR 噪声下的结构化抽取评测：从文本相似到实体归因</title>
+    <url>/2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/</url>
+    <content><![CDATA[<p>在 ASR 输出上做 NER 或结构化抽取，不能只把它当成普通文本任务。语音转写会带来插入、删除、替换、同音错误和边界错位，导致实体在参考文本和识别文本中的位置天然不稳定。</p>
+<p>如果仍然用严格字符 span 评测，很多可接受的识别会被误判为错误，真正严重的问题反而可能被掩盖。</p>
+<span id="more"></span>
+
+<h2 id="ASR-噪声改变了评测对象"><a href="#ASR-噪声改变了评测对象" class="headerlink" title="ASR 噪声改变了评测对象"></a>ASR 噪声改变了评测对象</h2><p>普通 NER 评测默认输入文本是稳定的，实体 span 可以精确定位。ASR 场景里，输入本身就是模型输出，错误会先发生在转写阶段。</p>
+<p>例如一个实体被识别成同音近似词，结构化抽取模型可能仍能恢复语义；也可能 ASR 多插入几个字，导致后续 span 全部错位。严格按字符位置对齐，会把这些情况混在一起。</p>
+<p>因此评测目标应该从“span 是否完全相等”扩展为“关键信息是否被正确恢复，以及错误来自哪里”。</p>
+<h2 id="两阶段评测更稳"><a href="#两阶段评测更稳" class="headerlink" title="两阶段评测更稳"></a>两阶段评测更稳</h2><p>第一阶段评估 ASR 文本本身：WER、CER、关键词召回、数字和专名错误类型。</p>
+<p>第二阶段评估结构化抽取结果：实体类型是否正确，实体值是否可接受，归一化结果是否一致，缺失和误报分别是多少。</p>
+<p>这两阶段要能关联。否则抽取失败时，很难判断是 ASR 没听对，还是抽取模型没有理解。</p>
+<h2 id="模糊匹配不是放松标准"><a href="#模糊匹配不是放松标准" class="headerlink" title="模糊匹配不是放松标准"></a>模糊匹配不是放松标准</h2><p>ASR 噪声下需要允许局部模糊匹配，但这不等于随意放宽标准。合理的做法是把匹配规则显式化：</p>
+<ul>
+<li>文本规范化后比较；</li>
+<li>在局部窗口内匹配实体；</li>
+<li>对同音、数字读法和简繁差异单独处理；</li>
+<li>对不同实体类型使用不同容忍度；</li>
+<li>输出 exact、partial、normalized 三类结果。</li>
+</ul>
+<p>这样可以保留评测的可解释性。</p>
+<h2 id="错误归因比单个-F1-更有用"><a href="#错误归因比单个-F1-更有用" class="headerlink" title="错误归因比单个 F1 更有用"></a>错误归因比单个 F1 更有用</h2><p>实体 F1 能说明总体效果，但不能指导修复。更有价值的是错误归因：</p>
+<ul>
+<li>ASR 删除导致实体缺失；</li>
+<li>ASR 替换导致实体值错误；</li>
+<li>文本规范化导致格式不一致；</li>
+<li>抽取模型漏召回；</li>
+<li>抽取模型误报；</li>
+<li>后处理归一化失败。</li>
+</ul>
+<p>有了归因，后续才知道应该改 ASR、改抽取模型、改 normalizer，还是改评测规则。</p>
+<h2 id="开源工具形态"><a href="#开源工具形态" class="headerlink" title="开源工具形态"></a>开源工具形态</h2><p>一个通用评测工具可以设计成三层输入：</p>
+<ol>
+<li>REF：参考文本和实体标注；</li>
+<li>HYP：ASR 文本和抽取结果；</li>
+<li>normalization config：实体类型、匹配窗口、归一化规则。</li>
+</ol>
+<p>输出包括样本级报告、实体级 precision&#x2F;recall&#x2F;F1、错误归因分布和可人工复核的 bad case 列表。</p>
+<p>这类工具不需要绑定特定模型，反而更适合开源：它提供的是评测语言，而不是某个单点模型。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>ASR 噪声下的结构化抽取评测，核心是把文本错误、实体错误和归一化错误拆开。只有错误类型被看见，系统优化才有方向。</p>
+<h2 id="Alignment-aware-scorer"><a href="#Alignment-aware-scorer" class="headerlink" title="Alignment-aware scorer"></a>Alignment-aware scorer</h2><p>Noisy ASR text should be scored with an alignment-aware extractor. The scorer first aligns reference and hypothesis text, then evaluates entity value, entity type, local window match, normalization result, and error source.</p>
+<p>This avoids treating every span mismatch as an extraction failure. Some misses come from ASR substitution or deletion, some from normalization, and some from the downstream extractor. The repair path is different for each category.</p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>Open Source</tag>
+        <tag>NER</tag>
+        <tag>Evaluation</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ASR-LAS-model</title>
+    <url>/2021/08/24/ASR-LAS-model/</url>
+    <content><![CDATA[<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;论文《Listen Attend and Spell》LAS模型简介及代码复现</p>
+<span id="more"></span>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;论文地址: <a href="https://arxiv.org/abs/1508.01211v2">https://arxiv.org/abs/1508.01211v2</a></p>
+<h3 id="论文核心思想"><a href="#论文核心思想" class="headerlink" title="论文核心思想"></a>论文核心思想</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;语音识别模型，模型分为两个部分：listener和speller：<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;listener是三角形的pyramidal bidirecional lstm。<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;spller是基于attention的decoder,论文的label是以字符为单位的。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;Encoder:<br>&nbsp;&nbsp;&nbsp;&nbsp;Decoder:</p>
+<h3 id="论文复现代码参考"><a href="#论文复现代码参考" class="headerlink" title="论文复现代码参考"></a>论文复现代码参考</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;pytorch版: <a href="https://github.com/AzizCode92/Listen-Attend-and-Spell-Pytorch">https://github.com/AzizCode92/Listen-Attend-and-Spell-Pytorch</a></p>
+<h3 id="LAS模型原理图"><a href="#LAS模型原理图" class="headerlink" title="LAS模型原理图"></a>LAS模型原理图</h3><p><img src="/2021/08/24/ASR-LAS-model/LAS_flow.png"></p>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1]《<a href="https://zhuanlan.zhihu.com/p/80967163%E3%80%8B">https://zhuanlan.zhihu.com/p/80967163》</a></p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>ASR-Classic</tag>
+        <tag>Deep-learning</tag>
+        <tag>Attention</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ASR-Multilingual</title>
+    <url>/2022/04/22/ASR-Multilingual/</url>
+    <content><![CDATA[<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;多语种语音识别overview</p>
+<span id="more"></span>
+
+<h2 id="为什么需要多语种语音识别"><a href="#为什么需要多语种语音识别" class="headerlink" title="为什么需要多语种语音识别?"></a>为什么需要多语种语音识别?</h2><p>1、优化低资源语种的识别效果: 世界上大部分的语种存在数据匮乏的现象, 多语种语音识别具备一定潜力提升低资源语音识别的效果, 如采用迁移学习,<br>   基于识别效果较好的语种模型或是多语种模型进行调优。【关键】</p>
+<p>2、优化口音识别：实际的普通话或英文识别应用场景包含较多的方言口音识别问题反馈，实现自由说需针对性优化口音问题。</p>
+<p>3、优化模型部署流程：随着识别语种的不断增加，部署和维护每一种语种的几个模型会变得很麻烦，多语种免切换可在一定程度上优化系统性能。</p>
+<h2 id="语音识别的技术发展"><a href="#语音识别的技术发展" class="headerlink" title="语音识别的技术发展"></a>语音识别的技术发展</h2><p>GMM-HMM -&gt; DNN-HMM -&gt; RNN-E2E -&gt; attention-E2E -&gt; joint network<br>本质还是神经网络革新带动技术进步。<br>当前传统声学模型+语言模型的识别系统仍然在工业界活跃, 主要是传统的识别系统每个组件更独立, 有更丰富的调优方式。相对来说端到端语音识别的调优方式仍在发展, 但已是未来趋势—做传统的赶紧学。</p>
+<h2 id="现有的多语种识别技术路线"><a href="#现有的多语种识别技术路线" class="headerlink" title="现有的多语种识别技术路线"></a>现有的多语种识别技术路线</h2><p>1、跨语种迁移学习(cross-lingual transfer learning)<br>2、多任务学习(multi-task learning)<br>3、自监督学习(self-supervised learning)…我觉得和1有一些交集, 本质是预训练、nlp带火的<br>4、音素集共享(common phone)<br>5、可能还有吧。。。有些上面几个可以囊括了</p>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a href="https://arxiv.org/abs/2202.12576v1">https://arxiv.org/abs/2202.12576v1</a></p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>ASR Low-resource</tag>
+        <tag>ASR Multilingual</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>ASR 数据质量流水线：伪标签、切分与可追溯评测</title>
     <url>/2026/06/10/ASR-Data-Quality-Pipeline-Open-Source/</url>
     <content><![CDATA[<p>ASR 系统的上限经常不是模型结构先决定的，而是数据质量先决定的。开源模型可以替换，训练框架可以迁移，但如果音频切分、文本规范化、伪标签和评测口径不可靠，最后得到的指标会很快失真。</p>
@@ -135,97 +224,8 @@
       <tags>
         <tag>ASR</tag>
         <tag>Open Source</tag>
+        <tag>Evaluation</tag>
         <tag>Data</tag>
-        <tag>Evaluation</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ASR-LAS-model</title>
-    <url>/2021/08/24/ASR-LAS-model/</url>
-    <content><![CDATA[<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;论文《Listen Attend and Spell》LAS模型简介及代码复现</p>
-<span id="more"></span>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;论文地址: <a href="https://arxiv.org/abs/1508.01211v2">https://arxiv.org/abs/1508.01211v2</a></p>
-<h3 id="论文核心思想"><a href="#论文核心思想" class="headerlink" title="论文核心思想"></a>论文核心思想</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;语音识别模型，模型分为两个部分：listener和speller：<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;listener是三角形的pyramidal bidirecional lstm。<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;spller是基于attention的decoder,论文的label是以字符为单位的。</p>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;Encoder:<br>&nbsp;&nbsp;&nbsp;&nbsp;Decoder:</p>
-<h3 id="论文复现代码参考"><a href="#论文复现代码参考" class="headerlink" title="论文复现代码参考"></a>论文复现代码参考</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;pytorch版: <a href="https://github.com/AzizCode92/Listen-Attend-and-Spell-Pytorch">https://github.com/AzizCode92/Listen-Attend-and-Spell-Pytorch</a></p>
-<h3 id="LAS模型原理图"><a href="#LAS模型原理图" class="headerlink" title="LAS模型原理图"></a>LAS模型原理图</h3><p><img src="/2021/08/24/ASR-LAS-model/LAS_flow.png"></p>
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1]《<a href="https://zhuanlan.zhihu.com/p/80967163%E3%80%8B">https://zhuanlan.zhihu.com/p/80967163》</a></p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>ASR-Classic</tag>
-        <tag>Deep-learning</tag>
-        <tag>Attention</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ASR-Multilingual</title>
-    <url>/2022/04/22/ASR-Multilingual/</url>
-    <content><![CDATA[<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;多语种语音识别overview</p>
-<span id="more"></span>
-
-<h2 id="为什么需要多语种语音识别"><a href="#为什么需要多语种语音识别" class="headerlink" title="为什么需要多语种语音识别?"></a>为什么需要多语种语音识别?</h2><p>1、优化低资源语种的识别效果: 世界上大部分的语种存在数据匮乏的现象, 多语种语音识别具备一定潜力提升低资源语音识别的效果, 如采用迁移学习,<br>   基于识别效果较好的语种模型或是多语种模型进行调优。【关键】</p>
-<p>2、优化口音识别：实际的普通话或英文识别应用场景包含较多的方言口音识别问题反馈，实现自由说需针对性优化口音问题。</p>
-<p>3、优化模型部署流程：随着识别语种的不断增加，部署和维护每一种语种的几个模型会变得很麻烦，多语种免切换可在一定程度上优化系统性能。</p>
-<h2 id="语音识别的技术发展"><a href="#语音识别的技术发展" class="headerlink" title="语音识别的技术发展"></a>语音识别的技术发展</h2><p>GMM-HMM -&gt; DNN-HMM -&gt; RNN-E2E -&gt; attention-E2E -&gt; joint network<br>本质还是神经网络革新带动技术进步。<br>当前传统声学模型+语言模型的识别系统仍然在工业界活跃, 主要是传统的识别系统每个组件更独立, 有更丰富的调优方式。相对来说端到端语音识别的调优方式仍在发展, 但已是未来趋势—做传统的赶紧学。</p>
-<h2 id="现有的多语种识别技术路线"><a href="#现有的多语种识别技术路线" class="headerlink" title="现有的多语种识别技术路线"></a>现有的多语种识别技术路线</h2><p>1、跨语种迁移学习(cross-lingual transfer learning)<br>2、多任务学习(multi-task learning)<br>3、自监督学习(self-supervised learning)…我觉得和1有一些交集, 本质是预训练、nlp带火的<br>4、音素集共享(common phone)<br>5、可能还有吧。。。有些上面几个可以囊括了</p>
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a href="https://arxiv.org/abs/2202.12576v1">https://arxiv.org/abs/2202.12576v1</a></p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>ASR Low-resource</tag>
-        <tag>ASR Multilingual</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ASR 噪声下的结构化抽取评测：从文本相似到实体归因</title>
-    <url>/2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/</url>
-    <content><![CDATA[<p>在 ASR 输出上做 NER 或结构化抽取，不能只把它当成普通文本任务。语音转写会带来插入、删除、替换、同音错误和边界错位，导致实体在参考文本和识别文本中的位置天然不稳定。</p>
-<p>如果仍然用严格字符 span 评测，很多可接受的识别会被误判为错误，真正严重的问题反而可能被掩盖。</p>
-<span id="more"></span>
-
-<h2 id="ASR-噪声改变了评测对象"><a href="#ASR-噪声改变了评测对象" class="headerlink" title="ASR 噪声改变了评测对象"></a>ASR 噪声改变了评测对象</h2><p>普通 NER 评测默认输入文本是稳定的，实体 span 可以精确定位。ASR 场景里，输入本身就是模型输出，错误会先发生在转写阶段。</p>
-<p>例如一个实体被识别成同音近似词，结构化抽取模型可能仍能恢复语义；也可能 ASR 多插入几个字，导致后续 span 全部错位。严格按字符位置对齐，会把这些情况混在一起。</p>
-<p>因此评测目标应该从“span 是否完全相等”扩展为“关键信息是否被正确恢复，以及错误来自哪里”。</p>
-<h2 id="两阶段评测更稳"><a href="#两阶段评测更稳" class="headerlink" title="两阶段评测更稳"></a>两阶段评测更稳</h2><p>第一阶段评估 ASR 文本本身：WER、CER、关键词召回、数字和专名错误类型。</p>
-<p>第二阶段评估结构化抽取结果：实体类型是否正确，实体值是否可接受，归一化结果是否一致，缺失和误报分别是多少。</p>
-<p>这两阶段要能关联。否则抽取失败时，很难判断是 ASR 没听对，还是抽取模型没有理解。</p>
-<h2 id="模糊匹配不是放松标准"><a href="#模糊匹配不是放松标准" class="headerlink" title="模糊匹配不是放松标准"></a>模糊匹配不是放松标准</h2><p>ASR 噪声下需要允许局部模糊匹配，但这不等于随意放宽标准。合理的做法是把匹配规则显式化：</p>
-<ul>
-<li>文本规范化后比较；</li>
-<li>在局部窗口内匹配实体；</li>
-<li>对同音、数字读法和简繁差异单独处理；</li>
-<li>对不同实体类型使用不同容忍度；</li>
-<li>输出 exact、partial、normalized 三类结果。</li>
-</ul>
-<p>这样可以保留评测的可解释性。</p>
-<h2 id="错误归因比单个-F1-更有用"><a href="#错误归因比单个-F1-更有用" class="headerlink" title="错误归因比单个 F1 更有用"></a>错误归因比单个 F1 更有用</h2><p>实体 F1 能说明总体效果，但不能指导修复。更有价值的是错误归因：</p>
-<ul>
-<li>ASR 删除导致实体缺失；</li>
-<li>ASR 替换导致实体值错误；</li>
-<li>文本规范化导致格式不一致；</li>
-<li>抽取模型漏召回；</li>
-<li>抽取模型误报；</li>
-<li>后处理归一化失败。</li>
-</ul>
-<p>有了归因，后续才知道应该改 ASR、改抽取模型、改 normalizer，还是改评测规则。</p>
-<h2 id="开源工具形态"><a href="#开源工具形态" class="headerlink" title="开源工具形态"></a>开源工具形态</h2><p>一个通用评测工具可以设计成三层输入：</p>
-<ol>
-<li>REF：参考文本和实体标注；</li>
-<li>HYP：ASR 文本和抽取结果；</li>
-<li>normalization config：实体类型、匹配窗口、归一化规则。</li>
-</ol>
-<p>输出包括样本级报告、实体级 precision&#x2F;recall&#x2F;F1、错误归因分布和可人工复核的 bad case 列表。</p>
-<p>这类工具不需要绑定特定模型，反而更适合开源：它提供的是评测语言，而不是某个单点模型。</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>ASR 噪声下的结构化抽取评测，核心是把文本错误、实体错误和归一化错误拆开。只有错误类型被看见，系统优化才有方向。</p>
-<h2 id="Alignment-aware-scorer"><a href="#Alignment-aware-scorer" class="headerlink" title="Alignment-aware scorer"></a>Alignment-aware scorer</h2><p>Noisy ASR text should be scored with an alignment-aware extractor. The scorer first aligns reference and hypothesis text, then evaluates entity value, entity type, local window match, normalization result, and error source.</p>
-<p>This avoids treating every span mismatch as an extraction failure. Some misses come from ASR substitution or deletion, some from normalization, and some from the downstream extractor. The repair path is different for each category.</p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>Open Source</tag>
-        <tag>Evaluation</tag>
-        <tag>NER</tag>
       </tags>
   </entry>
   <entry>
@@ -391,6 +391,111 @@
       </tags>
   </entry>
   <entry>
+    <title>语音大模型工程：音频 token、LLM 主干与对齐契约</title>
+    <url>/2026/06/10/Speech-LLM-Audio-Token-Alignment/</url>
+    <content><![CDATA[<p>语音大模型正在把 ASR、语音理解和多模态交互拉进 LLM 生态。Qwen3-ASR、Qwen-Omni、WeNet、CTC-AED 等路线背后都有同一个问题：音频表示如何进入语言模型，并且不破坏位置、mask、长度和训练目标的语义。</p>
+<p>这类系统表面上是“接一个 speech encoder 到 LLM”，实际难点在对齐契约。张量 shape 对，不等于语义对。</p>
+<span id="more"></span>
+
+<h2 id="一条典型链路"><a href="#一条典型链路" class="headerlink" title="一条典型链路"></a>一条典型链路</h2><p>语音大模型常见链路可以拆成五段：</p>
+<ol>
+<li>audio frontend：采样率、分帧、特征提取或 waveform 编码；</li>
+<li>speech encoder：把声学输入变成连续 hidden states 或离散 token；</li>
+<li>projector：把音频侧维度映射到 LLM hidden size；</li>
+<li>LLM backbone：处理文本 token、音频 token 和 prompt 模板；</li>
+<li>objective heads：使用生成 loss、CTC loss、AED loss 或辅助对齐 loss。</li>
+</ol>
+<p>这五段每一段都可能改变长度、mask 或位置信息。工程上必须把这些变化显式记录下来，而不是只在 forward 里临时拼接。</p>
+<h2 id="对齐契约有哪些"><a href="#对齐契约有哪些" class="headerlink" title="对齐契约有哪些"></a>对齐契约有哪些</h2><p><strong>长度契约</strong>：输入音频多少帧，经过 subsampling 后剩多少 token，projector 是否再改变长度，最终监督序列如何匹配。这个契约不清楚，训练 loss 下降也可能是错的。</p>
+<p><strong>位置契约</strong>：文本 token 和音频 token 是否共享 RoPE，是否需要多维位置，音频 token 插入 prompt 的哪个区域，padding 是否影响位置编号。</p>
+<p><strong>mask 契约</strong>：attention mask、loss mask、padding mask 不是一回事。一个位置可以参与 attention 但不参与 loss，也可以只作为上下文条件存在。把它们混在一起，是语音 LLM 最常见的隐性错误。</p>
+<p><strong>目标契约</strong>：CTC 更关心单调对齐，AED 更关心序列到序列，LLM loss 更关心生成协议。多目标训练时，要能单独观察每个 loss 的行为。</p>
+<h2 id="最小闭环优先于复杂结构"><a href="#最小闭环优先于复杂结构" class="headerlink" title="最小闭环优先于复杂结构"></a>最小闭环优先于复杂结构</h2><p>开源模型工程化时，不建议一开始就堆复杂结构。更稳的顺序是：</p>
+<ol>
+<li>固定 LLM，只训练 projector，在极小样本上验证过拟合；</li>
+<li>加入明确的音频 token 长度日志；</li>
+<li>检查 padding 位置不参与 loss；</li>
+<li>单独跑短音频、长音频、静音片段和噪声片段；</li>
+<li>再逐步解冻 encoder 或加入辅助目标。</li>
+</ol>
+<p>这条路径能把“系统能跑”和“系统能学”分开。前者是 smoke test，后者才是建模有效性的起点。</p>
+<h2 id="Qwen-与-WeNet-的工程启发"><a href="#Qwen-与-WeNet-的工程启发" class="headerlink" title="Qwen 与 WeNet 的工程启发"></a>Qwen 与 WeNet 的工程启发</h2><p>Qwen 类模型提示我们，现代 LLM 的位置编码和输入封装并不一定是传统 HuggingFace decoder 的简单结构。不要凭字段名猜测模型内部模块，应该以官方加载入口、配置和源码为准。</p>
+<p>WeNet 和 CTC-AED 路线提示我们，语音任务仍然需要单调对齐、时间边界和流式约束。LLM 主干很强，但它不能替代语音侧对齐诊断。</p>
+<p>更实际的做法是把两类能力组合起来：语音侧负责稳定编码和对齐，LLM 侧负责语言建模、指令跟随和复杂生成。</p>
+<h2 id="流式场景的额外约束"><a href="#流式场景的额外约束" class="headerlink" title="流式场景的额外约束"></a>流式场景的额外约束</h2><p>一旦进入流式输入，问题会更复杂：</p>
+<ul>
+<li>音频 chunk 之间是否共享缓存；</li>
+<li>当前文本生成是否可以被新音频打断；</li>
+<li>旧音频 token 是否需要压缩或丢弃；</li>
+<li>取消请求时 decoder state 如何清理；</li>
+<li>partial hypothesis 是否会污染最终输出。</li>
+</ul>
+<p>这些都不是模型结构图能解决的问题，而是运行时状态管理问题。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>语音大模型工程的核心不是把 encoder 和 LLM 拼起来，而是明确音频 token 如何获得位置、如何参与 attention、如何参与 loss、如何在流式状态中被更新。只要这些契约没有写清楚，模型越大，调试越困难。</p>
+<h2 id="输入入口一致性"><a href="#输入入口一致性" class="headerlink" title="输入入口一致性"></a>输入入口一致性</h2><p>Speech-LLM debugging should include an input-contract test. The same utterance should be passed through every supported input path, then compare sampling rate, channel handling, feature length, audio-token length, position ids, attention mask, loss mask, and decoded text.</p>
+<p>Path-based input often hides loading, mixdown, resampling, and normalization steps. Tensor or precomputed-feature input may bypass them. If these paths are not tested side by side, a model issue can be mistaken for an input-contract issue.</p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>LLM</tag>
+        <tag>Open Source</tag>
+        <tag>Speech</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>实时语音 Turn-taking 评测：从端点检测到可接话判断</title>
+    <url>/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/</url>
+    <content><![CDATA[<p>实时语音交互里，端点检测只能回答“声音是否停止”，不能直接回答“系统现在是否应该接话”。更有用的建模目标是 turn-taking：判断当前轮次是否完整、是否需要继续等待、是否允许系统响应，以及错误响应会带来什么交互代价。</p>
+<p>这类问题适合公开讨论，因为它不依赖具体场景。核心是标签定义、输入噪声、延迟预算和评测切分。</p>
+<span id="more"></span>
+
+<h2 id="标签不是一个-end"><a href="#标签不是一个-end" class="headerlink" title="标签不是一个 end"></a>标签不是一个 end</h2><p>一个可用的标签体系至少要区分几类状态：</p>
+<ul>
+<li>continue listening：用户大概率还会继续说；</li>
+<li>semantic end：语义上已经形成完整表达；</li>
+<li>response-ready：系统可以开始响应；</li>
+<li>hold：语义可能完整，但仍建议等待；</li>
+<li>interruption risk：系统现在响应可能造成打断。</li>
+</ul>
+<p>如果所有状态都压成一个 end 标签，模型会把声学停顿、语义完成和可接话动作混在一起。离线 F1 可能不错，在线体验仍然不稳定。</p>
+<h2 id="输入要按噪声分层"><a href="#输入要按噪声分层" class="headerlink" title="输入要按噪声分层"></a>输入要按噪声分层</h2><p>Turn-taking 评测不应该只用干净文本。建议至少准备三组输入：</p>
+<ol>
+<li>clean transcript，用来测语义判断上限；</li>
+<li>final ASR transcript，用来测真实识别误差下的判断；</li>
+<li>partial ASR transcript，用来测流式中间态。</li>
+</ol>
+<p>三组结果的差异可以回答一个关键问题：错误来自语义判断本身，还是来自 ASR 插入、删除、替换和 partial 不稳定。</p>
+<h2 id="评测指标"><a href="#评测指标" class="headerlink" title="评测指标"></a>评测指标</h2><p>常规 precision、recall、F1 仍然有用，但不够。实时交互还需要动作级指标：</p>
+<ul>
+<li>false response：过早接话；</li>
+<li>late response：等待过久；</li>
+<li>missed response：该接话时没有接；</li>
+<li>interruption recovery：误打断后能否恢复；</li>
+<li>first-action latency：第一次动作延迟；</li>
+<li>final-decision stability：partial 更新后决策是否频繁反复。</li>
+</ul>
+<p>这些指标比单一 end accuracy 更接近真实系统质量。</p>
+<h2 id="一个最小评测闭环"><a href="#一个最小评测闭环" class="headerlink" title="一个最小评测闭环"></a>一个最小评测闭环</h2><p>可以从一个小闭环开始：</p>
+<ol>
+<li>收集短句、长句、停顿、修正、重复、半句话等样本；</li>
+<li>标注 semantic end、response-ready 和 hold；</li>
+<li>用 clean transcript 训练或评估上限；</li>
+<li>加入 final ASR text，测识别噪声损失；</li>
+<li>加入 partial text，测流式稳定性；</li>
+<li>把错误分成过早、过晚、误打断、未恢复。</li>
+</ol>
+<p>这个闭环能把“模型是否理解语义”和“系统是否适合实时交互”分开看。</p>
+<h2 id="工程注意点"><a href="#工程注意点" class="headerlink" title="工程注意点"></a>工程注意点</h2><p>线上系统需要保留 event log：partial 输入、时间戳、模型判断、动作、取消、恢复和最终输出。没有这些日志，就很难解释一次错误响应是由文本变化、模型阈值、状态机还是服务延迟造成的。</p>
+<p>Turn-taking 的目标不是追求最早响应，而是在低延迟和低打断之间找到可控平衡。</p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>Open Source</tag>
+        <tag>Evaluation</tag>
+        <tag>Speech</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>PEFT 工程取舍：LoRA、Prefix 与低成本适配的边界</title>
     <url>/2026/06/10/PEFT-Engineering-Tradeoffs/</url>
     <content><![CDATA[<p>PEFT 经常被理解成“少训练一些参数”。这个理解没有错，但不够工程化。真正的选择不是参数量越少越好，而是在训练显存、推理开销、上下文占用、适配能力、部署形态和工具生态之间做权衡。</p>
@@ -434,6 +539,70 @@
         <tag>Open Source</tag>
         <tag>PEFT</tag>
         <tag>Fine-tuning</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>音频模型 Batch 一致性排查：从有效输入区间到逐层 diff</title>
+    <url>/2026/06/10/Speech-Batch-Consistency-Debugging/</url>
+    <content><![CDATA[<p>音频模型在 batch size 改变后输出不一致，是很常见但容易误判的问题。不要一开始就怀疑最后的解码结果。更稳的排查顺序是：先证明输入等价，再证明 mask 和有效长度等价，最后逐层定位数值差异从哪里开始放大。</p>
+<p>这篇文章整理一套通用排查协议，适用于 ASR、VAD、speaker model 和其他时序音频模型。</p>
+<span id="more"></span>
+
+<h2 id="先定义什么叫一致"><a href="#先定义什么叫一致" class="headerlink" title="先定义什么叫一致"></a>先定义什么叫一致</h2><p>一致性可以分三层：</p>
+<ul>
+<li>数值一致：有效区域 hidden states 差异在阈值内；</li>
+<li>决策一致：分类标签、token 或分数排序不变；</li>
+<li>指标一致：WER、F1、recall 等整体指标不随 batch policy 漂移。</li>
+</ul>
+<p>很多线上系统真正需要的是决策一致，而不是逐位相同。先定义目标，才能避免把所有浮点差异都当成故障。</p>
+<h2 id="有效输入区间优先"><a href="#有效输入区间优先" class="headerlink" title="有效输入区间优先"></a>有效输入区间优先</h2><p>排查时只比较有效输入区间，不要把 padding 区混进去。建议固定：</p>
+<ol>
+<li>输入样本顺序；</li>
+<li>sampling rate 和 feature extraction；</li>
+<li>padding value；</li>
+<li>valid length；</li>
+<li>attention mask 或 padding mask；</li>
+<li>inference mode、dropout、random seed；</li>
+<li>dtype 和 device。</li>
+</ol>
+<p>如果这些条件没固定，batch&#x3D;1 和 batch&gt;1 的差异没有解释价值。</p>
+<h2 id="逐层-diff"><a href="#逐层-diff" class="headerlink" title="逐层 diff"></a>逐层 diff</h2><p>最小复现可以这样做：</p>
+<ol>
+<li>同一条样本单独推理一次；</li>
+<li>把同一条样本放进混合 batch 再推理一次；</li>
+<li>对齐有效长度；</li>
+<li>保存每层输入输出的 max diff、mean diff、cosine similarity；</li>
+<li>找到差异第一次明显放大的层。</li>
+</ol>
+<p>定位到层之后，再检查该层的 mask broadcast、normalization、cache、subsampling、kernel path 和 dtype 转换。</p>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><p>几类问题最常见：</p>
+<ul>
+<li>padding 区参与了 attention 或 pooling；</li>
+<li>valid length 在 subsampling 后没有同步更新；</li>
+<li>mask 维度广播错误；</li>
+<li>batch normalization 或统计层在推理模式下状态不一致；</li>
+<li>mixed precision 在不同 batch shape 下走了不同 kernel；</li>
+<li>streaming cache 没有按样本隔离。</li>
+</ul>
+<p>这些问题会在最终输出里表现得很混乱，但逐层 diff 通常能把范围缩小。</p>
+<h2 id="回归测试"><a href="#回归测试" class="headerlink" title="回归测试"></a>回归测试</h2><p>修复后应保留 batch consistency regression：</p>
+<ul>
+<li>batch&#x3D;1；</li>
+<li>batch&#x3D;2；</li>
+<li>长短混合；</li>
+<li>全短样本；</li>
+<li>全长样本；</li>
+<li>不同 dtype；</li>
+<li>不同设备或后端。</li>
+</ul>
+<p>每组都只比较有效区域，并同时记录数值差异和决策差异。这样后续升级推理框架、kernel、量化策略或 batch policy 时，问题能被提前发现。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Batch 一致性排查的关键是顺序。先证明输入和 mask 等价，再逐层找差异，不要直接从最终文本或最终分类结果反推原因。对时序模型来说，有效长度、padding、subsampling 和 dtype 往往比最后一层更早决定问题走向。</p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>Open Source</tag>
+        <tag>Inference</tag>
+        <tag>Debugging</tag>
       </tags>
   </entry>
   <entry>
@@ -590,175 +759,6 @@
       </tags>
   </entry>
   <entry>
-    <title>实时语音 Turn-taking 评测：从端点检测到可接话判断</title>
-    <url>/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/</url>
-    <content><![CDATA[<p>实时语音交互里，端点检测只能回答“声音是否停止”，不能直接回答“系统现在是否应该接话”。更有用的建模目标是 turn-taking：判断当前轮次是否完整、是否需要继续等待、是否允许系统响应，以及错误响应会带来什么交互代价。</p>
-<p>这类问题适合公开讨论，因为它不依赖具体场景。核心是标签定义、输入噪声、延迟预算和评测切分。</p>
-<span id="more"></span>
-
-<h2 id="标签不是一个-end"><a href="#标签不是一个-end" class="headerlink" title="标签不是一个 end"></a>标签不是一个 end</h2><p>一个可用的标签体系至少要区分几类状态：</p>
-<ul>
-<li>continue listening：用户大概率还会继续说；</li>
-<li>semantic end：语义上已经形成完整表达；</li>
-<li>response-ready：系统可以开始响应；</li>
-<li>hold：语义可能完整，但仍建议等待；</li>
-<li>interruption risk：系统现在响应可能造成打断。</li>
-</ul>
-<p>如果所有状态都压成一个 end 标签，模型会把声学停顿、语义完成和可接话动作混在一起。离线 F1 可能不错，在线体验仍然不稳定。</p>
-<h2 id="输入要按噪声分层"><a href="#输入要按噪声分层" class="headerlink" title="输入要按噪声分层"></a>输入要按噪声分层</h2><p>Turn-taking 评测不应该只用干净文本。建议至少准备三组输入：</p>
-<ol>
-<li>clean transcript，用来测语义判断上限；</li>
-<li>final ASR transcript，用来测真实识别误差下的判断；</li>
-<li>partial ASR transcript，用来测流式中间态。</li>
-</ol>
-<p>三组结果的差异可以回答一个关键问题：错误来自语义判断本身，还是来自 ASR 插入、删除、替换和 partial 不稳定。</p>
-<h2 id="评测指标"><a href="#评测指标" class="headerlink" title="评测指标"></a>评测指标</h2><p>常规 precision、recall、F1 仍然有用，但不够。实时交互还需要动作级指标：</p>
-<ul>
-<li>false response：过早接话；</li>
-<li>late response：等待过久；</li>
-<li>missed response：该接话时没有接；</li>
-<li>interruption recovery：误打断后能否恢复；</li>
-<li>first-action latency：第一次动作延迟；</li>
-<li>final-decision stability：partial 更新后决策是否频繁反复。</li>
-</ul>
-<p>这些指标比单一 end accuracy 更接近真实系统质量。</p>
-<h2 id="一个最小评测闭环"><a href="#一个最小评测闭环" class="headerlink" title="一个最小评测闭环"></a>一个最小评测闭环</h2><p>可以从一个小闭环开始：</p>
-<ol>
-<li>收集短句、长句、停顿、修正、重复、半句话等样本；</li>
-<li>标注 semantic end、response-ready 和 hold；</li>
-<li>用 clean transcript 训练或评估上限；</li>
-<li>加入 final ASR text，测识别噪声损失；</li>
-<li>加入 partial text，测流式稳定性；</li>
-<li>把错误分成过早、过晚、误打断、未恢复。</li>
-</ol>
-<p>这个闭环能把“模型是否理解语义”和“系统是否适合实时交互”分开看。</p>
-<h2 id="工程注意点"><a href="#工程注意点" class="headerlink" title="工程注意点"></a>工程注意点</h2><p>线上系统需要保留 event log：partial 输入、时间戳、模型判断、动作、取消、恢复和最终输出。没有这些日志，就很难解释一次错误响应是由文本变化、模型阈值、状态机还是服务延迟造成的。</p>
-<p>Turn-taking 的目标不是追求最早响应，而是在低延迟和低打断之间找到可控平衡。</p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>Open Source</tag>
-        <tag>Evaluation</tag>
-        <tag>Speech</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>语音大模型工程：音频 token、LLM 主干与对齐契约</title>
-    <url>/2026/06/10/Speech-LLM-Audio-Token-Alignment/</url>
-    <content><![CDATA[<p>语音大模型正在把 ASR、语音理解和多模态交互拉进 LLM 生态。Qwen3-ASR、Qwen-Omni、WeNet、CTC-AED 等路线背后都有同一个问题：音频表示如何进入语言模型，并且不破坏位置、mask、长度和训练目标的语义。</p>
-<p>这类系统表面上是“接一个 speech encoder 到 LLM”，实际难点在对齐契约。张量 shape 对，不等于语义对。</p>
-<span id="more"></span>
-
-<h2 id="一条典型链路"><a href="#一条典型链路" class="headerlink" title="一条典型链路"></a>一条典型链路</h2><p>语音大模型常见链路可以拆成五段：</p>
-<ol>
-<li>audio frontend：采样率、分帧、特征提取或 waveform 编码；</li>
-<li>speech encoder：把声学输入变成连续 hidden states 或离散 token；</li>
-<li>projector：把音频侧维度映射到 LLM hidden size；</li>
-<li>LLM backbone：处理文本 token、音频 token 和 prompt 模板；</li>
-<li>objective heads：使用生成 loss、CTC loss、AED loss 或辅助对齐 loss。</li>
-</ol>
-<p>这五段每一段都可能改变长度、mask 或位置信息。工程上必须把这些变化显式记录下来，而不是只在 forward 里临时拼接。</p>
-<h2 id="对齐契约有哪些"><a href="#对齐契约有哪些" class="headerlink" title="对齐契约有哪些"></a>对齐契约有哪些</h2><p><strong>长度契约</strong>：输入音频多少帧，经过 subsampling 后剩多少 token，projector 是否再改变长度，最终监督序列如何匹配。这个契约不清楚，训练 loss 下降也可能是错的。</p>
-<p><strong>位置契约</strong>：文本 token 和音频 token 是否共享 RoPE，是否需要多维位置，音频 token 插入 prompt 的哪个区域，padding 是否影响位置编号。</p>
-<p><strong>mask 契约</strong>：attention mask、loss mask、padding mask 不是一回事。一个位置可以参与 attention 但不参与 loss，也可以只作为上下文条件存在。把它们混在一起，是语音 LLM 最常见的隐性错误。</p>
-<p><strong>目标契约</strong>：CTC 更关心单调对齐，AED 更关心序列到序列，LLM loss 更关心生成协议。多目标训练时，要能单独观察每个 loss 的行为。</p>
-<h2 id="最小闭环优先于复杂结构"><a href="#最小闭环优先于复杂结构" class="headerlink" title="最小闭环优先于复杂结构"></a>最小闭环优先于复杂结构</h2><p>开源模型工程化时，不建议一开始就堆复杂结构。更稳的顺序是：</p>
-<ol>
-<li>固定 LLM，只训练 projector，在极小样本上验证过拟合；</li>
-<li>加入明确的音频 token 长度日志；</li>
-<li>检查 padding 位置不参与 loss；</li>
-<li>单独跑短音频、长音频、静音片段和噪声片段；</li>
-<li>再逐步解冻 encoder 或加入辅助目标。</li>
-</ol>
-<p>这条路径能把“系统能跑”和“系统能学”分开。前者是 smoke test，后者才是建模有效性的起点。</p>
-<h2 id="Qwen-与-WeNet-的工程启发"><a href="#Qwen-与-WeNet-的工程启发" class="headerlink" title="Qwen 与 WeNet 的工程启发"></a>Qwen 与 WeNet 的工程启发</h2><p>Qwen 类模型提示我们，现代 LLM 的位置编码和输入封装并不一定是传统 HuggingFace decoder 的简单结构。不要凭字段名猜测模型内部模块，应该以官方加载入口、配置和源码为准。</p>
-<p>WeNet 和 CTC-AED 路线提示我们，语音任务仍然需要单调对齐、时间边界和流式约束。LLM 主干很强，但它不能替代语音侧对齐诊断。</p>
-<p>更实际的做法是把两类能力组合起来：语音侧负责稳定编码和对齐，LLM 侧负责语言建模、指令跟随和复杂生成。</p>
-<h2 id="流式场景的额外约束"><a href="#流式场景的额外约束" class="headerlink" title="流式场景的额外约束"></a>流式场景的额外约束</h2><p>一旦进入流式输入，问题会更复杂：</p>
-<ul>
-<li>音频 chunk 之间是否共享缓存；</li>
-<li>当前文本生成是否可以被新音频打断；</li>
-<li>旧音频 token 是否需要压缩或丢弃；</li>
-<li>取消请求时 decoder state 如何清理；</li>
-<li>partial hypothesis 是否会污染最终输出。</li>
-</ul>
-<p>这些都不是模型结构图能解决的问题，而是运行时状态管理问题。</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>语音大模型工程的核心不是把 encoder 和 LLM 拼起来，而是明确音频 token 如何获得位置、如何参与 attention、如何参与 loss、如何在流式状态中被更新。只要这些契约没有写清楚，模型越大，调试越困难。</p>
-<h2 id="输入入口一致性"><a href="#输入入口一致性" class="headerlink" title="输入入口一致性"></a>输入入口一致性</h2><p>Speech-LLM debugging should include an input-contract test. The same utterance should be passed through every supported input path, then compare sampling rate, channel handling, feature length, audio-token length, position ids, attention mask, loss mask, and decoded text.</p>
-<p>Path-based input often hides loading, mixdown, resampling, and normalization steps. Tensor or precomputed-feature input may bypass them. If these paths are not tested side by side, a model issue can be mistaken for an input-contract issue.</p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>LLM</tag>
-        <tag>Open Source</tag>
-        <tag>Speech</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>音频模型 Batch 一致性排查：从有效输入区间到逐层 diff</title>
-    <url>/2026/06/10/Speech-Batch-Consistency-Debugging/</url>
-    <content><![CDATA[<p>音频模型在 batch size 改变后输出不一致，是很常见但容易误判的问题。不要一开始就怀疑最后的解码结果。更稳的排查顺序是：先证明输入等价，再证明 mask 和有效长度等价，最后逐层定位数值差异从哪里开始放大。</p>
-<p>这篇文章整理一套通用排查协议，适用于 ASR、VAD、speaker model 和其他时序音频模型。</p>
-<span id="more"></span>
-
-<h2 id="先定义什么叫一致"><a href="#先定义什么叫一致" class="headerlink" title="先定义什么叫一致"></a>先定义什么叫一致</h2><p>一致性可以分三层：</p>
-<ul>
-<li>数值一致：有效区域 hidden states 差异在阈值内；</li>
-<li>决策一致：分类标签、token 或分数排序不变；</li>
-<li>指标一致：WER、F1、recall 等整体指标不随 batch policy 漂移。</li>
-</ul>
-<p>很多线上系统真正需要的是决策一致，而不是逐位相同。先定义目标，才能避免把所有浮点差异都当成故障。</p>
-<h2 id="有效输入区间优先"><a href="#有效输入区间优先" class="headerlink" title="有效输入区间优先"></a>有效输入区间优先</h2><p>排查时只比较有效输入区间，不要把 padding 区混进去。建议固定：</p>
-<ol>
-<li>输入样本顺序；</li>
-<li>sampling rate 和 feature extraction；</li>
-<li>padding value；</li>
-<li>valid length；</li>
-<li>attention mask 或 padding mask；</li>
-<li>inference mode、dropout、random seed；</li>
-<li>dtype 和 device。</li>
-</ol>
-<p>如果这些条件没固定，batch&#x3D;1 和 batch&gt;1 的差异没有解释价值。</p>
-<h2 id="逐层-diff"><a href="#逐层-diff" class="headerlink" title="逐层 diff"></a>逐层 diff</h2><p>最小复现可以这样做：</p>
-<ol>
-<li>同一条样本单独推理一次；</li>
-<li>把同一条样本放进混合 batch 再推理一次；</li>
-<li>对齐有效长度；</li>
-<li>保存每层输入输出的 max diff、mean diff、cosine similarity；</li>
-<li>找到差异第一次明显放大的层。</li>
-</ol>
-<p>定位到层之后，再检查该层的 mask broadcast、normalization、cache、subsampling、kernel path 和 dtype 转换。</p>
-<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><p>几类问题最常见：</p>
-<ul>
-<li>padding 区参与了 attention 或 pooling；</li>
-<li>valid length 在 subsampling 后没有同步更新；</li>
-<li>mask 维度广播错误；</li>
-<li>batch normalization 或统计层在推理模式下状态不一致；</li>
-<li>mixed precision 在不同 batch shape 下走了不同 kernel；</li>
-<li>streaming cache 没有按样本隔离。</li>
-</ul>
-<p>这些问题会在最终输出里表现得很混乱，但逐层 diff 通常能把范围缩小。</p>
-<h2 id="回归测试"><a href="#回归测试" class="headerlink" title="回归测试"></a>回归测试</h2><p>修复后应保留 batch consistency regression：</p>
-<ul>
-<li>batch&#x3D;1；</li>
-<li>batch&#x3D;2；</li>
-<li>长短混合；</li>
-<li>全短样本；</li>
-<li>全长样本；</li>
-<li>不同 dtype；</li>
-<li>不同设备或后端。</li>
-</ul>
-<p>每组都只比较有效区域，并同时记录数值差异和决策差异。这样后续升级推理框架、kernel、量化策略或 batch policy 时，问题能被提前发现。</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Batch 一致性排查的关键是顺序。先证明输入和 mask 等价，再逐层找差异，不要直接从最终文本或最终分类结果反推原因。对时序模型来说，有效长度、padding、subsampling 和 dtype 往往比最后一层更早决定问题走向。</p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>Open Source</tag>
-        <tag>Inference</tag>
-        <tag>Debugging</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Hexo&amp;Github construct blog</title>
     <url>/2019/07/09/hexo-github-constructBlog/</url>
     <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>以前一直想自己写个博客网站，无奈一直没有时间，最近在师兄和好兄弟的推荐下，使用了hexo这一基于Node.js的静态博客框架，并将其托管于github上。总算是圆了个梦！</p>
@@ -802,6 +802,94 @@
       <tags>
         <tag>Blog</tag>
         <tag>Github</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>语音对话合成数据工程：Schema、口语化与质量闸门</title>
+    <url>/2026/06/11/Speech-Dialog-Data-Synthesis-Quality-Gates/</url>
+    <content><![CDATA[<p>用大模型合成对话数据很容易，难的是让这批数据真正进入语音系统的训练和评测闭环。一个可用的语音对话样本，不只是几轮看起来顺畅的文本。它还要保留角色、话轮、时间、通道、实体槽位、ASR 噪声、口语现象和质量标记。</p>
+<p>如果这些约束只写在 prompt 里，数据规模一大就会漂移：格式不稳定、标签不一致、口语化过度、实体边界模糊，最后训练出来的模型学到的不是交互能力，而是一批生成器的随机习惯。</p>
+<span id="more"></span>
+
+<h2 id="先定义数据契约"><a href="#先定义数据契约" class="headerlink" title="先定义数据契约"></a>先定义数据契约</h2><p>合成数据的第一层不是 prompt，而是 schema。每条样本至少要回答几个问题：</p>
+<ul>
+<li>这句话属于哪个对话、哪个话轮、哪个角色；</li>
+<li>是否来自单通道还是多通道音频；</li>
+<li>是否有时间边界；</li>
+<li>文本是干净转写、ASR 候选、纠错结果还是标注结果；</li>
+<li>是否包含实体、意图、结束点或其他结构化标签；</li>
+<li>是否经过噪声注入、口语改写或人工复核。</li>
+</ul>
+<p>一个通用的 JSONL 样本可以长这样：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;key&quot;</span><span class="punctuation">:</span> <span class="string">&quot;dialog-001-turn-003&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;dialog_id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;dialog-001&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;turn_id&quot;</span><span class="punctuation">:</span> <span class="number">3</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;role&quot;</span><span class="punctuation">:</span> <span class="string">&quot;user&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;channel&quot;</span><span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;start_ms&quot;</span><span class="punctuation">:</span> <span class="number">4280</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;end_ms&quot;</span><span class="punctuation">:</span> <span class="number">6910</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;txt&quot;</span><span class="punctuation">:</span> <span class="string">&quot;我想查一下刚才那个信息&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;slots&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;history&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span><span class="attr">&quot;role&quot;</span><span class="punctuation">:</span> <span class="string">&quot;assistant&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;txt&quot;</span><span class="punctuation">:</span> <span class="string">&quot;您好，请问需要查询什么内容&quot;</span><span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;quality_flags&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;spoken_style&quot;</span><span class="punctuation">,</span> <span class="string">&quot;schema_valid&quot;</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>字段名可以按项目调整，但契约要稳定。训练、评测、过滤、回溯都应该围绕这套契约运行，而不是每个脚本临时解释一版格式。</p>
+<h2 id="口语化必须受控"><a href="#口语化必须受控" class="headerlink" title="口语化必须受控"></a>口语化必须受控</h2><p>真实语音对话里有停顿、重复、修正、附和、打断、无效输入和噪声。但这些现象不能随机撒进文本里。</p>
+<p>口语化最好拆成可控变量：</p>
+<ul>
+<li>filler：语气词和停顿词；</li>
+<li>repetition：自然重复和异常复读；</li>
+<li>repair：说错后自我修正；</li>
+<li>interruption：用户打断或系统抢话；</li>
+<li>invalid input：沉默、超时、无意义片段；</li>
+<li>background event：背景人声、环境噪声、外放音。</li>
+</ul>
+<p>每个变量都应该有触发条件、比例、最大强度和质量标记。比如重复可以提升真实感，但如果不区分“自然确认”和“异常复读”，文本纠错或语义结束点模型会被带偏。口语化不是越多越好，它是数据分布的一部分。</p>
+<h2 id="N-best-不是随便造错字"><a href="#N-best-不是随便造错字" class="headerlink" title="N-best 不是随便造错字"></a>N-best 不是随便造错字</h2><p>ASR n-best 数据很适合训练文本纠错、重排序和上下文恢复模型。但 n-best 的候选不能只是随机替换字符。</p>
+<p>更稳的做法是把 ASR 错误拆成几类：</p>
+<ul>
+<li>substitution：同音、近音或领域词混淆；</li>
+<li>deletion：短词、语气词或弱读成分缺失；</li>
+<li>insertion：重复词、填充词或误触发热词；</li>
+<li>segmentation drift：切分边界前后错位；</li>
+<li>normalization drift：数字、英文、缩写和口语读法不一致。</li>
+</ul>
+<p>每个候选都应该保留错误类型和生成原因。这样后续模型评估时，才能知道它是在纠正同音错误，还是只是在把所有口语文本改得更书面。</p>
+<h2 id="历史上下文要筛选"><a href="#历史上下文要筛选" class="headerlink" title="历史上下文要筛选"></a>历史上下文要筛选</h2><p>对话模型经常需要 history，但把完整历史都塞进去会带来两个问题：上下文预算浪费，以及弱相关历史污染当前判断。</p>
+<p>可以把 history 处理成三层：</p>
+<ol>
+<li>固定窗口：保留最近若干轮；</li>
+<li>相似度过滤：只保留与当前文本相关的历史片段；</li>
+<li>结构化摘要：保留已确认实体、未完成意图和关键约束。</li>
+</ol>
+<p>这里的重点不是“history 越多越好”，而是当前样本需要什么信息。对于 ASR 纠错，历史可以帮助恢复实体和上下文；对于语义结束点判断，过长历史可能反而让模型忽视当前话轮是否已经完整。</p>
+<h2 id="质量闸门要前置"><a href="#质量闸门要前置" class="headerlink" title="质量闸门要前置"></a>质量闸门要前置</h2><p>合成数据进入训练前，至少需要四类检查。</p>
+<p>第一是 schema 检查。字段是否齐全，枚举值是否在白名单内，时间边界是否单调，角色和通道是否一致。</p>
+<p>第二是文本检查。空文本、异常重复、控制 token 泄漏、过长样本、标点风格混乱、数字规范不一致，都应该在这一层处理。</p>
+<p>第三是标签检查。实体 span 是否能在文本中找到，结束点标签是否互斥，意图标签是否与角色匹配，噪声标签是否和样本内容一致。</p>
+<p>第四是分布检查。口语化比例、错误类型比例、场景覆盖、长度分布、角色占比、无效输入占比，都要按批次输出报告。</p>
+<p>如果只抽几条样本肉眼看，合成数据很容易显得“质量不错”。真正的问题通常出现在分布层：某类标签被生成器过度使用，某类错误完全缺失，或者格式通过率随批次下降。</p>
+<h2 id="训练集和评测集要分离设计"><a href="#训练集和评测集要分离设计" class="headerlink" title="训练集和评测集要分离设计"></a>训练集和评测集要分离设计</h2><p>合成数据可以扩充训练集，但评测集不能照搬同一个生成策略。否则模型可能只是在适应生成器风格。</p>
+<p>评测集应该额外保留：</p>
+<ul>
+<li>人工或高置信 gold subset；</li>
+<li>未参与 prompt 示例的模板和表达；</li>
+<li>更真实的 ASR 错误分布；</li>
+<li>边界样本和负样本；</li>
+<li>按错误类型拆开的指标。</li>
+</ul>
+<p>端到端准确率只是最终结果。更有用的是知道模型在哪类样本上失败：是实体召回不够、历史过滤错误、n-best 候选没有正确答案，还是口语化扰动超出了训练分布。</p>
+<h2 id="可复用的流水线"><a href="#可复用的流水线" class="headerlink" title="可复用的流水线"></a>可复用的流水线</h2><p>一个可维护的合成数据流水线可以拆成七步：</p>
+<ol>
+<li>定义 schema、标签枚举和质量标记；</li>
+<li>生成干净对话骨架；</li>
+<li>注入口语现象和交互事件；</li>
+<li>生成 ASR-like n-best 或噪声文本；</li>
+<li>做 schema、文本和标签校验；</li>
+<li>输出批次质量报告；</li>
+<li>抽样复核并回写 reason code。</li>
+</ol>
+<p>这里最重要的是最后一步。不要只保留“通过&#x2F;不通过”，而要保留原因：格式错、标签冲突、重复异常、历史不相关、实体不可定位、噪声过强。reason code 会成为下一轮 prompt、规则和模型改进的依据。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>合成语音对话数据的核心不是让大模型多写几轮对话，而是把生成过程变成可约束、可审计、可复现的数据工程。</p>
+<p>schema 决定数据能不能被下游稳定消费；受控口语化决定数据是否接近真实语音；ASR-like 噪声决定纠错和重排序任务是否有训练价值；质量闸门决定扩量是否会变成污染。</p>
+<p>真正值得沉淀的不是某个 prompt，而是一套能持续回答这些问题的流水线：这条数据为什么生成、改动了什么、保留了什么标签、通过了哪些检查、失败时应该归因到哪里。</p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>Open Source</tag>
+        <tag>Evaluation</tag>
+        <tag>Data</tag>
+        <tag>Speech</tag>
       </tags>
   </entry>
 </search>
