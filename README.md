@@ -34,23 +34,33 @@ generates `public/search.xml` with `hexo-generator-searchdb`, and NexT performs
 the search in the browser.
 
 Comments are different because static hosting cannot store visitor input by
-itself. This blog uses `utterances`, which stores comments in GitHub Issues for
+itself. This blog uses `giscus`, which stores comments in GitHub Discussions for
 `fclearner/fclearner.github.io`; no custom database or backend service is
-required.
+required. NexT 8.27 does not ship a built-in Giscus integration in this local
+theme package, so `scripts/giscus-comments.js` injects the Giscus embed through
+NexT's `theme_inject` hook.
 
 Provider options considered:
 
-- `utterances`: stores comments in GitHub Issues; no custom database or server,
-  but the Utterances GitHub App must be installed for the target repository.
 - `giscus`: stores comments in GitHub Discussions; no custom database or server,
-  but Discussions and the Giscus app/config are required. The current NexT
-  package has built-in Utterances support; Giscus would need custom injection.
+  but Discussions, the Giscus GitHub App, and a discussion category id are
+  required.
+- `utterances`: stores comments in GitHub Issues; no custom database or server,
+  and NexT has built-in support, but this blog now prefers Discussions.
 - `isso` or `remark42`: fully self-hosted; requires running a service and
   maintaining its storage/database.
 
-For comments to accept new input on the live site, the Utterances GitHub App
-must be installed for `fclearner/fclearner.github.io`, and Issues must be
-enabled on that repository.
+For comments to accept new input on the live site:
+
+1. Enable Discussions for `fclearner/fclearner.github.io`.
+2. Install or configure the Giscus GitHub App for that repository.
+3. Create or choose an `Announcements` discussion category.
+4. Open `https://giscus.app/`, enter `fclearner/fclearner.github.io`, select
+   the category, and copy the generated `data-category-id` value into
+   `_config.next.yml` as `giscus.category_id`.
+
+Until `giscus.category_id` is filled, generated post pages contain a
+`giscus-config-pending` marker instead of loading an invalid comments iframe.
 
 ## Source And Deploy Repositories
 

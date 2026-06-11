@@ -38,16 +38,30 @@ local_search:
   unescape: true
   preload: false
 
-# GitHub-backed comments. Utterances stores comments in GitHub Issues, so the
+# GitHub-backed comments. Giscus stores comments in GitHub Discussions, so the
 # static site does not need a custom database or backend service.
 comments:
   style: tabs
-  active: utterances
+  active: giscus
   storage: true
-  lazyload: true
+  lazyload: false
 
 utterances:
-  enable: true
+  enable: false
   repo: fclearner/fclearner.github.io
   issue_term: pathname
   theme: preferred-color-scheme
+
+giscus:
+  enable: true
+  repo: fclearner/fclearner.github.io
+  repo_id: MDEwOlJlcG9zaXRvcnkxOTQwMTgyMjk=
+  category: Announcements
+  category_id:
+  mapping: pathname
+  strict: false
+  reactions_enabled: true
+  emit_metadata: false
+  input_position: bottom
+  theme: preferred_color_scheme
+  lang: zh-CN

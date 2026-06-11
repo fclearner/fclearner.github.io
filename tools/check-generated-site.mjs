@@ -93,7 +93,6 @@ if (!errors.length) {
     'about/index.html',
     'about/index/Mydraw1.jpg',
     'archives/index.html',
-    'js/third-party/comments/utterances.js',
     '2021/08/24/ASR-LAS-model/LAS_flow.png',
     '2026/06/09/PVAD2-engineering-loop/index.html',
     '2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/index.html',
@@ -166,16 +165,46 @@ if (!errors.length) {
   const representativeCommentPage = path.join(publicDir, '2026', '06', '10', 'AI-Adaptive-RAG-Retrieval-Scheduling', 'index.html');
   if (exists(representativeCommentPage)) {
     const commentHtml = read(representativeCommentPage);
-    const requiredCommentSnippets = [
+    const forbiddenCommentSnippets = [
       'utterances-container',
       '/js/third-party/comments/utterances.js',
-      '"active":"utterances"',
-      '"repo":"fclearner/fclearner.github.io"',
-      '"issue_term":"pathname"'
+      '"active":"utterances"'
+    ];
+    for (const snippet of forbiddenCommentSnippets) {
+      if (commentHtml.includes(snippet)) {
+        fail(`Found stale Utterances comment snippet ${JSON.stringify(snippet)} in ${path.relative(root, representativeCommentPage)}.`);
+      }
+    }
+
+    const requiredCommentSnippets = [
+      'giscus-container',
+      '"active":"giscus"'
     ];
     for (const snippet of requiredCommentSnippets) {
       if (!commentHtml.includes(snippet)) {
-        fail(`Missing Utterances comment snippet ${JSON.stringify(snippet)} in ${path.relative(root, representativeCommentPage)}.`);
+        fail(`Missing Giscus comment snippet ${JSON.stringify(snippet)} in ${path.relative(root, representativeCommentPage)}.`);
+      }
+    }
+
+    if (commentHtml.includes('giscus-config-pending')) {
+      if (!commentHtml.includes('data-missing="category_id"')) {
+        fail(`Giscus pending marker must identify the missing category_id in ${path.relative(root, representativeCommentPage)}.`);
+      }
+      if (commentHtml.includes('https://giscus.app/client.js')) {
+        fail(`Giscus pending page must not load the client script in ${path.relative(root, representativeCommentPage)}.`);
+      }
+    } else {
+      const requiredGiscusEmbedSnippets = [
+        'https://giscus.app/client.js',
+        'data-repo="fclearner/fclearner.github.io"',
+        'data-repo-id="MDEwOlJlcG9zaXRvcnkxOTQwMTgyMjk="',
+        'data-category="Announcements"',
+        'data-category-id='
+      ];
+      for (const snippet of requiredGiscusEmbedSnippets) {
+        if (!commentHtml.includes(snippet)) {
+          fail(`Missing Giscus embed snippet ${JSON.stringify(snippet)} in ${path.relative(root, representativeCommentPage)}.`);
+        }
       }
     }
   }
