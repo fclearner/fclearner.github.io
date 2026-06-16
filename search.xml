@@ -1,20 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>ASR-CMVN</title>
-    <url>/2021/08/24/ASR-CMVN/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CMVN在语音识别中的作用</p>
-<span id="more"></span>
-<h2 id="noun-翻译"><a href="#noun-翻译" class="headerlink" title="noun 翻译"></a>noun 翻译</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CMN：Cepstral Mean Normalisation，倒谱均值归一化；<br>&nbsp;&nbsp;&nbsp;&nbsp;CMVN：Cepstral Mean Variance Normalisation，倒谱均值方差归一化；</p>
-<h2 id="CMVN"><a href="#CMVN" class="headerlink" title="CMVN"></a>CMVN</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CMVN与数据归一化相似，但CMVN的意义更偏向于对音频数据进行滤波，可提升识别精度。<br>&nbsp;&nbsp;&nbsp;&nbsp;在线的CMVN是基于滑动窗口进行的，会影响语音识别响应时间；feature norm是对所有训练数据进行统计，然后单帧计算<br>&nbsp;&nbsp;&nbsp;&nbsp;因CMVN占用识别响应时间，最新的端到端识别中未使用<br>&nbsp;&nbsp;&nbsp;&nbsp;CMVN详细原理可参考References中的论文[1]</p>
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1]<a href="http://www.apsipa.org/proceedings/2020/pdfs/0000532.pdf">《Significance of CMVN for Replay Spoof Detection》</a></p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>Feature-engineering</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Adaptive RAG：从相似度检索到信息需求调度</title>
     <url>/2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/</url>
     <content><![CDATA[<p>RAG 的第一阶段很直观：把文档切块，向量化，按相似度取回若干段，再交给 LLM 生成答案。这个流程足够实用，但它默认了一个强假设：模型在生成前就知道自己需要什么信息。复杂问题里，这个假设经常不成立。</p>
@@ -62,6 +48,20 @@
       </tags>
   </entry>
   <entry>
+    <title>ASR-CMVN</title>
+    <url>/2021/08/24/ASR-CMVN/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CMVN在语音识别中的作用</p>
+<span id="more"></span>
+<h2 id="noun-翻译"><a href="#noun-翻译" class="headerlink" title="noun 翻译"></a>noun 翻译</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CMN：Cepstral Mean Normalisation，倒谱均值归一化；<br>&nbsp;&nbsp;&nbsp;&nbsp;CMVN：Cepstral Mean Variance Normalisation，倒谱均值方差归一化；</p>
+<h2 id="CMVN"><a href="#CMVN" class="headerlink" title="CMVN"></a>CMVN</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CMVN与数据归一化相似，但CMVN的意义更偏向于对音频数据进行滤波，可提升识别精度。<br>&nbsp;&nbsp;&nbsp;&nbsp;在线的CMVN是基于滑动窗口进行的，会影响语音识别响应时间；feature norm是对所有训练数据进行统计，然后单帧计算<br>&nbsp;&nbsp;&nbsp;&nbsp;因CMVN占用识别响应时间，最新的端到端识别中未使用<br>&nbsp;&nbsp;&nbsp;&nbsp;CMVN详细原理可参考References中的论文[1]</p>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1]<a href="http://www.apsipa.org/proceedings/2020/pdfs/0000532.pdf">《Significance of CMVN for Replay Spoof Detection》</a></p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>Feature-engineering</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>ASR-CTC</title>
     <url>/2021/08/29/ASR-CTC/</url>
     <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CTC(Connectionist Temporal Classification)可以在未对输入序列与输出标签进行FA(Force Alignment)的情况下完成时序对齐及分类工作，主要用于语音识别及手写识别[1]。</p>
@@ -84,95 +84,6 @@
         <tag>ASR</tag>
         <tag>ASR-Classic</tag>
         <tag>Loss</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ASR 噪声下的结构化抽取评测：从文本相似到实体归因</title>
-    <url>/2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/</url>
-    <content><![CDATA[<p>在 ASR 输出上做 NER 或结构化抽取，不能只把它当成普通文本任务。语音转写会带来插入、删除、替换、同音错误和边界错位，导致实体在参考文本和识别文本中的位置天然不稳定。</p>
-<p>如果仍然用严格字符 span 评测，很多可接受的识别会被误判为错误，真正严重的问题反而可能被掩盖。</p>
-<span id="more"></span>
-
-<h2 id="ASR-噪声改变了评测对象"><a href="#ASR-噪声改变了评测对象" class="headerlink" title="ASR 噪声改变了评测对象"></a>ASR 噪声改变了评测对象</h2><p>普通 NER 评测默认输入文本是稳定的，实体 span 可以精确定位。ASR 场景里，输入本身就是模型输出，错误会先发生在转写阶段。</p>
-<p>例如一个实体被识别成同音近似词，结构化抽取模型可能仍能恢复语义；也可能 ASR 多插入几个字，导致后续 span 全部错位。严格按字符位置对齐，会把这些情况混在一起。</p>
-<p>因此评测目标应该从“span 是否完全相等”扩展为“关键信息是否被正确恢复，以及错误来自哪里”。</p>
-<h2 id="两阶段评测更稳"><a href="#两阶段评测更稳" class="headerlink" title="两阶段评测更稳"></a>两阶段评测更稳</h2><p>第一阶段评估 ASR 文本本身：WER、CER、关键词召回、数字和专名错误类型。</p>
-<p>第二阶段评估结构化抽取结果：实体类型是否正确，实体值是否可接受，归一化结果是否一致，缺失和误报分别是多少。</p>
-<p>这两阶段要能关联。否则抽取失败时，很难判断是 ASR 没听对，还是抽取模型没有理解。</p>
-<h2 id="模糊匹配不是放松标准"><a href="#模糊匹配不是放松标准" class="headerlink" title="模糊匹配不是放松标准"></a>模糊匹配不是放松标准</h2><p>ASR 噪声下需要允许局部模糊匹配，但这不等于随意放宽标准。合理的做法是把匹配规则显式化：</p>
-<ul>
-<li>文本规范化后比较；</li>
-<li>在局部窗口内匹配实体；</li>
-<li>对同音、数字读法和简繁差异单独处理；</li>
-<li>对不同实体类型使用不同容忍度；</li>
-<li>输出 exact、partial、normalized 三类结果。</li>
-</ul>
-<p>这样可以保留评测的可解释性。</p>
-<h2 id="错误归因比单个-F1-更有用"><a href="#错误归因比单个-F1-更有用" class="headerlink" title="错误归因比单个 F1 更有用"></a>错误归因比单个 F1 更有用</h2><p>实体 F1 能说明总体效果，但不能指导修复。更有价值的是错误归因：</p>
-<ul>
-<li>ASR 删除导致实体缺失；</li>
-<li>ASR 替换导致实体值错误；</li>
-<li>文本规范化导致格式不一致；</li>
-<li>抽取模型漏召回；</li>
-<li>抽取模型误报；</li>
-<li>后处理归一化失败。</li>
-</ul>
-<p>有了归因，后续才知道应该改 ASR、改抽取模型、改 normalizer，还是改评测规则。</p>
-<h2 id="开源工具形态"><a href="#开源工具形态" class="headerlink" title="开源工具形态"></a>开源工具形态</h2><p>一个通用评测工具可以设计成三层输入：</p>
-<ol>
-<li>REF：参考文本和实体标注；</li>
-<li>HYP：ASR 文本和抽取结果；</li>
-<li>normalization config：实体类型、匹配窗口、归一化规则。</li>
-</ol>
-<p>输出包括样本级报告、实体级 precision&#x2F;recall&#x2F;F1、错误归因分布和可人工复核的 bad case 列表。</p>
-<p>这类工具不需要绑定特定模型，反而更适合开源：它提供的是评测语言，而不是某个单点模型。</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>ASR 噪声下的结构化抽取评测，核心是把文本错误、实体错误和归一化错误拆开。只有错误类型被看见，系统优化才有方向。</p>
-<h2 id="Alignment-aware-scorer"><a href="#Alignment-aware-scorer" class="headerlink" title="Alignment-aware scorer"></a>Alignment-aware scorer</h2><p>Noisy ASR text should be scored with an alignment-aware extractor. The scorer first aligns reference and hypothesis text, then evaluates entity value, entity type, local window match, normalization result, and error source.</p>
-<p>This avoids treating every span mismatch as an extraction failure. Some misses come from ASR substitution or deletion, some from normalization, and some from the downstream extractor. The repair path is different for each category.</p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>Open Source</tag>
-        <tag>NER</tag>
-        <tag>Evaluation</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ASR-LAS-model</title>
-    <url>/2021/08/24/ASR-LAS-model/</url>
-    <content><![CDATA[<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;论文《Listen Attend and Spell》LAS模型简介及代码复现</p>
-<span id="more"></span>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;论文地址: <a href="https://arxiv.org/abs/1508.01211v2">https://arxiv.org/abs/1508.01211v2</a></p>
-<h3 id="论文核心思想"><a href="#论文核心思想" class="headerlink" title="论文核心思想"></a>论文核心思想</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;语音识别模型，模型分为两个部分：listener和speller：<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;listener是三角形的pyramidal bidirecional lstm。<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;spller是基于attention的decoder,论文的label是以字符为单位的。</p>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;Encoder:<br>&nbsp;&nbsp;&nbsp;&nbsp;Decoder:</p>
-<h3 id="论文复现代码参考"><a href="#论文复现代码参考" class="headerlink" title="论文复现代码参考"></a>论文复现代码参考</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;pytorch版: <a href="https://github.com/AzizCode92/Listen-Attend-and-Spell-Pytorch">https://github.com/AzizCode92/Listen-Attend-and-Spell-Pytorch</a></p>
-<h3 id="LAS模型原理图"><a href="#LAS模型原理图" class="headerlink" title="LAS模型原理图"></a>LAS模型原理图</h3><p><img src="/2021/08/24/ASR-LAS-model/LAS_flow.png"></p>
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1]《<a href="https://zhuanlan.zhihu.com/p/80967163%E3%80%8B">https://zhuanlan.zhihu.com/p/80967163》</a></p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>ASR-Classic</tag>
-        <tag>Deep-learning</tag>
-        <tag>Attention</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ASR-Multilingual</title>
-    <url>/2022/04/22/ASR-Multilingual/</url>
-    <content><![CDATA[<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;多语种语音识别overview</p>
-<span id="more"></span>
-
-<h2 id="为什么需要多语种语音识别"><a href="#为什么需要多语种语音识别" class="headerlink" title="为什么需要多语种语音识别?"></a>为什么需要多语种语音识别?</h2><p>1、优化低资源语种的识别效果: 世界上大部分的语种存在数据匮乏的现象, 多语种语音识别具备一定潜力提升低资源语音识别的效果, 如采用迁移学习,<br>   基于识别效果较好的语种模型或是多语种模型进行调优。【关键】</p>
-<p>2、优化口音识别：实际的普通话或英文识别应用场景包含较多的方言口音识别问题反馈，实现自由说需针对性优化口音问题。</p>
-<p>3、优化模型部署流程：随着识别语种的不断增加，部署和维护每一种语种的几个模型会变得很麻烦，多语种免切换可在一定程度上优化系统性能。</p>
-<h2 id="语音识别的技术发展"><a href="#语音识别的技术发展" class="headerlink" title="语音识别的技术发展"></a>语音识别的技术发展</h2><p>GMM-HMM -&gt; DNN-HMM -&gt; RNN-E2E -&gt; attention-E2E -&gt; joint network<br>本质还是神经网络革新带动技术进步。<br>当前传统声学模型+语言模型的识别系统仍然在工业界活跃, 主要是传统的识别系统每个组件更独立, 有更丰富的调优方式。相对来说端到端语音识别的调优方式仍在发展, 但已是未来趋势—做传统的赶紧学。</p>
-<h2 id="现有的多语种识别技术路线"><a href="#现有的多语种识别技术路线" class="headerlink" title="现有的多语种识别技术路线"></a>现有的多语种识别技术路线</h2><p>1、跨语种迁移学习(cross-lingual transfer learning)<br>2、多任务学习(multi-task learning)<br>3、自监督学习(self-supervised learning)…我觉得和1有一些交集, 本质是预训练、nlp带火的<br>4、音素集共享(common phone)<br>5、可能还有吧。。。有些上面几个可以囊括了</p>
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a href="https://arxiv.org/abs/2202.12576v1">https://arxiv.org/abs/2202.12576v1</a></p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>ASR Low-resource</tag>
-        <tag>ASR Multilingual</tag>
       </tags>
   </entry>
   <entry>
@@ -222,10 +133,99 @@
 <p>The important field is the reason code. Keeping, dropping, or rewriting a sample should be explainable later. Without that audit trail, a training regression cannot be traced back to a data decision.</p>
 ]]></content>
       <tags>
-        <tag>ASR</tag>
         <tag>Open Source</tag>
-        <tag>Evaluation</tag>
+        <tag>ASR</tag>
         <tag>Data</tag>
+        <tag>Evaluation</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ASR-LAS-model</title>
+    <url>/2021/08/24/ASR-LAS-model/</url>
+    <content><![CDATA[<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;论文《Listen Attend and Spell》LAS模型简介及代码复现</p>
+<span id="more"></span>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;论文地址: <a href="https://arxiv.org/abs/1508.01211v2">https://arxiv.org/abs/1508.01211v2</a></p>
+<h3 id="论文核心思想"><a href="#论文核心思想" class="headerlink" title="论文核心思想"></a>论文核心思想</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;语音识别模型，模型分为两个部分：listener和speller：<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;listener是三角形的pyramidal bidirecional lstm。<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;spller是基于attention的decoder,论文的label是以字符为单位的。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;Encoder:<br>&nbsp;&nbsp;&nbsp;&nbsp;Decoder:</p>
+<h3 id="论文复现代码参考"><a href="#论文复现代码参考" class="headerlink" title="论文复现代码参考"></a>论文复现代码参考</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;pytorch版: <a href="https://github.com/AzizCode92/Listen-Attend-and-Spell-Pytorch">https://github.com/AzizCode92/Listen-Attend-and-Spell-Pytorch</a></p>
+<h3 id="LAS模型原理图"><a href="#LAS模型原理图" class="headerlink" title="LAS模型原理图"></a>LAS模型原理图</h3><p><img src="/2021/08/24/ASR-LAS-model/LAS_flow.png"></p>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1]《<a href="https://zhuanlan.zhihu.com/p/80967163%E3%80%8B">https://zhuanlan.zhihu.com/p/80967163》</a></p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>ASR-Classic</tag>
+        <tag>Deep-learning</tag>
+        <tag>Attention</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ASR-Multilingual</title>
+    <url>/2022/04/22/ASR-Multilingual/</url>
+    <content><![CDATA[<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;多语种语音识别overview</p>
+<span id="more"></span>
+
+<h2 id="为什么需要多语种语音识别"><a href="#为什么需要多语种语音识别" class="headerlink" title="为什么需要多语种语音识别?"></a>为什么需要多语种语音识别?</h2><p>1、优化低资源语种的识别效果: 世界上大部分的语种存在数据匮乏的现象, 多语种语音识别具备一定潜力提升低资源语音识别的效果, 如采用迁移学习,<br>   基于识别效果较好的语种模型或是多语种模型进行调优。【关键】</p>
+<p>2、优化口音识别：实际的普通话或英文识别应用场景包含较多的方言口音识别问题反馈，实现自由说需针对性优化口音问题。</p>
+<p>3、优化模型部署流程：随着识别语种的不断增加，部署和维护每一种语种的几个模型会变得很麻烦，多语种免切换可在一定程度上优化系统性能。</p>
+<h2 id="语音识别的技术发展"><a href="#语音识别的技术发展" class="headerlink" title="语音识别的技术发展"></a>语音识别的技术发展</h2><p>GMM-HMM -&gt; DNN-HMM -&gt; RNN-E2E -&gt; attention-E2E -&gt; joint network<br>本质还是神经网络革新带动技术进步。<br>当前传统声学模型+语言模型的识别系统仍然在工业界活跃, 主要是传统的识别系统每个组件更独立, 有更丰富的调优方式。相对来说端到端语音识别的调优方式仍在发展, 但已是未来趋势—做传统的赶紧学。</p>
+<h2 id="现有的多语种识别技术路线"><a href="#现有的多语种识别技术路线" class="headerlink" title="现有的多语种识别技术路线"></a>现有的多语种识别技术路线</h2><p>1、跨语种迁移学习(cross-lingual transfer learning)<br>2、多任务学习(multi-task learning)<br>3、自监督学习(self-supervised learning)…我觉得和1有一些交集, 本质是预训练、nlp带火的<br>4、音素集共享(common phone)<br>5、可能还有吧。。。有些上面几个可以囊括了</p>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a href="https://arxiv.org/abs/2202.12576v1">https://arxiv.org/abs/2202.12576v1</a></p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>ASR Low-resource</tag>
+        <tag>ASR Multilingual</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ASR 噪声下的结构化抽取评测：从文本相似到实体归因</title>
+    <url>/2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/</url>
+    <content><![CDATA[<p>在 ASR 输出上做 NER 或结构化抽取，不能只把它当成普通文本任务。语音转写会带来插入、删除、替换、同音错误和边界错位，导致实体在参考文本和识别文本中的位置天然不稳定。</p>
+<p>如果仍然用严格字符 span 评测，很多可接受的识别会被误判为错误，真正严重的问题反而可能被掩盖。</p>
+<span id="more"></span>
+
+<h2 id="ASR-噪声改变了评测对象"><a href="#ASR-噪声改变了评测对象" class="headerlink" title="ASR 噪声改变了评测对象"></a>ASR 噪声改变了评测对象</h2><p>普通 NER 评测默认输入文本是稳定的，实体 span 可以精确定位。ASR 场景里，输入本身就是模型输出，错误会先发生在转写阶段。</p>
+<p>例如一个实体被识别成同音近似词，结构化抽取模型可能仍能恢复语义；也可能 ASR 多插入几个字，导致后续 span 全部错位。严格按字符位置对齐，会把这些情况混在一起。</p>
+<p>因此评测目标应该从“span 是否完全相等”扩展为“关键信息是否被正确恢复，以及错误来自哪里”。</p>
+<h2 id="两阶段评测更稳"><a href="#两阶段评测更稳" class="headerlink" title="两阶段评测更稳"></a>两阶段评测更稳</h2><p>第一阶段评估 ASR 文本本身：WER、CER、关键词召回、数字和专名错误类型。</p>
+<p>第二阶段评估结构化抽取结果：实体类型是否正确，实体值是否可接受，归一化结果是否一致，缺失和误报分别是多少。</p>
+<p>这两阶段要能关联。否则抽取失败时，很难判断是 ASR 没听对，还是抽取模型没有理解。</p>
+<h2 id="模糊匹配不是放松标准"><a href="#模糊匹配不是放松标准" class="headerlink" title="模糊匹配不是放松标准"></a>模糊匹配不是放松标准</h2><p>ASR 噪声下需要允许局部模糊匹配，但这不等于随意放宽标准。合理的做法是把匹配规则显式化：</p>
+<ul>
+<li>文本规范化后比较；</li>
+<li>在局部窗口内匹配实体；</li>
+<li>对同音、数字读法和简繁差异单独处理；</li>
+<li>对不同实体类型使用不同容忍度；</li>
+<li>输出 exact、partial、normalized 三类结果。</li>
+</ul>
+<p>这样可以保留评测的可解释性。</p>
+<h2 id="错误归因比单个-F1-更有用"><a href="#错误归因比单个-F1-更有用" class="headerlink" title="错误归因比单个 F1 更有用"></a>错误归因比单个 F1 更有用</h2><p>实体 F1 能说明总体效果，但不能指导修复。更有价值的是错误归因：</p>
+<ul>
+<li>ASR 删除导致实体缺失；</li>
+<li>ASR 替换导致实体值错误；</li>
+<li>文本规范化导致格式不一致；</li>
+<li>抽取模型漏召回；</li>
+<li>抽取模型误报；</li>
+<li>后处理归一化失败。</li>
+</ul>
+<p>有了归因，后续才知道应该改 ASR、改抽取模型、改 normalizer，还是改评测规则。</p>
+<h2 id="开源工具形态"><a href="#开源工具形态" class="headerlink" title="开源工具形态"></a>开源工具形态</h2><p>一个通用评测工具可以设计成三层输入：</p>
+<ol>
+<li>REF：参考文本和实体标注；</li>
+<li>HYP：ASR 文本和抽取结果；</li>
+<li>normalization config：实体类型、匹配窗口、归一化规则。</li>
+</ol>
+<p>输出包括样本级报告、实体级 precision&#x2F;recall&#x2F;F1、错误归因分布和可人工复核的 bad case 列表。</p>
+<p>这类工具不需要绑定特定模型，反而更适合开源：它提供的是评测语言，而不是某个单点模型。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>ASR 噪声下的结构化抽取评测，核心是把文本错误、实体错误和归一化错误拆开。只有错误类型被看见，系统优化才有方向。</p>
+<h2 id="Alignment-aware-scorer"><a href="#Alignment-aware-scorer" class="headerlink" title="Alignment-aware scorer"></a>Alignment-aware scorer</h2><p>Noisy ASR text should be scored with an alignment-aware extractor. The scorer first aligns reference and hypothesis text, then evaluates entity value, entity type, local window match, normalization result, and error source.</p>
+<p>This avoids treating every span mismatch as an extraction failure. Some misses come from ASR substitution or deletion, some from normalization, and some from the downstream extractor. The repair path is different for each category.</p>
+]]></content>
+      <tags>
+        <tag>Open Source</tag>
+        <tag>ASR</tag>
+        <tag>Evaluation</tag>
+        <tag>NER</tag>
       </tags>
   </entry>
   <entry>
@@ -250,27 +250,6 @@
       <tags>
         <tag>ASR</tag>
         <tag>Preprocess</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>CCA application in SSVEP frequency detection</title>
-    <url>/2019/07/15/CCA-application-in-SSVEP-frequency-detection/</url>
-    <content><![CDATA[<h2 id="典型相关分析在稳态视觉诱发电位频率识别方面的应用"><a href="#典型相关分析在稳态视觉诱发电位频率识别方面的应用" class="headerlink" title="典型相关分析在稳态视觉诱发电位频率识别方面的应用"></a>典型相关分析在稳态视觉诱发电位频率识别方面的应用</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;随着脑机接口的快速发展，典型相关分析在稳态视觉诱发电位频率识别方面占据着重要的地位，由于脑电信号非线性的特征，使得机器学习算法在该领域的使用不具备优势，而比较信号同向变化相似率的CCA算法却取得了十分出色的效果。本文将对于CCA在SSVEP方面的应用发展以及优缺点进行介绍，希望为国内的脑机接口博客发展做出贡献。</p>
-<span id="more"></span>
-<h3 id="Question-1-什么是CCA？"><a href="#Question-1-什么是CCA？" class="headerlink" title="Question 1: 什么是CCA？"></a>Question 1: 什么是CCA？</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;CCA是一个多变量的统计方法，当有两组数据时使用，可能有一些潜在的相关性。CCA将普通的相关性扩展到两组变量。首先，CCA为两个集合找到一对称为正则变量的线性组合，使两个正则变量之间的相关性最大化。然后找到第二对，与第一对正则变量不相关，但相关性次之。构造正则变量的过程一直持续下去，直到正则变量对的数目等于较小集合中变量的数目。系数描述了两个集合之间的相关关系。但脑电信号中应用时只考虑了最大相关系数[1]。</p>
-<h3 id="Question-2-什么是SSVEP？"><a href="#Question-2-什么是SSVEP？" class="headerlink" title="Question 2: 什么是SSVEP？"></a>Question 2: 什么是SSVEP？</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;稳态状态视觉诱发电位(SSVEP)可定义为由快速重复的视觉刺激诱发的周期性诱发电位，其频率一般大于6hz。SSVEP由若干离散的频率分量组成。与ssvep相关的频率范围通常包括视觉刺激的基频及其谐波[1]。<br>&nbsp;&nbsp;&nbsp;&nbsp;SSVEP采集时以不同频率的光标闪烁刺激大脑产生相应频率的电信号，如下图所示:<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_collect.jpg"><br>&nbsp;&nbsp;&nbsp;&nbsp;SSVEP信号经过傅里叶变换后，可在刺激信号及其谐波处看到明显的尖峰，如下图所示:</p>
-<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_signal.png"></p>
-<h4 id="CCA在SSVEP中的应用"><a href="#CCA在SSVEP中的应用" class="headerlink" title="CCA在SSVEP中的应用"></a>CCA在SSVEP中的应用</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;CCA使用了两种信号，一个是用于刺激大脑的闪烁信号，另一个是大脑相应产生的SSVEP信号。<br>&nbsp;&nbsp;&nbsp;&nbsp;闪烁信号由于具有特定的频率，因此可根据傅里叶级数分解为$\sin 2{\pi}ft$, $\cos 2{\pi}ft$, $\sin 4{\pi}ft$…<br>&nbsp;&nbsp;&nbsp;&nbsp;如下式总结：<br>$$y(t) &#x3D; { y1(t) y2(t) y3(t) y4(t) y5(t) y6(t)} &#x3D; { \sin 2{\pi}ft \cos 2{\pi}ft \sin 4{\pi}ft \cos 4{\pi}ft \sin 6{\pi}ft \cos 6{\pi}ft}$$<br>$$t&#x3D;\frac1S, \frac2S, …, \frac{T}{S}, T是采样点数, S是采样率 $$<br>&nbsp;&nbsp;&nbsp;&nbsp;高阶谐波可忽略，这里取六个谐波信号。<br>&nbsp;&nbsp;&nbsp;&nbsp;SSVEP信号源自大脑上的不同通道，在[1]中，选择的通道为B2, Oz, O2, POz, D2, O1, PO7和PO1,共八个。<br>&nbsp;&nbsp;&nbsp;&nbsp;CCA的结构如下图所示：<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCA.png"><br>公式如下图所示（太复杂，不想用markdown写了）<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCAFormula.png"><br>&nbsp;&nbsp;&nbsp;&nbsp;将分母设为1,该式可变为一个约束优化问题，可以用广义特征值分解的方式求解，具体的求解流程可以参考CCA的<a href="https://www.cnblogs.com/pinard/p/6288716.html">其他博客</a>。<br>&nbsp;&nbsp;&nbsp;&nbsp;本文只做大体框架的梳理。</p>
-<h3 id="Question-3-CCA的缺陷？"><a href="#Question-3-CCA的缺陷？" class="headerlink" title="Question 3: CCA的缺陷？"></a>Question 3: CCA的缺陷？</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;典型相关分析自 2006 年 Lin 等人将其应用于脑机接口以来，因其结合了空间滤波、特征提取及分类功能而深受研究者的喜爱，并且在 SSVEP 信号处理中有着极为优秀的精度。但该算法仍然存在如下问题：<br>&nbsp;&nbsp;&nbsp;&nbsp;1）相位漂移问题。每个受试者对于同种视觉刺激具有不同的反应时滞，从而产生了脑电数据的相位漂移问题，当相位漂移问题存在时，数据训练往往会产生较大的偏差。<br>&nbsp;&nbsp;&nbsp;&nbsp;2） CCA 主要用于线性信号的处理，而脑电信号为非线性信号。在 CCA 的相关实验中，假设脑电信号为刺激频率的线性输出，但实际混杂了部分环境噪声及伪迹。CCA 在 2s 以上的长时间片中的表现极为优秀，但因为其未考虑脑电信号非线性的特性，在 1s 以内短时间片处理时仍存在不足之处。<br>&nbsp;&nbsp;&nbsp;&nbsp;近年来，研究者针对以上问题提出了很多不同的优化方案，包括使用脑电数据替代刺激信号作为参考信号以及利用数学公式计算受试者的相位偏移等。</p>
-<h3 id="CCA-extend"><a href="#CCA-extend" class="headerlink" title="CCA extend"></a>CCA extend</h3><h4 id="DCCA-深度典型相关分析算法"><a href="#DCCA-深度典型相关分析算法" class="headerlink" title="DCCA(深度典型相关分析算法)"></a>DCCA(深度典型相关分析算法)</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;关于非线性信号处理问题，研究者们尝试加入非线性算法进行优化处理。而近年来获得研究者们青睐的深度学习算法具备着较为优秀的非线性数据处理能力，如下图所示，通过多层神经网络表达典型相关分析算法的基础结构，并在此基础加入非线性处理相关算法，构建基于皮尔逊相关系数的特征提取模型，从而达到非线性信号分析处理的效果。<br>&nbsp;&nbsp;&nbsp;&nbsp;深度典型相关分析算法将网络模型分为两部分，一部分为参考信号的训练网络，一部分为待检测脑电信号的训练网络，网络结构的核心部分为典型相关分析算法的多层网络实现。深度典型相关分析算法利用训练数据获取单个受试者的空间滤波权值矩阵，因该权值矩阵经过多层网络，因此获得了更好的非线性优化效果，最后单个受试者的相关脑电数据在测试时即可获得较好的优化效果[2]。<br>&nbsp;&nbsp;&nbsp;&nbsp;深度典型相关分析的缺陷是，其使用了深度神经网络这一需要大量训练数据的算法结构，而实际采集时脑电数据获取困难，数据量较少，另外，深度神经网络虽解决了 CCA 算法中存在的非线性信号精度丢失问题，但对于相位漂移问题缺乏较好的优化措施。<br>DCCA原理图：<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/DCCA.png"></p>
-<h4 id="TRCA-任务组成相关分析算法"><a href="#TRCA-任务组成相关分析算法" class="headerlink" title="TRCA(任务组成相关分析算法)"></a>TRCA(任务组成相关分析算法)</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;TRCA 算法从脑电数据本身出发，将脑电数据视为任务相关及任务不相关两部分，通过最大化同一类脑电数据的协方差，构建了能够提取任务相关成分的权值矩阵，即实现了一个性能优秀的空间滤波数学模型，从而在利用皮尔逊相关系数进行分类时可以获得更为出色的优化效果，其处理流程如下图所示[3]。<br>&nbsp;&nbsp;&nbsp;&nbsp;TRCA 算法的参考信号使用了多通道脑电数据的均值，使得待检测脑电数据与参考信号可通过同一空间滤波权值矩阵提取任务相关特征，从而增大参考信号与检测信号的相关程度。实际算法处理过程中，需基于一定数量的训练数据获得空间滤波所需的权值矩阵以进行有效的任务相关特征提取。<br>&nbsp;&nbsp;&nbsp;&nbsp;相对于 CCA 算法，TRCA 在短时间片数据处理中具有极大的优势。相较深度典型相关分析算法，TRCA 算法的训练数据需求相对较少，并且训练效果好，无需构建复杂的网络模型。<br>TRCA算法原理图:</p>
-<img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/TRCA.png" width=256 height=256/>
-
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1]《Frequency Recognition Based on Canonical Correlation Analysis for SSVEP-Based BCIs》<br>[2]《Deep canonical correlation analysis》<br>[3]《Enhancing detection of SSVEPs for a high­speed brain speller using task­related component analysis》</p>
-]]></content>
-      <tags>
-        <tag>CCA</tag>
-        <tag>EEG</tag>
       </tags>
   </entry>
   <entry>
@@ -338,6 +317,52 @@
       </tags>
   </entry>
   <entry>
+    <title>【Agent Engineering Radar】2026-06-16 Agent 工程技术雷达</title>
+    <url>/2026/06/16/Agent-Engineering-Radar-2026-06-16/</url>
+    <content><![CDATA[<p>今天的信号很明确：agent 技术栈的竞争正在从“哪个框架更会跑 demo”，转向“哪个框架更容易被实现、验证、观测和约束”。近期几篇评测型论文和工具文档都指向同一个结论：不要先押注单一框架，先把评测、工具边界、trace 和安全门槛做成自己的吸收系统。</p>
+<span id="more"></span>
+
+<h2 id="Today’s-Signal"><a href="#Today’s-Signal" class="headerlink" title="Today’s Signal"></a>Today’s Signal</h2><p>ADK Arena 把 51 个 Python Agent Development Kit 放到同一套自动化流程里比较：让同一个 coding agent 学文档、写 agent、修复到测试通过，再跑 SWE-bench、tau2-bench、Terminal-Bench 和 MCP-Atlas 适配器。结果很适合做技术雷达的判断依据：框架生成成功率只有 57%，生成成本相差 5.6 倍，单一 benchmark 上的最佳框架可以做到很强，但中位框架只有 32% 左右的任务解决率。<a href="https://arxiv.org/abs/2606.05548">来源：arXiv:2606.05548</a></p>
+<p>这说明“社区热度”不能直接等同于“可进入主技术栈”。一个 agent 框架至少要过三关：开发者能否快速写对、工具&#x2F;状态是否可测试、失败时是否可诊断。</p>
+<h2 id="Adopt"><a href="#Adopt" class="headerlink" title="Adopt"></a>Adopt</h2><h3 id="评测先行，而不是框架先行"><a href="#评测先行，而不是框架先行" class="headerlink" title="评测先行，而不是框架先行"></a>评测先行，而不是框架先行</h3><p>把每个新框架都放进同一个最小评测夹具里：工具调用、文件读写、长任务恢复、人类确认、trace 输出、失败重试。ADK Arena 的方法给了一个实用启发：固定任务和验证标准，再比较框架差异，而不是只看文档示例。</p>
+<p>下一步：维护一个本地 <code>agent-stack-smoke</code>，每个候选框架都必须跑同一组任务，输出成功率、步数、token 成本和失败原因。</p>
+<h3 id="Agent-可观测性作为默认能力"><a href="#Agent-可观测性作为默认能力" class="headerlink" title="Agent 可观测性作为默认能力"></a>Agent 可观测性作为默认能力</h3><p>OpenInference 已经把 LLM 调用、检索、外部工具调用等上下文纳入 tracing 规范，并提供 OpenAI Agents SDK、MCP、LangChain、LlamaIndex、CrewAI、AutoGen AgentChat 等 instrumentation。<a href="https://arize-ai.github.io/openinference/">来源：OpenInference</a></p>
+<p>OpenTelemetry 也已经把 Generative AI、Agent spans、MCP、OpenAI 等语义约定列入文档目录，说明 agent trace 正在从厂商插件变成通用工程接口。<a href="https://opentelemetry.io/docs/specs/semconv/gen-ai/">来源：OpenTelemetry GenAI semantic conventions</a></p>
+<p>下一步：新 agent demo 默认记录 <code>model -&gt; tool -&gt; observation -&gt; decision -&gt; artifact</code> trace，不接受只有最终答案的 demo。</p>
+<h2 id="Trial"><a href="#Trial" class="headerlink" title="Trial"></a>Trial</h2><h3 id="对话式-coding-agent-评测"><a href="#对话式-coding-agent-评测" class="headerlink" title="对话式 coding agent 评测"></a>对话式 coding agent 评测</h3><p>Dialogue SWE-Bench 关注交互式 coding agent，而不是完全自动解题。它引入用户模拟器和对话质量评估，并指出 coding 能力和 dialogue 能力不是同一个维度。<a href="https://arxiv.org/abs/2606.13995">来源：arXiv:2606.13995</a></p>
+<p>这对个人工作流很关键：很多真实开发任务不是“一次性 issue -&gt; patch”，而是 agent 需要澄清范围、解释风险、接收用户修正、在新信息下调整计划。</p>
+<p>下一步：把本地评测分成两类：<code>autonomous task</code> 和 <code>dialogue task</code>。前者看完成率，后者还要看澄清质量、是否过早动手、是否保留用户约束。</p>
+<h3 id="MCP-作为连接层，但不直接等于可信执行层"><a href="#MCP-作为连接层，但不直接等于可信执行层" class="headerlink" title="MCP 作为连接层，但不直接等于可信执行层"></a>MCP 作为连接层，但不直接等于可信执行层</h3><p>MCP 官方定义是连接 AI 应用和外部系统的开放标准，可接数据源、工具和 workflow。<a href="https://modelcontextprotocol.io/docs/getting-started/intro">来源：MCP 官方文档</a></p>
+<p>这适合进入 Trial，而不是无条件 Adopt。原因是 MCP 解决的是接入标准化，不自动解决身份传播、工具预算、结构化错误、安全审计和权限隔离。</p>
+<p>下一步：只把 MCP server 放进最小权限 sandbox；每个工具必须有输入 schema、输出 schema、超时、审计日志和禁用开关。</p>
+<h2 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h2><h3 id="Skills-的真实增益比直觉更窄"><a href="#Skills-的真实增益比直觉更窄" class="headerlink" title="Skills 的真实增益比直觉更窄"></a>Skills 的真实增益比直觉更窄</h3><p>SWE-Skills-Bench 测了 49 个公开 SWE skills，结果显示 39 个没有带来 pass-rate 改善，平均增益只有 +1.2%；只有少数特化 skill 有明显收益，且版本不匹配的指导会伤害结果。<a href="https://arxiv.org/abs/2603.15401">来源：arXiv:2603.15401</a></p>
+<p>这不是说 skills 没用，而是说明 skill 必须足够贴近任务、版本和项目上下文。泛化的“最佳实践包”很容易变成 token 负担。</p>
+<p>下一步：skill 进入个人栈之前要有 paired eval：同一任务有 skill &#x2F; 无 skill 各跑一组，比较成功率、token、错误类型。</p>
+<h3 id="Terminal-任务的-benchmark-正在变硬"><a href="#Terminal-任务的-benchmark-正在变硬" class="headerlink" title="Terminal 任务的 benchmark 正在变硬"></a>Terminal 任务的 benchmark 正在变硬</h3><p>Terminal-Bench 2.0 提供 89 个真实终端环境任务，带环境、人工解法和测试；官方页面也展示了系统管理、安全、数据处理、模型训练等任务样例。<a href="https://www.tbench.ai/">来源：Terminal-Bench</a></p>
+<p>TerminalWorld 则从真实终端记录中构造任务，Verified 子集上当前系统最高 pass rate 约 62.5%，并指出它和 expert-curated benchmark 的相关性很弱。<a href="https://arxiv.org/abs/2605.22535">来源：arXiv:2605.22535</a></p>
+<p>下一步：不要只用 coding benchmark 判断 agent 能力。终端任务要单独看：命令规划、环境感知、文件副作用控制和恢复能力。</p>
+<h2 id="Hold-Risks"><a href="#Hold-Risks" class="headerlink" title="Hold &#x2F; Risks"></a>Hold &#x2F; Risks</h2><h3 id="不要把“框架支持-MCP-tracing-memory”当成生产成熟度"><a href="#不要把“框架支持-MCP-tracing-memory”当成生产成熟度" class="headerlink" title="不要把“框架支持 MCP &#x2F; tracing &#x2F; memory”当成生产成熟度"></a>不要把“框架支持 MCP &#x2F; tracing &#x2F; memory”当成生产成熟度</h3><p>今天的公开材料共同说明一个风险：很多能力已经有接口，但没有形成可靠的工程闭环。MCP 有连接层，OpenInference 有 trace 层，ADK 有框架层，benchmark 有评测层；真正可用的技术栈需要把这几层接起来。</p>
+<p>暂缓动作：不要因为一个框架新增某个集成就迁移主栈。先让它跑过本地 smoke、trace、权限和失败恢复检查。</p>
+<h3 id="不要盲目积累-skills"><a href="#不要盲目积累-skills" class="headerlink" title="不要盲目积累 skills"></a>不要盲目积累 skills</h3><p>Skills 更像精密工具，不是知识库越大越好。版本错位、抽象层级过高、和项目上下文冲突，都会让 agent 更慢或更错。</p>
+<p>暂缓动作：只保留能通过项目级验收的 skill；过期 skill 要归档，而不是长期塞进默认上下文。</p>
+<h2 id="Practical-Stack-Adjustments"><a href="#Practical-Stack-Adjustments" class="headerlink" title="Practical Stack Adjustments"></a>Practical Stack Adjustments</h2><p>本周可以先做四件小事：</p>
+<ol>
+<li>建一个最小 agent smoke suite，覆盖工具调用、文件修改、测试、恢复和 trace。</li>
+<li>给每次 agent 实验记录四个指标：成功率、成本、步数、失败类型。</li>
+<li>MCP server 默认放入 Trial 清单，必须通过权限和日志检查后再进入常用工具集。</li>
+<li>Skills 采用 paired eval，不再凭主观体验直接加入默认上下文。</li>
+</ol>
+<p>今天的结论：Agent Engineering 的技术视野要保持开放，但吸收机制要收紧。框架、协议、skills、benchmark 都可以快速跟进；真正进入主技术栈的，只应该是能被验证、能被观测、能被回滚的部分。</p>
+]]></content>
+      <tags>
+        <tag>AI</tag>
+        <tag>Open Source</tag>
+        <tag>Evaluation</tag>
+        <tag>Agent</tag>
+        <tag>Engineering</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>LLM 与语音模型推理服务：队列、流式与可观测性</title>
     <url>/2026/06/10/LLM-Speech-Inference-Serving-Observability/</url>
     <content><![CDATA[<p>推理服务的性能问题，很多时候不在单次 GPU forward，而在排队、预处理、batch 调度、流式输出、取消机制和可观测性之间。模型越大，单次推理越重要；系统越复杂，队列和状态越容易成为真正瓶颈。</p>
@@ -384,62 +409,31 @@
 <p>For speech and multimodal workloads, the trace also needs feature length, chunk count, cache reuse, cancellation state, and output flush timing. Otherwise p99 latency is visible, but not explainable.</p>
 ]]></content>
       <tags>
-        <tag>ASR</tag>
         <tag>LLM</tag>
         <tag>Open Source</tag>
+        <tag>ASR</tag>
         <tag>Inference</tag>
       </tags>
   </entry>
   <entry>
-    <title>语音大模型工程：音频 token、LLM 主干与对齐契约</title>
-    <url>/2026/06/10/Speech-LLM-Audio-Token-Alignment/</url>
-    <content><![CDATA[<p>语音大模型正在把 ASR、语音理解和多模态交互拉进 LLM 生态。Qwen3-ASR、Qwen-Omni、WeNet、CTC-AED 等路线背后都有同一个问题：音频表示如何进入语言模型，并且不破坏位置、mask、长度和训练目标的语义。</p>
-<p>这类系统表面上是“接一个 speech encoder 到 LLM”，实际难点在对齐契约。张量 shape 对，不等于语义对。</p>
+    <title>CCA application in SSVEP frequency detection</title>
+    <url>/2019/07/15/CCA-application-in-SSVEP-frequency-detection/</url>
+    <content><![CDATA[<h2 id="典型相关分析在稳态视觉诱发电位频率识别方面的应用"><a href="#典型相关分析在稳态视觉诱发电位频率识别方面的应用" class="headerlink" title="典型相关分析在稳态视觉诱发电位频率识别方面的应用"></a>典型相关分析在稳态视觉诱发电位频率识别方面的应用</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;随着脑机接口的快速发展，典型相关分析在稳态视觉诱发电位频率识别方面占据着重要的地位，由于脑电信号非线性的特征，使得机器学习算法在该领域的使用不具备优势，而比较信号同向变化相似率的CCA算法却取得了十分出色的效果。本文将对于CCA在SSVEP方面的应用发展以及优缺点进行介绍，希望为国内的脑机接口博客发展做出贡献。</p>
 <span id="more"></span>
+<h3 id="Question-1-什么是CCA？"><a href="#Question-1-什么是CCA？" class="headerlink" title="Question 1: 什么是CCA？"></a>Question 1: 什么是CCA？</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;CCA是一个多变量的统计方法，当有两组数据时使用，可能有一些潜在的相关性。CCA将普通的相关性扩展到两组变量。首先，CCA为两个集合找到一对称为正则变量的线性组合，使两个正则变量之间的相关性最大化。然后找到第二对，与第一对正则变量不相关，但相关性次之。构造正则变量的过程一直持续下去，直到正则变量对的数目等于较小集合中变量的数目。系数描述了两个集合之间的相关关系。但脑电信号中应用时只考虑了最大相关系数[1]。</p>
+<h3 id="Question-2-什么是SSVEP？"><a href="#Question-2-什么是SSVEP？" class="headerlink" title="Question 2: 什么是SSVEP？"></a>Question 2: 什么是SSVEP？</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;稳态状态视觉诱发电位(SSVEP)可定义为由快速重复的视觉刺激诱发的周期性诱发电位，其频率一般大于6hz。SSVEP由若干离散的频率分量组成。与ssvep相关的频率范围通常包括视觉刺激的基频及其谐波[1]。<br>&nbsp;&nbsp;&nbsp;&nbsp;SSVEP采集时以不同频率的光标闪烁刺激大脑产生相应频率的电信号，如下图所示:<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_collect.jpg"><br>&nbsp;&nbsp;&nbsp;&nbsp;SSVEP信号经过傅里叶变换后，可在刺激信号及其谐波处看到明显的尖峰，如下图所示:</p>
+<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_signal.png"></p>
+<h4 id="CCA在SSVEP中的应用"><a href="#CCA在SSVEP中的应用" class="headerlink" title="CCA在SSVEP中的应用"></a>CCA在SSVEP中的应用</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;CCA使用了两种信号，一个是用于刺激大脑的闪烁信号，另一个是大脑相应产生的SSVEP信号。<br>&nbsp;&nbsp;&nbsp;&nbsp;闪烁信号由于具有特定的频率，因此可根据傅里叶级数分解为$\sin 2{\pi}ft$, $\cos 2{\pi}ft$, $\sin 4{\pi}ft$…<br>&nbsp;&nbsp;&nbsp;&nbsp;如下式总结：<br>$$y(t) &#x3D; { y1(t) y2(t) y3(t) y4(t) y5(t) y6(t)} &#x3D; { \sin 2{\pi}ft \cos 2{\pi}ft \sin 4{\pi}ft \cos 4{\pi}ft \sin 6{\pi}ft \cos 6{\pi}ft}$$<br>$$t&#x3D;\frac1S, \frac2S, …, \frac{T}{S}, T是采样点数, S是采样率 $$<br>&nbsp;&nbsp;&nbsp;&nbsp;高阶谐波可忽略，这里取六个谐波信号。<br>&nbsp;&nbsp;&nbsp;&nbsp;SSVEP信号源自大脑上的不同通道，在[1]中，选择的通道为B2, Oz, O2, POz, D2, O1, PO7和PO1,共八个。<br>&nbsp;&nbsp;&nbsp;&nbsp;CCA的结构如下图所示：<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCA.png"><br>公式如下图所示（太复杂，不想用markdown写了）<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCAFormula.png"><br>&nbsp;&nbsp;&nbsp;&nbsp;将分母设为1,该式可变为一个约束优化问题，可以用广义特征值分解的方式求解，具体的求解流程可以参考CCA的<a href="https://www.cnblogs.com/pinard/p/6288716.html">其他博客</a>。<br>&nbsp;&nbsp;&nbsp;&nbsp;本文只做大体框架的梳理。</p>
+<h3 id="Question-3-CCA的缺陷？"><a href="#Question-3-CCA的缺陷？" class="headerlink" title="Question 3: CCA的缺陷？"></a>Question 3: CCA的缺陷？</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;典型相关分析自 2006 年 Lin 等人将其应用于脑机接口以来，因其结合了空间滤波、特征提取及分类功能而深受研究者的喜爱，并且在 SSVEP 信号处理中有着极为优秀的精度。但该算法仍然存在如下问题：<br>&nbsp;&nbsp;&nbsp;&nbsp;1）相位漂移问题。每个受试者对于同种视觉刺激具有不同的反应时滞，从而产生了脑电数据的相位漂移问题，当相位漂移问题存在时，数据训练往往会产生较大的偏差。<br>&nbsp;&nbsp;&nbsp;&nbsp;2） CCA 主要用于线性信号的处理，而脑电信号为非线性信号。在 CCA 的相关实验中，假设脑电信号为刺激频率的线性输出，但实际混杂了部分环境噪声及伪迹。CCA 在 2s 以上的长时间片中的表现极为优秀，但因为其未考虑脑电信号非线性的特性，在 1s 以内短时间片处理时仍存在不足之处。<br>&nbsp;&nbsp;&nbsp;&nbsp;近年来，研究者针对以上问题提出了很多不同的优化方案，包括使用脑电数据替代刺激信号作为参考信号以及利用数学公式计算受试者的相位偏移等。</p>
+<h3 id="CCA-extend"><a href="#CCA-extend" class="headerlink" title="CCA extend"></a>CCA extend</h3><h4 id="DCCA-深度典型相关分析算法"><a href="#DCCA-深度典型相关分析算法" class="headerlink" title="DCCA(深度典型相关分析算法)"></a>DCCA(深度典型相关分析算法)</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;关于非线性信号处理问题，研究者们尝试加入非线性算法进行优化处理。而近年来获得研究者们青睐的深度学习算法具备着较为优秀的非线性数据处理能力，如下图所示，通过多层神经网络表达典型相关分析算法的基础结构，并在此基础加入非线性处理相关算法，构建基于皮尔逊相关系数的特征提取模型，从而达到非线性信号分析处理的效果。<br>&nbsp;&nbsp;&nbsp;&nbsp;深度典型相关分析算法将网络模型分为两部分，一部分为参考信号的训练网络，一部分为待检测脑电信号的训练网络，网络结构的核心部分为典型相关分析算法的多层网络实现。深度典型相关分析算法利用训练数据获取单个受试者的空间滤波权值矩阵，因该权值矩阵经过多层网络，因此获得了更好的非线性优化效果，最后单个受试者的相关脑电数据在测试时即可获得较好的优化效果[2]。<br>&nbsp;&nbsp;&nbsp;&nbsp;深度典型相关分析的缺陷是，其使用了深度神经网络这一需要大量训练数据的算法结构，而实际采集时脑电数据获取困难，数据量较少，另外，深度神经网络虽解决了 CCA 算法中存在的非线性信号精度丢失问题，但对于相位漂移问题缺乏较好的优化措施。<br>DCCA原理图：<br><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/DCCA.png"></p>
+<h4 id="TRCA-任务组成相关分析算法"><a href="#TRCA-任务组成相关分析算法" class="headerlink" title="TRCA(任务组成相关分析算法)"></a>TRCA(任务组成相关分析算法)</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;TRCA 算法从脑电数据本身出发，将脑电数据视为任务相关及任务不相关两部分，通过最大化同一类脑电数据的协方差，构建了能够提取任务相关成分的权值矩阵，即实现了一个性能优秀的空间滤波数学模型，从而在利用皮尔逊相关系数进行分类时可以获得更为出色的优化效果，其处理流程如下图所示[3]。<br>&nbsp;&nbsp;&nbsp;&nbsp;TRCA 算法的参考信号使用了多通道脑电数据的均值，使得待检测脑电数据与参考信号可通过同一空间滤波权值矩阵提取任务相关特征，从而增大参考信号与检测信号的相关程度。实际算法处理过程中，需基于一定数量的训练数据获得空间滤波所需的权值矩阵以进行有效的任务相关特征提取。<br>&nbsp;&nbsp;&nbsp;&nbsp;相对于 CCA 算法，TRCA 在短时间片数据处理中具有极大的优势。相较深度典型相关分析算法，TRCA 算法的训练数据需求相对较少，并且训练效果好，无需构建复杂的网络模型。<br>TRCA算法原理图:</p>
+<img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/TRCA.png" width=256 height=256/>
 
-<h2 id="一条典型链路"><a href="#一条典型链路" class="headerlink" title="一条典型链路"></a>一条典型链路</h2><p>语音大模型常见链路可以拆成五段：</p>
-<ol>
-<li>audio frontend：采样率、分帧、特征提取或 waveform 编码；</li>
-<li>speech encoder：把声学输入变成连续 hidden states 或离散 token；</li>
-<li>projector：把音频侧维度映射到 LLM hidden size；</li>
-<li>LLM backbone：处理文本 token、音频 token 和 prompt 模板；</li>
-<li>objective heads：使用生成 loss、CTC loss、AED loss 或辅助对齐 loss。</li>
-</ol>
-<p>这五段每一段都可能改变长度、mask 或位置信息。工程上必须把这些变化显式记录下来，而不是只在 forward 里临时拼接。</p>
-<h2 id="对齐契约有哪些"><a href="#对齐契约有哪些" class="headerlink" title="对齐契约有哪些"></a>对齐契约有哪些</h2><p><strong>长度契约</strong>：输入音频多少帧，经过 subsampling 后剩多少 token，projector 是否再改变长度，最终监督序列如何匹配。这个契约不清楚，训练 loss 下降也可能是错的。</p>
-<p><strong>位置契约</strong>：文本 token 和音频 token 是否共享 RoPE，是否需要多维位置，音频 token 插入 prompt 的哪个区域，padding 是否影响位置编号。</p>
-<p><strong>mask 契约</strong>：attention mask、loss mask、padding mask 不是一回事。一个位置可以参与 attention 但不参与 loss，也可以只作为上下文条件存在。把它们混在一起，是语音 LLM 最常见的隐性错误。</p>
-<p><strong>目标契约</strong>：CTC 更关心单调对齐，AED 更关心序列到序列，LLM loss 更关心生成协议。多目标训练时，要能单独观察每个 loss 的行为。</p>
-<h2 id="最小闭环优先于复杂结构"><a href="#最小闭环优先于复杂结构" class="headerlink" title="最小闭环优先于复杂结构"></a>最小闭环优先于复杂结构</h2><p>开源模型工程化时，不建议一开始就堆复杂结构。更稳的顺序是：</p>
-<ol>
-<li>固定 LLM，只训练 projector，在极小样本上验证过拟合；</li>
-<li>加入明确的音频 token 长度日志；</li>
-<li>检查 padding 位置不参与 loss；</li>
-<li>单独跑短音频、长音频、静音片段和噪声片段；</li>
-<li>再逐步解冻 encoder 或加入辅助目标。</li>
-</ol>
-<p>这条路径能把“系统能跑”和“系统能学”分开。前者是 smoke test，后者才是建模有效性的起点。</p>
-<h2 id="Qwen-与-WeNet-的工程启发"><a href="#Qwen-与-WeNet-的工程启发" class="headerlink" title="Qwen 与 WeNet 的工程启发"></a>Qwen 与 WeNet 的工程启发</h2><p>Qwen 类模型提示我们，现代 LLM 的位置编码和输入封装并不一定是传统 HuggingFace decoder 的简单结构。不要凭字段名猜测模型内部模块，应该以官方加载入口、配置和源码为准。</p>
-<p>WeNet 和 CTC-AED 路线提示我们，语音任务仍然需要单调对齐、时间边界和流式约束。LLM 主干很强，但它不能替代语音侧对齐诊断。</p>
-<p>更实际的做法是把两类能力组合起来：语音侧负责稳定编码和对齐，LLM 侧负责语言建模、指令跟随和复杂生成。</p>
-<h2 id="流式场景的额外约束"><a href="#流式场景的额外约束" class="headerlink" title="流式场景的额外约束"></a>流式场景的额外约束</h2><p>一旦进入流式输入，问题会更复杂：</p>
-<ul>
-<li>音频 chunk 之间是否共享缓存；</li>
-<li>当前文本生成是否可以被新音频打断；</li>
-<li>旧音频 token 是否需要压缩或丢弃；</li>
-<li>取消请求时 decoder state 如何清理；</li>
-<li>partial hypothesis 是否会污染最终输出。</li>
-</ul>
-<p>这些都不是模型结构图能解决的问题，而是运行时状态管理问题。</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>语音大模型工程的核心不是把 encoder 和 LLM 拼起来，而是明确音频 token 如何获得位置、如何参与 attention、如何参与 loss、如何在流式状态中被更新。只要这些契约没有写清楚，模型越大，调试越困难。</p>
-<h2 id="输入入口一致性"><a href="#输入入口一致性" class="headerlink" title="输入入口一致性"></a>输入入口一致性</h2><p>Speech-LLM debugging should include an input-contract test. The same utterance should be passed through every supported input path, then compare sampling rate, channel handling, feature length, audio-token length, position ids, attention mask, loss mask, and decoded text.</p>
-<p>Path-based input often hides loading, mixdown, resampling, and normalization steps. Tensor or precomputed-feature input may bypass them. If these paths are not tested side by side, a model issue can be mistaken for an input-contract issue.</p>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1]《Frequency Recognition Based on Canonical Correlation Analysis for SSVEP-Based BCIs》<br>[2]《Deep canonical correlation analysis》<br>[3]《Enhancing detection of SSVEPs for a high­speed brain speller using task­related component analysis》</p>
 ]]></content>
       <tags>
-        <tag>ASR</tag>
-        <tag>LLM</tag>
-        <tag>Open Source</tag>
-        <tag>Speech</tag>
+        <tag>CCA</tag>
+        <tag>EEG</tag>
       </tags>
   </entry>
   <entry>
@@ -489,8 +483,8 @@
 <p>Turn-taking 的目标不是追求最早响应，而是在低延迟和低打断之间找到可控平衡。</p>
 ]]></content>
       <tags>
-        <tag>ASR</tag>
         <tag>Open Source</tag>
+        <tag>ASR</tag>
         <tag>Evaluation</tag>
         <tag>Speech</tag>
       </tags>
@@ -539,70 +533,6 @@
         <tag>Open Source</tag>
         <tag>PEFT</tag>
         <tag>Fine-tuning</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>音频模型 Batch 一致性排查：从有效输入区间到逐层 diff</title>
-    <url>/2026/06/10/Speech-Batch-Consistency-Debugging/</url>
-    <content><![CDATA[<p>音频模型在 batch size 改变后输出不一致，是很常见但容易误判的问题。不要一开始就怀疑最后的解码结果。更稳的排查顺序是：先证明输入等价，再证明 mask 和有效长度等价，最后逐层定位数值差异从哪里开始放大。</p>
-<p>这篇文章整理一套通用排查协议，适用于 ASR、VAD、speaker model 和其他时序音频模型。</p>
-<span id="more"></span>
-
-<h2 id="先定义什么叫一致"><a href="#先定义什么叫一致" class="headerlink" title="先定义什么叫一致"></a>先定义什么叫一致</h2><p>一致性可以分三层：</p>
-<ul>
-<li>数值一致：有效区域 hidden states 差异在阈值内；</li>
-<li>决策一致：分类标签、token 或分数排序不变；</li>
-<li>指标一致：WER、F1、recall 等整体指标不随 batch policy 漂移。</li>
-</ul>
-<p>很多线上系统真正需要的是决策一致，而不是逐位相同。先定义目标，才能避免把所有浮点差异都当成故障。</p>
-<h2 id="有效输入区间优先"><a href="#有效输入区间优先" class="headerlink" title="有效输入区间优先"></a>有效输入区间优先</h2><p>排查时只比较有效输入区间，不要把 padding 区混进去。建议固定：</p>
-<ol>
-<li>输入样本顺序；</li>
-<li>sampling rate 和 feature extraction；</li>
-<li>padding value；</li>
-<li>valid length；</li>
-<li>attention mask 或 padding mask；</li>
-<li>inference mode、dropout、random seed；</li>
-<li>dtype 和 device。</li>
-</ol>
-<p>如果这些条件没固定，batch&#x3D;1 和 batch&gt;1 的差异没有解释价值。</p>
-<h2 id="逐层-diff"><a href="#逐层-diff" class="headerlink" title="逐层 diff"></a>逐层 diff</h2><p>最小复现可以这样做：</p>
-<ol>
-<li>同一条样本单独推理一次；</li>
-<li>把同一条样本放进混合 batch 再推理一次；</li>
-<li>对齐有效长度；</li>
-<li>保存每层输入输出的 max diff、mean diff、cosine similarity；</li>
-<li>找到差异第一次明显放大的层。</li>
-</ol>
-<p>定位到层之后，再检查该层的 mask broadcast、normalization、cache、subsampling、kernel path 和 dtype 转换。</p>
-<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><p>几类问题最常见：</p>
-<ul>
-<li>padding 区参与了 attention 或 pooling；</li>
-<li>valid length 在 subsampling 后没有同步更新；</li>
-<li>mask 维度广播错误；</li>
-<li>batch normalization 或统计层在推理模式下状态不一致；</li>
-<li>mixed precision 在不同 batch shape 下走了不同 kernel；</li>
-<li>streaming cache 没有按样本隔离。</li>
-</ul>
-<p>这些问题会在最终输出里表现得很混乱，但逐层 diff 通常能把范围缩小。</p>
-<h2 id="回归测试"><a href="#回归测试" class="headerlink" title="回归测试"></a>回归测试</h2><p>修复后应保留 batch consistency regression：</p>
-<ul>
-<li>batch&#x3D;1；</li>
-<li>batch&#x3D;2；</li>
-<li>长短混合；</li>
-<li>全短样本；</li>
-<li>全长样本；</li>
-<li>不同 dtype；</li>
-<li>不同设备或后端。</li>
-</ul>
-<p>每组都只比较有效区域，并同时记录数值差异和决策差异。这样后续升级推理框架、kernel、量化策略或 batch policy 时，问题能被提前发现。</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Batch 一致性排查的关键是顺序。先证明输入和 mask 等价，再逐层找差异，不要直接从最终文本或最终分类结果反推原因。对时序模型来说，有效长度、padding、subsampling 和 dtype 往往比最后一层更早决定问题走向。</p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>Open Source</tag>
-        <tag>Inference</tag>
-        <tag>Debugging</tag>
       </tags>
   </entry>
   <entry>
@@ -759,49 +689,119 @@
       </tags>
   </entry>
   <entry>
-    <title>Hexo&amp;Github construct blog</title>
-    <url>/2019/07/09/hexo-github-constructBlog/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>以前一直想自己写个博客网站，无奈一直没有时间，最近在师兄和好兄弟的推荐下，使用了hexo这一基于Node.js的静态博客框架，并将其托管于github上。总算是圆了个梦！</p>
+    <title>音频模型 Batch 一致性排查：从有效输入区间到逐层 diff</title>
+    <url>/2026/06/10/Speech-Batch-Consistency-Debugging/</url>
+    <content><![CDATA[<p>音频模型在 batch size 改变后输出不一致，是很常见但容易误判的问题。不要一开始就怀疑最后的解码结果。更稳的排查顺序是：先证明输入等价，再证明 mask 和有效长度等价，最后逐层定位数值差异从哪里开始放大。</p>
+<p>这篇文章整理一套通用排查协议，适用于 ASR、VAD、speaker model 和其他时序音频模型。</p>
 <span id="more"></span>
-<h2 id="搭建步骤"><a href="#搭建步骤" class="headerlink" title="搭建步骤"></a>搭建步骤</h2><ul>
-<li>github创建个人仓库</li>
-<li>安装git</li>
-<li>安装Node.js</li>
-<li>安装hexo</li>
-<li>上传博客内容至github仓库</li>
-<li>绑定域名</li>
-<li>其它</li>
-<li>附录</li>
+
+<h2 id="先定义什么叫一致"><a href="#先定义什么叫一致" class="headerlink" title="先定义什么叫一致"></a>先定义什么叫一致</h2><p>一致性可以分三层：</p>
+<ul>
+<li>数值一致：有效区域 hidden states 差异在阈值内；</li>
+<li>决策一致：分类标签、token 或分数排序不变；</li>
+<li>指标一致：WER、F1、recall 等整体指标不随 batch policy 漂移。</li>
 </ul>
-<h3 id="github搭建个人仓库"><a href="#github搭建个人仓库" class="headerlink" title="github搭建个人仓库"></a>github搭建个人仓库</h3><p>登录github,在github仓库中创建新仓库, 仓库名按:<strong>用户名.github.io</strong>的格式命名, 注意:这个用户名使用你的GitHub帐号名称代替，否则在博客创建时会出现无法工作的情况。</p>
-<h3 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h3><p>git是一个分散式版本控制软件，最初由林纳斯·托瓦兹创作，于2005年以GPL释出。最初目的是为更好地管理Linux核心开发而设计。请自行搜索git下载工具。<br>下载安装完成后，windows右键中即可出现git bash字样。<br><img src="/2019/07/09/hexo-github-constructBlog/gitbash.png"><br>以下步骤是为了省去每次上传github都需要繁复输入密码:</p>
-<h4 id="设置用户名和邮箱"><a href="#设置用户名和邮箱" class="headerlink" title="设置用户名和邮箱"></a>设置用户名和邮箱</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git config --global user.name &quot;你的GitHub用户名&quot;</span><br><span class="line">git config --global user.email &quot;你的GitHub注册邮箱&quot;</span><br></pre></td></tr></table></figure>
-<h4 id="生成ssh密钥文件"><a href="#生成ssh密钥文件" class="headerlink" title="生成ssh密钥文件"></a>生成ssh密钥文件</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa -C &quot;你的GitHub注册邮箱&quot;</span><br></pre></td></tr></table></figure>
-<h4 id="复制密钥"><a href="#复制密钥" class="headerlink" title="复制密钥"></a>复制密钥</h4><p>找到生成的.ssh的文件夹中的id_rsa.pub密钥, 将内容全部复制<br><img src="/2019/07/09/hexo-github-constructBlog/ssh.jpg"></p>
-<h4 id="新建SSH-key"><a href="#新建SSH-key" class="headerlink" title="新建SSH key"></a>新建SSH key</h4><p>打开GitHub_Settings_keys 页面, 新建new SSH Key, 将复制的内容写入key部分, title的名字可随意命名, 最后点击 Add SSH Key。<br><img src="/2019/07/09/hexo-github-constructBlog/newSSHKey.jpg"><br>添加成功后可按下图测试。<br><img src="/2019/07/09/hexo-github-constructBlog/SSHTest.jpg"></p>
-<h3 id="安装Node-js"><a href="#安装Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h3><p>请自行搜索Node.js进行安装, 安装完成后, 可按下图测试。<br><img src="/2019/07/09/hexo-github-constructBlog/NodeJsTest.jpg"></p>
-<h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><p>在命令行中输入</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
-<p>安装时间较长, 安装完成后, 初始化博客, 输入</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo init blog</span><br></pre></td></tr></table></figure>
-<p>下列为hexo常用命令:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo new myblogpage</span><br><span class="line">hexo g</span><br><span class="line">hexo s</span><br><span class="line">hexo d</span><br><span class="line">hexo clean</span><br></pre></td></tr></table></figure>
-<p>hexo new 可生成新的页面<br>hexo g 生成博客<br>hexo s 启动服务器预览<br>hexo d 部署至github仓库<br>hexo clean 清除缓存</p>
-<h3 id="上传博客内容至github仓库"><a href="#上传博客内容至github仓库" class="headerlink" title="上传博客内容至github仓库"></a>上传博客内容至github仓库</h3><p>首先将之前创建的github仓库与我们的博客相关联, 打开下图的_config.yml文件,该文件为hexo blog的设置文件,可在内部修改一些基础设置。<br><img src="/2019/07/09/hexo-github-constructBlog/BlogConfig1.jpg"><br>在文件的最后, 按下图编辑修改, 注意:由于语法格式问题, 冒号后请空一格, 否则无法正常工作。<br><img src="/2019/07/09/hexo-github-constructBlog/BlogConfig2.jpg"><br>设置完成后, 安装git部署插件, 输入</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure>
-<p>接着, 我们分别输入三条命令</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo clean </span><br><span class="line">hexo g </span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>
-<p>接着访问<strong>XXX.github.io</strong>, 你会发现你的博客已经上线。</p>
-<h3 id="绑定域名"><a href="#绑定域名" class="headerlink" title="绑定域名"></a>绑定域名</h3><p>上述步骤实现后, 博客已经可以正常上线, 接下来只需学会markdown的基础写作(超简单)即可正式发布博客。<br>但是若你不满足于XXX.github.io的网址形式, 想要个性化。那么即可购买域名与XXX.github.io进行绑定。以阿里云域名构建为例：<br>购买域名前,请确认你想构建的域名是否已存在。再进行购买。<br><img src="/2019/07/09/hexo-github-constructBlog/domain1.jpg"><br>域名购买成功后,按下图进入解析界面:<br><img src="/2019/07/09/hexo-github-constructBlog/domain2.jpg"><br>添加如下两个记录:<br><img src="/2019/07/09/hexo-github-constructBlog/domain3.jpg"><br>接着在github的仓库设置界面填入你的域名,保存<br><img src="/2019/07/09/hexo-github-constructBlog/domain4.jpg"><br>在本地blog&#x2F;source文件夹下, 新建CNAME记事本文件, 输入域名, 建议不要加www, 保存成<strong>所有文件</strong>而不是<strong>txt</strong>文件。<br>接着在blog目录下执行以下三条命令即可:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo clean</span><br><span class="line">hexo g</span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>
-<p>域名绑定成功！</p>
-<h3 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h3><p>如果你还想更换博客样式的话, 请查阅hexo更换主题相关内容, 常用的主题为next。<br>hexo图片加载缓慢时,可采用图床加快加载速度,具体请搜索hexo图床相关内容。</p>
-<p>[错误 Usage: hexo &lt; command &gt; 解决]<br>这是太长时间没使用hexo的缘故，hexo更新使得原来的本地服务不能使用，需要重新部署一下hexo本地服务器<br>在hexo的根目录下输入命令：npm install hexo-server –save<br>如果没有在hexo的根目录下输入该命令，则会报错找不到package.json文件</p>
-<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><p>参考: <a href="https://zhuanlan.zhihu.com/p/26625249">https://zhuanlan.zhihu.com/p/26625249</a></p>
+<p>很多线上系统真正需要的是决策一致，而不是逐位相同。先定义目标，才能避免把所有浮点差异都当成故障。</p>
+<h2 id="有效输入区间优先"><a href="#有效输入区间优先" class="headerlink" title="有效输入区间优先"></a>有效输入区间优先</h2><p>排查时只比较有效输入区间，不要把 padding 区混进去。建议固定：</p>
+<ol>
+<li>输入样本顺序；</li>
+<li>sampling rate 和 feature extraction；</li>
+<li>padding value；</li>
+<li>valid length；</li>
+<li>attention mask 或 padding mask；</li>
+<li>inference mode、dropout、random seed；</li>
+<li>dtype 和 device。</li>
+</ol>
+<p>如果这些条件没固定，batch&#x3D;1 和 batch&gt;1 的差异没有解释价值。</p>
+<h2 id="逐层-diff"><a href="#逐层-diff" class="headerlink" title="逐层 diff"></a>逐层 diff</h2><p>最小复现可以这样做：</p>
+<ol>
+<li>同一条样本单独推理一次；</li>
+<li>把同一条样本放进混合 batch 再推理一次；</li>
+<li>对齐有效长度；</li>
+<li>保存每层输入输出的 max diff、mean diff、cosine similarity；</li>
+<li>找到差异第一次明显放大的层。</li>
+</ol>
+<p>定位到层之后，再检查该层的 mask broadcast、normalization、cache、subsampling、kernel path 和 dtype 转换。</p>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><p>几类问题最常见：</p>
+<ul>
+<li>padding 区参与了 attention 或 pooling；</li>
+<li>valid length 在 subsampling 后没有同步更新；</li>
+<li>mask 维度广播错误；</li>
+<li>batch normalization 或统计层在推理模式下状态不一致；</li>
+<li>mixed precision 在不同 batch shape 下走了不同 kernel；</li>
+<li>streaming cache 没有按样本隔离。</li>
+</ul>
+<p>这些问题会在最终输出里表现得很混乱，但逐层 diff 通常能把范围缩小。</p>
+<h2 id="回归测试"><a href="#回归测试" class="headerlink" title="回归测试"></a>回归测试</h2><p>修复后应保留 batch consistency regression：</p>
+<ul>
+<li>batch&#x3D;1；</li>
+<li>batch&#x3D;2；</li>
+<li>长短混合；</li>
+<li>全短样本；</li>
+<li>全长样本；</li>
+<li>不同 dtype；</li>
+<li>不同设备或后端。</li>
+</ul>
+<p>每组都只比较有效区域，并同时记录数值差异和决策差异。这样后续升级推理框架、kernel、量化策略或 batch policy 时，问题能被提前发现。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Batch 一致性排查的关键是顺序。先证明输入和 mask 等价，再逐层找差异，不要直接从最终文本或最终分类结果反推原因。对时序模型来说，有效长度、padding、subsampling 和 dtype 往往比最后一层更早决定问题走向。</p>
 ]]></content>
       <tags>
-        <tag>Blog</tag>
-        <tag>Github</tag>
+        <tag>Open Source</tag>
+        <tag>ASR</tag>
+        <tag>Inference</tag>
+        <tag>Debugging</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>语音大模型工程：音频 token、LLM 主干与对齐契约</title>
+    <url>/2026/06/10/Speech-LLM-Audio-Token-Alignment/</url>
+    <content><![CDATA[<p>语音大模型正在把 ASR、语音理解和多模态交互拉进 LLM 生态。Qwen3-ASR、Qwen-Omni、WeNet、CTC-AED 等路线背后都有同一个问题：音频表示如何进入语言模型，并且不破坏位置、mask、长度和训练目标的语义。</p>
+<p>这类系统表面上是“接一个 speech encoder 到 LLM”，实际难点在对齐契约。张量 shape 对，不等于语义对。</p>
+<span id="more"></span>
+
+<h2 id="一条典型链路"><a href="#一条典型链路" class="headerlink" title="一条典型链路"></a>一条典型链路</h2><p>语音大模型常见链路可以拆成五段：</p>
+<ol>
+<li>audio frontend：采样率、分帧、特征提取或 waveform 编码；</li>
+<li>speech encoder：把声学输入变成连续 hidden states 或离散 token；</li>
+<li>projector：把音频侧维度映射到 LLM hidden size；</li>
+<li>LLM backbone：处理文本 token、音频 token 和 prompt 模板；</li>
+<li>objective heads：使用生成 loss、CTC loss、AED loss 或辅助对齐 loss。</li>
+</ol>
+<p>这五段每一段都可能改变长度、mask 或位置信息。工程上必须把这些变化显式记录下来，而不是只在 forward 里临时拼接。</p>
+<h2 id="对齐契约有哪些"><a href="#对齐契约有哪些" class="headerlink" title="对齐契约有哪些"></a>对齐契约有哪些</h2><p><strong>长度契约</strong>：输入音频多少帧，经过 subsampling 后剩多少 token，projector 是否再改变长度，最终监督序列如何匹配。这个契约不清楚，训练 loss 下降也可能是错的。</p>
+<p><strong>位置契约</strong>：文本 token 和音频 token 是否共享 RoPE，是否需要多维位置，音频 token 插入 prompt 的哪个区域，padding 是否影响位置编号。</p>
+<p><strong>mask 契约</strong>：attention mask、loss mask、padding mask 不是一回事。一个位置可以参与 attention 但不参与 loss，也可以只作为上下文条件存在。把它们混在一起，是语音 LLM 最常见的隐性错误。</p>
+<p><strong>目标契约</strong>：CTC 更关心单调对齐，AED 更关心序列到序列，LLM loss 更关心生成协议。多目标训练时，要能单独观察每个 loss 的行为。</p>
+<h2 id="最小闭环优先于复杂结构"><a href="#最小闭环优先于复杂结构" class="headerlink" title="最小闭环优先于复杂结构"></a>最小闭环优先于复杂结构</h2><p>开源模型工程化时，不建议一开始就堆复杂结构。更稳的顺序是：</p>
+<ol>
+<li>固定 LLM，只训练 projector，在极小样本上验证过拟合；</li>
+<li>加入明确的音频 token 长度日志；</li>
+<li>检查 padding 位置不参与 loss；</li>
+<li>单独跑短音频、长音频、静音片段和噪声片段；</li>
+<li>再逐步解冻 encoder 或加入辅助目标。</li>
+</ol>
+<p>这条路径能把“系统能跑”和“系统能学”分开。前者是 smoke test，后者才是建模有效性的起点。</p>
+<h2 id="Qwen-与-WeNet-的工程启发"><a href="#Qwen-与-WeNet-的工程启发" class="headerlink" title="Qwen 与 WeNet 的工程启发"></a>Qwen 与 WeNet 的工程启发</h2><p>Qwen 类模型提示我们，现代 LLM 的位置编码和输入封装并不一定是传统 HuggingFace decoder 的简单结构。不要凭字段名猜测模型内部模块，应该以官方加载入口、配置和源码为准。</p>
+<p>WeNet 和 CTC-AED 路线提示我们，语音任务仍然需要单调对齐、时间边界和流式约束。LLM 主干很强，但它不能替代语音侧对齐诊断。</p>
+<p>更实际的做法是把两类能力组合起来：语音侧负责稳定编码和对齐，LLM 侧负责语言建模、指令跟随和复杂生成。</p>
+<h2 id="流式场景的额外约束"><a href="#流式场景的额外约束" class="headerlink" title="流式场景的额外约束"></a>流式场景的额外约束</h2><p>一旦进入流式输入，问题会更复杂：</p>
+<ul>
+<li>音频 chunk 之间是否共享缓存；</li>
+<li>当前文本生成是否可以被新音频打断；</li>
+<li>旧音频 token 是否需要压缩或丢弃；</li>
+<li>取消请求时 decoder state 如何清理；</li>
+<li>partial hypothesis 是否会污染最终输出。</li>
+</ul>
+<p>这些都不是模型结构图能解决的问题，而是运行时状态管理问题。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>语音大模型工程的核心不是把 encoder 和 LLM 拼起来，而是明确音频 token 如何获得位置、如何参与 attention、如何参与 loss、如何在流式状态中被更新。只要这些契约没有写清楚，模型越大，调试越困难。</p>
+<h2 id="输入入口一致性"><a href="#输入入口一致性" class="headerlink" title="输入入口一致性"></a>输入入口一致性</h2><p>Speech-LLM debugging should include an input-contract test. The same utterance should be passed through every supported input path, then compare sampling rate, channel handling, feature length, audio-token length, position ids, attention mask, loss mask, and decoded text.</p>
+<p>Path-based input often hides loading, mixdown, resampling, and normalization steps. Tensor or precomputed-feature input may bypass them. If these paths are not tested side by side, a model issue can be mistaken for an input-contract issue.</p>
+]]></content>
+      <tags>
+        <tag>LLM</tag>
+        <tag>Open Source</tag>
+        <tag>ASR</tag>
+        <tag>Speech</tag>
       </tags>
   </entry>
   <entry>
@@ -885,11 +885,57 @@
 <p>真正值得沉淀的不是某个 prompt，而是一套能持续回答这些问题的流水线：这条数据为什么生成、改动了什么、保留了什么标签、通过了哪些检查、失败时应该归因到哪里。</p>
 ]]></content>
       <tags>
-        <tag>ASR</tag>
         <tag>Open Source</tag>
-        <tag>Evaluation</tag>
+        <tag>ASR</tag>
         <tag>Data</tag>
+        <tag>Evaluation</tag>
         <tag>Speech</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo&amp;Github construct blog</title>
+    <url>/2019/07/09/hexo-github-constructBlog/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>以前一直想自己写个博客网站，无奈一直没有时间，最近在师兄和好兄弟的推荐下，使用了hexo这一基于Node.js的静态博客框架，并将其托管于github上。总算是圆了个梦！</p>
+<span id="more"></span>
+<h2 id="搭建步骤"><a href="#搭建步骤" class="headerlink" title="搭建步骤"></a>搭建步骤</h2><ul>
+<li>github创建个人仓库</li>
+<li>安装git</li>
+<li>安装Node.js</li>
+<li>安装hexo</li>
+<li>上传博客内容至github仓库</li>
+<li>绑定域名</li>
+<li>其它</li>
+<li>附录</li>
+</ul>
+<h3 id="github搭建个人仓库"><a href="#github搭建个人仓库" class="headerlink" title="github搭建个人仓库"></a>github搭建个人仓库</h3><p>登录github,在github仓库中创建新仓库, 仓库名按:<strong>用户名.github.io</strong>的格式命名, 注意:这个用户名使用你的GitHub帐号名称代替，否则在博客创建时会出现无法工作的情况。</p>
+<h3 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h3><p>git是一个分散式版本控制软件，最初由林纳斯·托瓦兹创作，于2005年以GPL释出。最初目的是为更好地管理Linux核心开发而设计。请自行搜索git下载工具。<br>下载安装完成后，windows右键中即可出现git bash字样。<br><img src="/2019/07/09/hexo-github-constructBlog/gitbash.png"><br>以下步骤是为了省去每次上传github都需要繁复输入密码:</p>
+<h4 id="设置用户名和邮箱"><a href="#设置用户名和邮箱" class="headerlink" title="设置用户名和邮箱"></a>设置用户名和邮箱</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git config --global user.name &quot;你的GitHub用户名&quot;</span><br><span class="line">git config --global user.email &quot;你的GitHub注册邮箱&quot;</span><br></pre></td></tr></table></figure>
+<h4 id="生成ssh密钥文件"><a href="#生成ssh密钥文件" class="headerlink" title="生成ssh密钥文件"></a>生成ssh密钥文件</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa -C &quot;你的GitHub注册邮箱&quot;</span><br></pre></td></tr></table></figure>
+<h4 id="复制密钥"><a href="#复制密钥" class="headerlink" title="复制密钥"></a>复制密钥</h4><p>找到生成的.ssh的文件夹中的id_rsa.pub密钥, 将内容全部复制<br><img src="/2019/07/09/hexo-github-constructBlog/ssh.jpg"></p>
+<h4 id="新建SSH-key"><a href="#新建SSH-key" class="headerlink" title="新建SSH key"></a>新建SSH key</h4><p>打开GitHub_Settings_keys 页面, 新建new SSH Key, 将复制的内容写入key部分, title的名字可随意命名, 最后点击 Add SSH Key。<br><img src="/2019/07/09/hexo-github-constructBlog/newSSHKey.jpg"><br>添加成功后可按下图测试。<br><img src="/2019/07/09/hexo-github-constructBlog/SSHTest.jpg"></p>
+<h3 id="安装Node-js"><a href="#安装Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h3><p>请自行搜索Node.js进行安装, 安装完成后, 可按下图测试。<br><img src="/2019/07/09/hexo-github-constructBlog/NodeJsTest.jpg"></p>
+<h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><p>在命令行中输入</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
+<p>安装时间较长, 安装完成后, 初始化博客, 输入</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo init blog</span><br></pre></td></tr></table></figure>
+<p>下列为hexo常用命令:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo new myblogpage</span><br><span class="line">hexo g</span><br><span class="line">hexo s</span><br><span class="line">hexo d</span><br><span class="line">hexo clean</span><br></pre></td></tr></table></figure>
+<p>hexo new 可生成新的页面<br>hexo g 生成博客<br>hexo s 启动服务器预览<br>hexo d 部署至github仓库<br>hexo clean 清除缓存</p>
+<h3 id="上传博客内容至github仓库"><a href="#上传博客内容至github仓库" class="headerlink" title="上传博客内容至github仓库"></a>上传博客内容至github仓库</h3><p>首先将之前创建的github仓库与我们的博客相关联, 打开下图的_config.yml文件,该文件为hexo blog的设置文件,可在内部修改一些基础设置。<br><img src="/2019/07/09/hexo-github-constructBlog/BlogConfig1.jpg"><br>在文件的最后, 按下图编辑修改, 注意:由于语法格式问题, 冒号后请空一格, 否则无法正常工作。<br><img src="/2019/07/09/hexo-github-constructBlog/BlogConfig2.jpg"><br>设置完成后, 安装git部署插件, 输入</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure>
+<p>接着, 我们分别输入三条命令</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo clean </span><br><span class="line">hexo g </span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>
+<p>接着访问<strong>XXX.github.io</strong>, 你会发现你的博客已经上线。</p>
+<h3 id="绑定域名"><a href="#绑定域名" class="headerlink" title="绑定域名"></a>绑定域名</h3><p>上述步骤实现后, 博客已经可以正常上线, 接下来只需学会markdown的基础写作(超简单)即可正式发布博客。<br>但是若你不满足于XXX.github.io的网址形式, 想要个性化。那么即可购买域名与XXX.github.io进行绑定。以阿里云域名构建为例：<br>购买域名前,请确认你想构建的域名是否已存在。再进行购买。<br><img src="/2019/07/09/hexo-github-constructBlog/domain1.jpg"><br>域名购买成功后,按下图进入解析界面:<br><img src="/2019/07/09/hexo-github-constructBlog/domain2.jpg"><br>添加如下两个记录:<br><img src="/2019/07/09/hexo-github-constructBlog/domain3.jpg"><br>接着在github的仓库设置界面填入你的域名,保存<br><img src="/2019/07/09/hexo-github-constructBlog/domain4.jpg"><br>在本地blog&#x2F;source文件夹下, 新建CNAME记事本文件, 输入域名, 建议不要加www, 保存成<strong>所有文件</strong>而不是<strong>txt</strong>文件。<br>接着在blog目录下执行以下三条命令即可:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo clean</span><br><span class="line">hexo g</span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>
+<p>域名绑定成功！</p>
+<h3 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h3><p>如果你还想更换博客样式的话, 请查阅hexo更换主题相关内容, 常用的主题为next。<br>hexo图片加载缓慢时,可采用图床加快加载速度,具体请搜索hexo图床相关内容。</p>
+<p>[错误 Usage: hexo &lt; command &gt; 解决]<br>这是太长时间没使用hexo的缘故，hexo更新使得原来的本地服务不能使用，需要重新部署一下hexo本地服务器<br>在hexo的根目录下输入命令：npm install hexo-server –save<br>如果没有在hexo的根目录下输入该命令，则会报错找不到package.json文件</p>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><p>参考: <a href="https://zhuanlan.zhihu.com/p/26625249">https://zhuanlan.zhihu.com/p/26625249</a></p>
+]]></content>
+      <tags>
+        <tag>Blog</tag>
+        <tag>Github</tag>
       </tags>
   </entry>
 </search>
