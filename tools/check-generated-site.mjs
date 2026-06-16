@@ -1,10 +1,10 @@
-import fs from 'node:fs';
+﻿import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
 const publicDir = path.join(root, 'public');
 const sourcePostsDir = path.join(root, 'source', '_posts');
-const expectedPostCount = 18;
+const expectedPostCount = 19;
 const errors = [];
 const warnings = [];
 
@@ -104,7 +104,8 @@ if (!errors.length) {
     '2026/06/10/Agentic-Coding-Governance/index.html',
     '2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/index.html',
     '2026/06/10/Speech-Batch-Consistency-Debugging/index.html',
-    '2026/06/11/Speech-Dialog-Data-Synthesis-Quality-Gates/index.html'
+    '2026/06/11/Speech-Dialog-Data-Synthesis-Quality-Gates/index.html',
+    '2026/06/16/Agent-Engineering-Radar-2026-06-16/index.html'
   ];
   for (const rel of criticalFiles) {
     if (!exists(path.join(publicDir, rel))) fail(`Missing generated file: public/${rel}`);
