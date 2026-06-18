@@ -18,7 +18,7 @@ tags: [ASR, Debugging, Engineering, Open Source]
 
 ## 主线判断
 
-这篇文章的主线不是“batch 输出不一致怎么办”，而是：音频 batch 问题要用第一差异层定位，而不是盯着最终文本猜。
+音频 batch 一致性问题要用第一差异层定位，而不是盯着最终文本猜。
 
 最终转写已经经过 encoder、subsampling、mask、解码和后处理，任何一处小数值差异都可能被放大。真正有价值的是找到第一个 divergence 出现的位置。
 

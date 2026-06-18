@@ -18,7 +18,7 @@ tags: [ASR, LLM, Speech, Open Source]
 
 ## 主线判断
 
-这篇文章的主线不是“哪种 Speech-LLM 架构更强”，而是：语音大模型首先要把音频 token 契约定义清楚。
+语音大模型首先要定义清楚音频 token 契约，然后才谈架构强弱。
 
 Qwen3-ASR、Qwen-Omni、WeNet、CTC、AED、projector 和 LLM 主干只是组件名。真正决定系统是否可训练、可推理、可排障的是：音频如何变成 token，token 如何进入文本序列，mask 如何定义，训练模板和推理模板是否一致。
 

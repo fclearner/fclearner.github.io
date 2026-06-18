@@ -16,7 +16,7 @@ tags: [ASR, Speech, Evaluation, Open Source]
 
 ## 主线判断
 
-这篇文章的主线不是“怎么检测用户说完”，而是：Turn-taking 是在不确定输入下选择系统行动时机。
+Turn-taking 不是“检测用户说完”，而是在不确定输入下选择系统行动时机。
 
 静音、semantic end、partial 稳定性和 latency 都只是信号，真正的输出不是一个客观标签，而是“现在接话是否值得”。这个判断必须同时考虑抢话成本和等待成本。
 
