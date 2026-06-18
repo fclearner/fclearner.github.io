@@ -112,12 +112,30 @@ if (!errors.length) {
     'PEFT-Engineering-Tradeoffs.md',
     'Agentic-Coding-Governance.md'
   ];
+  const narrativeProjectPosts = [
+    'ASR-Data-Quality-Pipeline-Open-Source.md',
+    'ASR-Noise-Structured-Extraction-Evaluation.md',
+    'Speech-Dialog-Data-Synthesis-Quality-Gates.md',
+    'Realtime-Speech-Turn-Taking-Evaluation.md',
+    'Speech-Batch-Consistency-Debugging.md',
+    'Speech-LLM-Audio-Token-Alignment.md',
+    'LLM-Speech-Inference-Serving-Observability.md',
+    'PVAD2-engineering-loop.md',
+    'PEFT-Engineering-Tradeoffs.md',
+    'Agentic-Coding-Governance.md'
+  ];
   const advancedAnalysisMarkers = [
+    '## 主线判断',
     '## 设计取舍',
     '## 失败归因',
     '## 评测矩阵',
     '## 实现契约',
-    '## 可观测闭环'
+    '## 可观测闭环',
+    '## 反直觉点',
+    '## 排障路径',
+    '## 评测设计',
+    '## 实验设计',
+    '## 小样本推演'
   ];
   for (const sourcePost of deepenedPublicPosts) {
     const sourcePath = path.join(sourcePostsDir, sourcePost);
@@ -132,6 +150,20 @@ if (!errors.length) {
     const markerCount = advancedAnalysisMarkers.filter(marker => sourceContent.includes(marker)).length;
     if (markerCount < 2) {
       fail('Deepened public post ' + sourcePost + ' needs at least two advanced analysis sections.');
+    }
+  }
+
+  for (const sourcePost of narrativeProjectPosts) {
+    const sourcePath = path.join(sourcePostsDir, sourcePost);
+    const sourceContent = read(sourcePath);
+    if (sourceContent.length < 2100) {
+      fail('Narrative project post ' + sourcePost + ' is too short: ' + sourceContent.length + ' chars.');
+    }
+    if (!sourceContent.includes('## 主线判断')) {
+      fail('Narrative project post ' + sourcePost + ' is missing 主线判断.');
+    }
+    if (!sourceContent.includes('## 小样本推演')) {
+      fail('Narrative project post ' + sourcePost + ' is missing 小样本推演.');
     }
   }
 

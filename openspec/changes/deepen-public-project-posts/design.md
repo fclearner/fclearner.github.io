@@ -37,3 +37,15 @@ Each targeted post should add one or more of:
 - evaluation matrix;
 - minimal implementation contract;
 - rollout or observability loop.
+
+## Second-Pass Quality Standard
+
+The first depth pass was sufficient for the Adaptive RAG posts but too checklist-like for other project posts. The second pass raises the standard for non-Adaptive project posts:
+
+- start from one central engineering contradiction;
+- explain why the naive approach fails;
+- provide a concrete diagnostic or evaluation path;
+- preserve public-safe abstraction and avoid local scenario leakage;
+- end with an actionable conclusion rather than another list.
+
+The goal is not longer posts. The goal is a coherent technical essay where each section advances the same argument.

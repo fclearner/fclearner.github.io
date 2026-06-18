@@ -18,3 +18,13 @@ Targeted project-derived public posts SHALL contain more than the base four-sect
 
 - **WHEN** a targeted public project post is built
 - **THEN** the post SHALL include a deeper public-safe technical section beyond `要解决的问题`, `最小抽象`, `工程闭环`, and `直接结论`.
+
+### Requirement: Non-Adaptive project posts have a coherent thesis
+
+Non-Adaptive project-derived public posts SHALL present a single coherent technical thesis instead of only adding checklist-style sections.
+
+#### Scenario: Non-Adaptive post is revised to match the Adaptive RAG standard
+
+- **WHEN** a non-Adaptive project-derived post is updated for public publication
+- **THEN** it SHALL include a public-safe thesis or main-line judgment
+- **AND** it SHALL connect failure modes, diagnostic path, and engineering conclusion to that thesis.
