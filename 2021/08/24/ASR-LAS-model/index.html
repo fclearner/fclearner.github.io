@@ -29,7 +29,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://alanfangblog.com/2021/08/24/ASR-LAS-model/LAS_flow.png">
 <meta property="article:published_time" content="2021-08-24T07:29:20.000Z">
-<meta property="article:modified_time" content="2026-06-18T03:05:02.446Z">
+<meta property="article:modified_time" content="2026-06-18T13:24:39.496Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="ASR">
 <meta property="article:tag" content="ASR-Classic">
@@ -163,7 +163,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#References"><span class="nav-number">4.1.</span> <span class="nav-text">References</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E5%88%A4%E6%96%AD"><span class="nav-number">2.</span> <span class="nav-text">主线判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">3.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">4.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B7%E6%9C%AC%E6%8E%A8%E6%BC%94"><span class="nav-number">5.</span> <span class="nav-text">小样本推演</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">6.</span> <span class="nav-text">直接结论</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#References"><span class="nav-number">6.1.</span> <span class="nav-text">References</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -244,7 +244,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 11:05:02" itemprop="dateModified" datetime="2026-06-18T11:05:02+08:00">2026-06-18</time>
+      <time title="Modified: 2026-06-18 21:24:39" itemprop="dateModified" datetime="2026-06-18T21:24:39+08:00">2026-06-18</time>
     </span>
 
   
@@ -262,6 +262,8 @@
 
 <h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>语音识别最难的部分之一是对齐。音频帧很多，文字标签较短，而且两者长度比例不固定。传统系统通过 HMM、词典和语言模型显式管理这个问题，工程上可控，但模块多、训练链路长。</p>
 <p>LAS 试图把问题压成一个序列到序列任务：输入是声学特征序列，输出是字符或子词序列。模型需要自己学习什么时候关注哪段音频。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>LAS 的主线不是把 ASR 改成 seq2seq，而是把对齐从显式规则交给生成过程学习。</p>
+<p>这个转变带来更强的条件生成能力，也带来 attention 漂移、长音频不稳定和流式部署困难。理解 LAS 的价值，重点不在复现一个历史结构，而在看清端到端 ASR 如何把声学、对齐和语言建模揉进同一条解码链路。</p>
 <h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>LAS 可以拆成两个部分。</p>
 <p>Listener 是编码器，通常使用 pyramidal BiLSTM 压缩时间维度，把长音频帧变成更短的高层表示。时间下采样很重要，否则 decoder 每一步都要在过长的帧序列上做 attention。</p>
 <p>Speller 是带 attention 的 decoder。它在每个输出步根据历史字符和 attention context 预测下一个字符。</p>
@@ -278,6 +280,8 @@
 <li>错误是否可解释：插入、删除、重复和漏识别分别来自 encoder、attention 还是 decoder。</li>
 </ul>
 <p>LAS 的历史价值在于证明端到端 ASR 可以直接学习声学到文本的映射。但在实时和长音频场景里，attention 漂移、解码成本和流式约束会变成主要工程问题。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>可以用三条样本观察 LAS 的风险：短命令、包含重复词的句子、超过训练平均长度的长句。短命令看 decoder 是否过度依赖语言先验，重复词看 attention 是否跳过或重复，长句看注意力是否从声学尾部漂移。</p>
+<p>如果短命令输出很流畅但和音频不符，这不是语言模型“强”的好事，而是声学约束不够；如果长句后半段开始幻觉，说明 attention 和长度控制需要单独评估。</p>
 <h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>LAS 适合用来理解端到端 ASR 的基本范式：encoder 压缩语音，attention 做软对齐，decoder 负责条件生成。它不是现代 ASR 的终点，但很多后来的 AED、Transducer 和 Speech-LLM 结构都能从这里看出影子。</p>
 <p>下一步阅读：<a href="/2026/06/10/Speech-LLM-Audio-Token-Alignment/">语音大模型工程：音频 token、LLM 主干与对齐契约</a></p>
 <h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1508.01211">Listen, Attend and Spell</a><br>[2] <a target="_blank" rel="noopener" href="https://github.com/AzizCode92/Listen-Attend-and-Spell-Pytorch">Listen-Attend-and-Spell-Pytorch</a></p>

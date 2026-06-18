@@ -39,7 +39,7 @@
 <meta property="og:image" content="https://alanfangblog.com/2019/07/09/hexo-github-constructBlog/domain3.jpg">
 <meta property="og:image" content="https://alanfangblog.com/2019/07/09/hexo-github-constructBlog/domain4.jpg">
 <meta property="article:published_time" content="2019-07-09T08:59:17.000Z">
-<meta property="article:modified_time" content="2026-06-18T03:05:55.558Z">
+<meta property="article:modified_time" content="2026-06-18T13:24:39.523Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="Blog">
 <meta property="article:tag" content="Github">
@@ -171,7 +171,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#References"><span class="nav-number">4.1.</span> <span class="nav-text">References</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E5%88%A4%E6%96%AD"><span class="nav-number">2.</span> <span class="nav-text">主线判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">3.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">4.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B7%E6%9C%AC%E6%8E%A8%E6%BC%94"><span class="nav-number">5.</span> <span class="nav-text">小样本推演</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">6.</span> <span class="nav-text">直接结论</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#References"><span class="nav-number">6.1.</span> <span class="nav-text">References</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -252,7 +252,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 11:05:55" itemprop="dateModified" datetime="2026-06-18T11:05:55+08:00">2026-06-18</time>
+      <time title="Modified: 2026-06-18 21:24:39" itemprop="dateModified" datetime="2026-06-18T21:24:39+08:00">2026-06-18</time>
     </span>
 
   
@@ -270,6 +270,8 @@
 
 <h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>自建博客常见失败点不是不会写文章，而是发布路径太重。服务器、数据库、后台、主题和域名同时上，很容易让写作被运维打断。</p>
 <p>静态博客的思路是把动态能力降到最低：文章在本地生成 HTML，远端只托管静态文件。这样就不需要自建数据库和后端服务。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>Hexo + GitHub Pages 的主线不是搭一个页面，而是建立一条低维护成本的写作发布流水线。</p>
+<p>静态博客的优势只有在流程可重复时才成立：本地写作、生成、预览、提交、部署、域名验证都应该是可检查动作。否则主题再漂亮，后续每次更新都会变成一次临时运维。</p>
 <h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一条最小发布链路如下：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Markdown posts</span><br><span class="line">  -&gt; Hexo generate</span><br><span class="line">  -&gt; Git commit / deploy</span><br><span class="line">  -&gt; GitHub Pages</span><br><span class="line">  -&gt; Custom domain</span><br></pre></td></tr></table></figure>
 
@@ -301,6 +303,8 @@
 <p>如果长时间未更新后 <code>hexo server</code> 报错，通常是依赖漂移或本地服务包缺失，可以在博客根目录重新安装服务依赖：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-server --save</span><br></pre></td></tr></table></figure>
 
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>最小闭环可以只用一篇测试文章验证：先本地 <code>hexo generate</code>，确认目标 HTML 出现在 <code>public/</code>；再本地预览，确认图片和站内链接可用；最后部署到 Pages，并用自定义域名访问同一个路径。</p>
+<p>如果本地可见、线上不可见，排查顺序应该是 Pages 分支、CNAME、DNS 和缓存，而不是直接怀疑 Markdown。把这条链路记录下来，博客维护才不会依赖记忆。</p>
 <h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Hexo + GitHub Pages 的核心价值是把个人博客的发布成本降到最低。先保证“写作 -&gt; 生成 -&gt; 预览 -&gt; 部署 -&gt; 域名访问”这条链路稳定，再考虑主题、评论、搜索和自动化。</p>
 <p>博客系统不需要一开始就复杂。真正值得长期维护的是可重复发布、可备份、可迁移和可验证。</p>
 <p>下一步阅读：<a href="/2026/06/10/Agentic-Coding-Governance/">Agentic Coding 工程治理：多模型协作的角色、权限与验证闭环</a></p>
