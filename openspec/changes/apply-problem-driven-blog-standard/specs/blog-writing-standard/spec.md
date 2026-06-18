@@ -2,7 +2,7 @@
 
 ### Requirement: Problem-driven public technical posts
 
-Public technical posts SHALL start from a concrete engineering problem, develop the topic as a coherent reasoning chain, avoid long enumerations that do not affect the conclusion, and end with a direct implementation-oriented conclusion.
+All public technical posts SHALL start from a concrete engineering problem, develop the topic as a coherent reasoning chain, avoid long enumerations that do not affect the conclusion, and end with a direct implementation-oriented conclusion.
 
 #### Scenario: Split public topic includes a real next article
 
@@ -15,6 +15,12 @@ Public technical posts SHALL start from a concrete engineering problem, develop 
 - **WHEN** public posts are updated from local project learning
 - **THEN** they SHALL avoid local paths, private project names, unpublished dialogue, private business context, and unreleased implementation ideas.
 
+#### Scenario: Full public blog refresh
+
+- **WHEN** the public site is built
+- **THEN** every Markdown post under `source/_posts` SHALL contain the standard problem-chain markers used by the site verifier
+- **AND** legacy posts SHALL preserve their useful technical images or equivalent technical explanation.
+
 ### Requirement: Problem-chain local project pages
 
 Local private project pages SHALL keep raw source material available while presenting a higher-level problem-chain view for review.
@@ -24,3 +30,9 @@ Local private project pages SHALL keep raw source material available while prese
 - **WHEN** a local private project page is generated
 - **THEN** it SHALL include lenses for the practical problem, actionable conclusion, verification loop, and next step or next reading path.
 - **AND** all generated files SHALL remain under `local-private-blog/`.
+
+#### Scenario: Local project curated guide
+
+- **WHEN** a local private project page is generated
+- **THEN** it SHALL include a curated guide for the project or a generated fallback guide
+- **AND** the guide SHALL be displayed before the raw source materials.

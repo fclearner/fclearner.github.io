@@ -81,6 +81,23 @@ if (!errors.length) {
     fail(`Expected ${expectedPostCount} source posts, found ${sourcePosts.length}.`);
   }
 
+  const problemDrivenMarkers = [
+    '## 要解决的问题',
+    '## 最小抽象',
+    '## 工程闭环',
+    '## 直接结论',
+    '下一步阅读：'
+  ];
+  for (const sourcePost of sourcePosts) {
+    const sourcePath = path.join(sourcePostsDir, sourcePost);
+    const sourceContent = read(sourcePath);
+    for (const marker of problemDrivenMarkers) {
+      if (!sourceContent.includes(marker)) {
+        fail(`Public post ${sourcePost} is missing problem-driven marker ${JSON.stringify(marker)}.`);
+      }
+    }
+  }
+
   const cnamePath = path.join(publicDir, 'CNAME');
   if (!exists(cnamePath)) fail('public/CNAME is missing.');
   else if (read(cnamePath).trim() !== 'alanfangblog.com') {

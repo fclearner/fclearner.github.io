@@ -4,71 +4,47 @@ date: 2026-06-10 17:50:00
 tags: [ASR, NER, Evaluation, Open Source]
 ---
 
-在 ASR 输出上做 NER 或结构化抽取，不能只把它当成普通文本任务。语音转写会带来插入、删除、替换、同音错误和边界错位，导致实体在参考文本和识别文本中的位置天然不稳定。
+ASR 结果用于结构化抽取时，评测不能只看整句文本相似度。真实系统关心的是关键实体有没有抽对、位置是否合理、错误来自识别还是 NER、以及噪声会不会把下游结构化结果带偏。
 
-如果仍然用严格字符 span 评测，很多可接受的识别会被误判为错误，真正严重的问题反而可能被掩盖。
+因此，ASR + NER 的评测要从“文本像不像”转到“实体是否可归因”。
 
 <!--more-->
 
-## ASR 噪声改变了评测对象
+## 要解决的问题
 
-普通 NER 评测默认输入文本是稳定的，实体 span 可以精确定位。ASR 场景里，输入本身就是模型输出，错误会先发生在转写阶段。
+同样的 WER 可能对应完全不同的下游影响。一个虚词错了可能无关紧要，一个地址、姓名、编号或时间错了会直接破坏结构化结果。
 
-例如一个实体被识别成同音近似词，结构化抽取模型可能仍能恢复语义；也可能 ASR 多插入几个字，导致后续 span 全部错位。严格按字符位置对齐，会把这些情况混在一起。
+如果只看 ASR 文本 precision / recall 或整体 WER，无法解释实体错误来自哪里：是 ASR 没识别出来，还是 NER 没抽出来，还是文本规范化把实体改坏了。
 
-因此评测目标应该从“span 是否完全相等”扩展为“关键信息是否被正确恢复，以及错误来自哪里”。
+## 最小抽象
 
-## 两阶段评测更稳
+评测样本至少要同时保留三层信息：
 
-第一阶段评估 ASR 文本本身：WER、CER、关键词召回、数字和专名错误类型。
+```text
+reference_text
+asr_text
+reference_entities
+predicted_entities
+alignment
+error_reason
+```
 
-第二阶段评估结构化抽取结果：实体类型是否正确，实体值是否可接受，归一化结果是否一致，缺失和误报分别是多少。
+`alignment` 用来把实体 span 对齐到 ASR 输出；`error_reason` 用来区分漏识别、替换、插入、边界错误、实体类型错误和规范化错误。
 
-这两阶段要能关联。否则抽取失败时，很难判断是 ASR 没听对，还是抽取模型没有理解。
+## 工程闭环
 
-## 模糊匹配不是放松标准
+指标要拆成三组。
 
-ASR 噪声下需要允许局部模糊匹配，但这不等于随意放宽标准。合理的做法是把匹配规则显式化：
+ASR 层看 WER/CER、关键词召回、实体词召回。
 
-- 文本规范化后比较；
-- 在局部窗口内匹配实体；
-- 对同音、数字读法和简繁差异单独处理；
-- 对不同实体类型使用不同容忍度；
-- 输出 exact、partial、normalized 三类结果。
+NER 层看 entity precision、entity recall、span F1、type accuracy。
 
-这样可以保留评测的可解释性。
+归因层看实体错误中有多少来自 ASR，有多少来自抽取模型，有多少来自后处理规则。
 
-## 错误归因比单个 F1 更有用
+这样才能决定下一步该做什么：补噪声数据、加热词、改 NER 训练集、调整规则，还是优化文本规范化。
 
-实体 F1 能说明总体效果，但不能指导修复。更有价值的是错误归因：
+## 直接结论
 
-- ASR 删除导致实体缺失；
-- ASR 替换导致实体值错误；
-- 文本规范化导致格式不一致；
-- 抽取模型漏召回；
-- 抽取模型误报；
-- 后处理归一化失败。
+ASR 噪声下的结构化抽取评测，关键不是把所有错误合成一个分数，而是把错误分解到 ASR、NER、span 对齐和后处理。只有错误可归因，系统才知道下一轮应该改模型、改数据还是改规则。
 
-有了归因，后续才知道应该改 ASR、改抽取模型、改 normalizer，还是改评测规则。
-
-## 开源工具形态
-
-一个通用评测工具可以设计成三层输入：
-
-1. REF：参考文本和实体标注；
-2. HYP：ASR 文本和抽取结果；
-3. normalization config：实体类型、匹配窗口、归一化规则。
-
-输出包括样本级报告、实体级 precision/recall/F1、错误归因分布和可人工复核的 bad case 列表。
-
-这类工具不需要绑定特定模型，反而更适合开源：它提供的是评测语言，而不是某个单点模型。
-
-## 小结
-
-ASR 噪声下的结构化抽取评测，核心是把文本错误、实体错误和归一化错误拆开。只有错误类型被看见，系统优化才有方向。
-
-## Alignment-aware scorer
-
-Noisy ASR text should be scored with an alignment-aware extractor. The scorer first aligns reference and hypothesis text, then evaluates entity value, entity type, local window match, normalization result, and error source.
-
-This avoids treating every span mismatch as an extraction failure. Some misses come from ASR substitution or deletion, some from normalization, and some from the downstream extractor. The repair path is different for each category.
+下一步阅读：[语音对话合成数据工程：Schema、口语化与质量闸门](/2026/06/11/Speech-Dialog-Data-Synthesis-Quality-Gates/)

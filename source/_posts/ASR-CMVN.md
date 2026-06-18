@@ -1,26 +1,54 @@
 ---
-title: ASR-CMVN
+title: ASR 特征归一化：CMVN 解决的不是数值美观，而是通道偏移
 date: 2021-08-24 15:41:18
 tags: [ASR, Feature-engineering]
 ---
-## 前言
 
-&nbsp;&nbsp;&nbsp;&nbsp;CMVN在语音识别中的作用
+语音识别里的特征归一化很容易被当成预处理细节：把均值拉到 0，把方差压到 1，然后继续训练模型。这个理解没有错，但它没有说清楚 CMVN 真正解决的问题。
+
+CMVN 要处理的是录音设备、信道、说话环境和能量尺度带来的系统性偏移。它不是为了让特征“好看”，而是为了让声学模型少花容量去适配无关的通道差异。
+
 <!--more-->
-## noun 翻译
-&nbsp;&nbsp;&nbsp;&nbsp;CMN：Cepstral Mean Normalisation，倒谱均值归一化；
-&nbsp;&nbsp;&nbsp;&nbsp;CMVN：Cepstral Mean Variance Normalisation，倒谱均值方差归一化；
 
+## 要解决的问题
 
-## CMVN
+ASR 特征通常来自频谱或倒谱空间。同一句话在不同麦克风、不同音量、不同环境下，语义内容没有变，但特征分布会整体漂移。如果模型直接学习这种漂移，就会把说话内容和采集条件混在一起。
 
-&nbsp;&nbsp;&nbsp;&nbsp;CMVN与数据归一化相似，但CMVN的意义更偏向于对音频数据进行滤波，可提升识别精度。
-&nbsp;&nbsp;&nbsp;&nbsp;在线的CMVN是基于滑动窗口进行的，会影响语音识别响应时间；feature norm是对所有训练数据进行统计，然后单帧计算
-&nbsp;&nbsp;&nbsp;&nbsp;因CMVN占用识别响应时间，最新的端到端识别中未使用
-&nbsp;&nbsp;&nbsp;&nbsp;CMVN详细原理可参考References中的论文[1]
+这会带来两个后果。第一，训练集和线上环境不一致时，识别效果容易波动。第二，模型会浪费参数容量去拟合信道差异，而不是发音和词序本身。
 
+CMN（Cepstral Mean Normalisation）只减均值，CMVN（Cepstral Mean Variance Normalisation）同时处理均值和方差。它们的核心都是把每段语音或每个窗口内的统计尺度拉回到相对稳定的空间。
+
+## 最小抽象
+
+可以把 CMVN 看成一个局部滤波器：
+
+```text
+feature_t -> feature_t - mean(window)
+feature_t -> (feature_t - mean(window)) / std(window)
+```
+
+这个抽象有两个关键点。第一，它处理的是特征统计分布，而不是语音内容。第二，它需要一个统计窗口，窗口越长越稳定，延迟越高；窗口越短越实时，统计越不稳。
+
+离线训练时，可以基于整段语音或全训练集统计。在线识别时，只能用滑动窗口或历史缓存，这就引入了响应时间和边界效应。
+
+## 工程闭环
+
+CMVN 是否值得保留，不能只看单条样本效果，应该看三个维度。
+
+- 准确率：字错率、词错率或关键实体召回是否改善；
+- 延迟：在线滑动窗口是否增加首包或尾包时间；
+- 鲁棒性：不同设备、不同音量、不同噪声条件下是否更稳定。
+
+在传统 GMM-HMM、DNN-HMM 或较浅的声学模型里，CMVN 往往很有价值。端到端模型和大规模预训练模型吸收了更多数据分布，特征归一化的重要性会下降，但并不代表它永远无用。只要输入分布漂移明显，CMVN 仍然是一个低成本诊断点。
+
+## 直接结论
+
+CMVN 的工程定位是“消除无关通道偏移”，不是固定必须打开的预处理模板。离线任务可以优先验证全局或说话人级统计；实时任务要额外评估滑动窗口带来的延迟和边界误差。
+
+如果模型已经足够强、训练覆盖足够广，CMVN 可能收益很小；如果线上设备、音量或环境差异明显，它仍然值得作为第一批鲁棒性实验。
+
+下一步阅读：[ASR CTC：没有帧级标注时，如何把音频和文本对齐](/2021/08/29/ASR-CTC/)
 
 ### References
 
-[1]<a href="http://www.apsipa.org/proceedings/2020/pdfs/0000532.pdf">《Significance of CMVN for Replay Spoof Detection》</a>
-
+[1] [Significance of CMVN for Replay Spoof Detection](http://www.apsipa.org/proceedings/2020/pdfs/0000532.pdf)

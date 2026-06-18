@@ -1,77 +1,56 @@
 ---
-title: LLM 与语音模型推理服务：队列、流式与可观测性
+title: LLM 与语音模型推理服务：先把延迟拆成可观测链路
 date: 2026-06-10 17:40:00
-tags: [LLM, ASR, Inference, Open Source]
+tags: [LLM, Speech, Inference, Engineering]
 ---
 
-推理服务的性能问题，很多时候不在单次 GPU forward，而在排队、预处理、batch 调度、流式输出、取消机制和可观测性之间。模型越大，单次推理越重要；系统越复杂，队列和状态越容易成为真正瓶颈。
+推理服务的问题经常被简化成“换更快的框架”。vLLM、SGLang、Triton 都很重要，但如果系统不能解释一次请求的延迟来自排队、预填充、解码、音频前端、网络还是后处理，换框架只是碰运气。
 
-vLLM、SGLang、Triton Inference Server、TensorRT-LLM 等开源生态，提供的是不同层级的解法。选型前要先拆清楚瓶颈在哪里。
+语音和 LLM 结合后，延迟问题更复杂：音频切片、流式 partial、模型队列、token 生成和系统超时会叠在一起。
 
 <!--more-->
 
-## 不要只看端到端耗时
+## 要解决的问题
 
-端到端耗时是结果，不是诊断。一个请求慢，可能慢在：
+线上推理关注的不是平均速度，而是尾延迟和稳定性。一个服务平均很快，但 p99 经常超时，用户体验仍然不可接受。
 
-- 等待队列；
-- tokenizer 或 audio frontend；
-- prefill；
-- decode；
-- 网络传输；
-- 后处理；
-- 流式 flush；
-- 取消请求没有及时生效。
+语音模型还多了几个阶段：音频读取、重采样、特征提取、chunk 组织、ASR 或 speech encoder 推理、LLM 解码、流式输出。任何一层都可能放大延迟。
 
-如果日志只记录总耗时，系统调优会很盲。至少要把 request queue time、prefill time、decode time、first token latency、p95/p99 latency 和 GPU utilization 分开。
+## 最小抽象
 
-## vLLM 适合什么
+可以把请求生命周期拆成：
 
-vLLM 的重点是高吞吐 LLM serving，PagedAttention 和 continuous batching 是它的核心优势。它适合请求量较高、输入输出长度差异明显、需要动态 batch 的场景。
+```text
+ingress
+  -> queue
+  -> preprocess
+  -> prefill / encode
+  -> decode / stream
+  -> postprocess
+  -> response
+```
 
-但 vLLM 不是所有问题的答案。若瓶颈在音频预处理、外部工具调用、复杂后处理或流式状态管理，仅替换引擎未必能带来明显收益。
+vLLM 和 SGLang 主要优化 LLM serving 的调度、KV cache、batch 和解码吞吐；Triton 更适合做模型服务编排和算子级部署。它们解决的是不同层次的问题，不能用单一 benchmark 直接替代系统观测。
 
-## SGLang 的位置
+## 工程闭环
 
-SGLang 更强调结构化生成和运行时控制。它适合把 prompt、约束解码、工具调用、并行分支和缓存复用组织成更可控的程序。
+服务必须记录分阶段指标：
 
-如果系统需要复杂推理流程，SGLang 这类运行时可以减少手写 glue code。但它也要求把生成过程抽象得更清晰，否则只是把复杂度换了位置。
+- queue wait；
+- preprocess time；
+- prefill 或 encoder time；
+- first token / first partial latency；
+- tokens per second；
+- p50 / p95 / p99；
+- timeout reason；
+- batch size、dtype、KV cache 命中情况。
 
-## Triton 与底层引擎
+对流式语音系统，还要单独看 partial 的稳定性：早出结果是否经常回滚，回滚是否影响下游，semantic end 或 turn-taking 判断是否被延迟拖垮。
 
-Triton 更像通用推理编排层，适合把预处理、模型、后处理拆成可观测组件。TensorRT-LLM 更偏底层引擎优化，依赖硬件、版本和模型结构匹配。
+没有这些指标，优化就会变成只看 GPU 利用率。GPU 忙不代表服务健康，GPU 不忙也可能是队列、网络或调度策略出了问题。
 
-它们更适合明确瓶颈已经在底层执行路径的场景。如果请求排队、数据转换和状态管理没有先量化，过早下沉到引擎优化很容易浪费时间。
+## 直接结论
 
-## 语音模型的额外变量
+推理框架选型前，先把延迟链路拆开并落日志。vLLM、SGLang、Triton 都可以进入候选，但判断依据应该是分阶段延迟、吞吐、p99、资源利用和失败原因，而不是单次 demo 的响应速度。
 
-语音模型比纯文本 LLM 多几类状态：
-
-- 音频 chunk 边界；
-- 重叠窗口；
-- frontend 缓存；
-- partial hypothesis；
-- 长音频切分；
-- 实时输入的取消和刷新。
-
-这些状态如果没有清晰生命周期，会造成内存泄漏、延迟抖动或输出污染。流式服务不是把接口改成 SSE 就结束了，核心是状态如何创建、复用、取消和回收。
-
-## 基准测试怎么做
-
-建议至少准备三组基准：
-
-1. 单请求基准：观察模型和预处理的最低延迟；
-2. 并发基准：观察队列、batch 和 p99；
-3. 长运行基准：观察内存、句柄、缓存和错误恢复。
-
-语音任务还要加入短音频、长音频、静音、噪声和连续 chunk。只测理想样本会低估线上复杂度。
-
-## 小结
-
-推理服务的关键不是“哪个框架最快”，而是哪一层正在限制系统。先把队列、预处理、prefill、decode、流式输出和取消行为拆开观测，再决定是换 serving runtime、加调度层，还是优化数据路径。
-
-## Request trace schema
-
-Serving logs should carry a trace id across client, gateway, frontend, model runtime, and streaming output. A minimal trace separates client send time, server receive time, queue time, preprocessing, prefill, decode, postprocessing, first-token latency, final-token latency, and client receive time.
-
-For speech and multimodal workloads, the trace also needs feature length, chunk count, cache reuse, cancellation state, and output flush timing. Otherwise p99 latency is visible, but not explainable.
+下一步阅读：[音频模型 Batch 一致性排查：从有效输入区间到逐层 diff](/2026/06/10/Speech-Batch-Consistency-Debugging/)

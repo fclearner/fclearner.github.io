@@ -1,78 +1,52 @@
 ---
 title: 音频模型 Batch 一致性排查：从有效输入区间到逐层 diff
-date: 2026-06-10 18:20:00
-tags: [ASR, Debugging, Inference, Open Source]
+date: 2026-06-10 18:10:00
+tags: [ASR, Debugging, Engineering, Open Source]
 ---
 
-音频模型在 batch size 改变后输出不一致，是很常见但容易误判的问题。不要一开始就怀疑最后的解码结果。更稳的排查顺序是：先证明输入等价，再证明 mask 和有效长度等价，最后逐层定位数值差异从哪里开始放大。
+同一个音频，batch size 不同却输出不同，这是音频模型排障里很典型的问题。它通常不是“模型随机性”一句话能解释的，而是 padding、mask、dtype、subsampling、归一化或缓存边界出了问题。
 
-这篇文章整理一套通用排查协议，适用于 ASR、VAD、speaker model 和其他时序音频模型。
+排查这类问题，关键是把有效输入区间和逐层差异记录下来。
 
 <!--more-->
 
-## 先定义什么叫一致
+## 要解决的问题
 
-一致性可以分三层：
+批量推理会把不同长度音频 pad 到同一形状。理论上，mask 应该保证 padding 不影响有效区域。但实际实现里，卷积、subsampling、attention、归一化和 dtype 转换都可能让 padding 泄漏进有效输出。
 
-- 数值一致：有效区域 hidden states 差异在阈值内；
-- 决策一致：分类标签、token 或分数排序不变；
-- 指标一致：WER、F1、recall 等整体指标不随 batch policy 漂移。
+如果只比较最终文本，很难定位问题。需要比较中间层。
 
-很多线上系统真正需要的是决策一致，而不是逐位相同。先定义目标，才能避免把所有浮点差异都当成故障。
+## 最小抽象
 
-## 有效输入区间优先
+排查对象可以写成：
 
-排查时只比较有效输入区间，不要把 padding 区混进去。建议固定：
+```text
+single_sample_output
+batched_output
+valid_frame_range
+mask
+dtype
+layer_diffs
+```
 
-1. 输入样本顺序；
-2. sampling rate 和 feature extraction；
-3. padding value；
-4. valid length；
-5. attention mask 或 padding mask；
-6. inference mode、dropout、random seed；
-7. dtype 和 device。
+先确认输入波形、特征、长度和 mask 是否一致，再逐层比较 hidden states。只要找到第一个 divergence 层，排查范围就会大幅缩小。
 
-如果这些条件没固定，batch=1 和 batch>1 的差异没有解释价值。
+## 工程闭环
 
-## 逐层 diff
+建议按顺序检查：
 
-最小复现可以这样做：
+1. 音频读取和重采样是否一致；
+2. feature extraction 是否受 batch 影响；
+3. padding 后 valid length 是否正确；
+4. mask 是否覆盖 attention 和 convolution；
+5. subsampling 后长度是否同步更新；
+6. dtype、autocast、dropout 和随机种子是否固定；
+7. cache 或 streaming state 是否被错误复用。
 
-1. 同一条样本单独推理一次；
-2. 把同一条样本放进混合 batch 再推理一次；
-3. 对齐有效长度；
-4. 保存每层输入输出的 max diff、mean diff、cosine similarity；
-5. 找到差异第一次明显放大的层。
+最终报告不要只写“batch 不一致”，而要记录最早出现差异的层、差异量级、影响的有效区间和修复后的回归样本。
 
-定位到层之后，再检查该层的 mask broadcast、normalization、cache、subsampling、kernel path 和 dtype 转换。
+## 直接结论
 
-## 常见问题
+Batch 一致性问题的核心是边界控制。只要 batch 推理引入 padding，就必须验证 mask、subsampling、dtype 和缓存不会污染有效帧。逐层 diff 比反复猜参数更可靠。
 
-几类问题最常见：
-
-- padding 区参与了 attention 或 pooling；
-- valid length 在 subsampling 后没有同步更新；
-- mask 维度广播错误；
-- batch normalization 或统计层在推理模式下状态不一致；
-- mixed precision 在不同 batch shape 下走了不同 kernel；
-- streaming cache 没有按样本隔离。
-
-这些问题会在最终输出里表现得很混乱，但逐层 diff 通常能把范围缩小。
-
-## 回归测试
-
-修复后应保留 batch consistency regression：
-
-- batch=1；
-- batch=2；
-- 长短混合；
-- 全短样本；
-- 全长样本；
-- 不同 dtype；
-- 不同设备或后端。
-
-每组都只比较有效区域，并同时记录数值差异和决策差异。这样后续升级推理框架、kernel、量化策略或 batch policy 时，问题能被提前发现。
-
-## 小结
-
-Batch 一致性排查的关键是顺序。先证明输入和 mask 等价，再逐层找差异，不要直接从最终文本或最终分类结果反推原因。对时序模型来说，有效长度、padding、subsampling 和 dtype 往往比最后一层更早决定问题走向。
+下一步阅读：[LLM 与语音模型推理服务：先把延迟拆成可观测链路](/2026/06/10/LLM-Speech-Inference-Serving-Observability/)

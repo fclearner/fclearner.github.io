@@ -1,70 +1,58 @@
 ---
-title: PEFT 工程取舍：LoRA、Prefix 与低成本适配的边界
+title: PEFT 工程取舍：省参数只是入口，部署路径才是边界
 date: 2026-06-10 17:30:00
 tags: [LLM, PEFT, Fine-tuning, Open Source]
 ---
 
-PEFT 经常被理解成“少训练一些参数”。这个理解没有错，但不够工程化。真正的选择不是参数量越少越好，而是在训练显存、推理开销、上下文占用、适配能力、部署形态和工具生态之间做权衡。
+PEFT 常被理解成“少训练一些参数”。这句话没错，但它只说了训练成本，没有说清楚工程边界。真正的选择不是参数越少越好，而是训练显存、适配能力、推理开销、上下文占用、版本管理和回滚方式之间的取舍。
 
-不同 PEFT 方法适合解决不同问题。先定义约束，再选方法，比直接比较榜单更可靠。
+如果不把这些约束写清楚，LoRA、Prefix-Tuning、P-Tuning、QLoRA 很容易被比较成一张简单榜单，而不是可复用的工程组件。
 
 <!--more-->
 
-## LoRA 的稳定区间
+## 要解决的问题
 
-LoRA 在权重矩阵旁边增加低秩更新，训练时只更新少量 adapter 参数。它的优势很明确：生态成熟、实现简单、训练稳定、容易与基础模型合并。
+全量微调成本高、版本重、回滚慢。PEFT 的目标是让模型在较低训练成本下适配新任务，同时尽量不破坏基础模型能力。
 
-它适合做格式适配、风格适配、轻量任务迁移，也适合多 adapter 管理。问题是 LoRA 的效果依赖 rank、target modules、学习率和数据规模。rank 太小可能欠拟合，rank 太大又会接近全量微调的复杂度。
+但“低成本”有不同含义。LoRA 省的是可训练参数和显存；Prefix-Tuning 省的是模型权重改动，但占用上下文或 attention 前缀；QLoRA 降低训练显存，但引入量化配置和稳定性问题。
 
-工程上需要记录的不只是最终指标，还包括 adapter 大小、训练吞吐、显存峰值、是否合并权重、合并后是否影响推理框架。
+所以 PEFT 选择的第一步不是问哪个方法更先进，而是问当前瓶颈在哪里：训练显存、数据规模、推理延迟、多任务切换，还是上线回滚。
 
-## Prefix 和 Prompt Tuning 的代价
+## 最小抽象
 
-Prefix-Tuning、P-Tuning 这类方法把可训练信息放进输入或注意力前缀里。它们的好处是参数少，和模型主体解耦程度高。代价是上下文长度和推理形态会变化。
+可以把 PEFT 方法按“改哪里”来理解。
 
-如果任务本身需要长上下文，额外前缀会挤占窗口。如果推理框架需要频繁切换任务，前缀缓存和 batch 组织也会变复杂。
+LoRA 在权重矩阵旁边加入低秩更新。它生态成熟、训练稳定、容易合并到基础模型，也适合多 adapter 管理。它的主要变量是 rank、target modules、alpha、dropout、学习率和数据规模。
 
-所以这类方法更适合明确任务边界、输入长度可控、适配目标相对稳定的场景。
+Prefix-Tuning 和 P-Tuning 把可训练信息放到输入或注意力前缀里。它们和模型主体解耦更强，但会改变上下文窗口和缓存形态。如果任务本身已经依赖长上下文，前缀成本不能忽略。
 
-## QLoRA 的门槛
+QLoRA 把量化和 LoRA 结合，让较小显存也能训练大模型。它降低了进入门槛，但 dtype、量化方式、优化器状态和梯度检查点都会影响收敛稳定性。
 
-QLoRA 把量化和 LoRA 结合，能显著降低训练显存门槛。它的价值很大，但不要把它理解成“免费降成本”。
+## 工程闭环
 
-量化配置、计算 dtype、优化器状态、梯度检查点、batch size 都会影响稳定性。低显存能跑起来是一回事，收敛是否稳定、最终 adapter 是否可部署，是另一回事。
+PEFT 实验不能只记录最终指标。每个 adapter 都应该进入 registry：
 
-一套严谨实验应该同时记录：基础模型量化方式、adapter 配置、训练 dtype、显存峰值、吞吐、loss 曲线和验证集指标。
+```text
+base_model
+dataset_version
+target_modules
+rank / alpha / dropout
+learning_rate
+quantization_config
+eval_set
+merge_status
+serving_runtime
+rollback_path
+```
 
-## 任务类型决定上限
+这个 registry 的价值在部署阶段才会显现。多 adapter 是否动态加载，是否共享 batch，是否合并权重，合并后如何版本化，推理框架是否支持对应 dtype，都会影响线上复杂度。
 
-PEFT 对不同任务的适配能力不同。
+如果没有 registry，团队很容易把 prompt 改动、数据变更和 adapter 行为混在一起，最后无法复现实验结果。
 
-- 格式学习：LoRA 往往很有效；
-- 指令风格：LoRA 和部分 prompt 方法都可以尝试；
-- 知识注入：PEFT 不一定可靠，需要评估是否只是记住表面模式；
-- 长上下文行为：前缀类方法可能带来窗口压力；
-- 多任务切换：adapter 管理和路由比单次训练更重要。
+## 直接结论
 
-如果任务需要深度改变推理能力，PEFT 可能只是降低成本的入口，不一定能替代更大规模的数据和训练策略。
+PEFT 是一组工程组件，不是一个统一算法。LoRA、Prefix-Tuning、P-Tuning、QLoRA 的核心差异，不只是训练参数量，而是它们如何改变训练图、上下文窗口、推理路径和版本管理。
 
-## 部署是选择的一部分
+选型时先写清楚瓶颈，再做小规模对照实验；上线前先确认 adapter registry、评测集、合并策略和回滚路径。否则省下的训练成本会在部署和排障阶段还回去。
 
-训练阶段方便，不代表部署阶段方便。上线前至少要回答：
-
-1. adapter 是否需要动态加载；
-2. 多 adapter 是否共享 batch；
-3. 是否合并到基础模型；
-4. 合并后权重如何版本化；
-5. 推理框架是否支持对应算子和 dtype；
-6. 回滚是否只需要切 adapter，还是要切整模型。
-
-这些问题会直接影响服务复杂度。
-
-## 小结
-
-PEFT 是工程组件库，不是单一算法。LoRA、Prefix、P-Tuning、QLoRA 的核心差异，不只是训练参数量，而是它们如何改变训练图、上下文窗口、推理路径和版本管理。把这些成本写清楚，实验结果才可复用。
-
-## Adapter registry
-
-PEFT needs an adapter registry, not only a folder of checkpoints. Each adapter should record base model, dataset version, target modules, rank, alpha, dropout, learning rate, quantization config, evaluation set, and merge status.
-
-This registry is what makes LoRA or QLoRA operationally safe. It lets teams compare adapters, roll back a bad merge, keep training data and model behavior aligned, and avoid confusing a prompt change with an adapter change.
+下一步阅读：[语音大模型工程：音频 token、LLM 主干与对齐契约](/2026/06/10/Speech-LLM-Audio-Token-Alignment/)

@@ -1,75 +1,47 @@
 ---
 title: 语音大模型工程：音频 token、LLM 主干与对齐契约
-date: 2026-06-10 17:10:00
+date: 2026-06-10 17:20:00
 tags: [ASR, LLM, Speech, Open Source]
 ---
 
-语音大模型正在把 ASR、语音理解和多模态交互拉进 LLM 生态。Qwen3-ASR、Qwen-Omni、WeNet、CTC-AED 等路线背后都有同一个问题：音频表示如何进入语言模型，并且不破坏位置、mask、长度和训练目标的语义。
+语音大模型不是把 ASR encoder 接到 LLM 上就结束了。真正困难的是接口契约：音频如何被压成 token，token 如何进入 LLM，文本监督如何约束语音表示，流式场景又如何保证延迟和上下文一致。
 
-这类系统表面上是“接一个 speech encoder 到 LLM”，实际难点在对齐契约。张量 shape 对，不等于语义对。
+如果这个契约不清楚，Qwen3-ASR、Qwen-Omni、WeNet、CTC、AED、speech encoder 和 LLM 主干会变成一堆名词，而不是可排障的系统。
 
 <!--more-->
 
-## 一条典型链路
+## 要解决的问题
 
-语音大模型常见链路可以拆成五段：
+传统 ASR 输出文本，LLM 处理文本。Speech-LLM 想把语音直接纳入语言模型能力，但语音和文本的粒度差异很大：音频帧密集、长度长、噪声多；文本 token 稀疏、语义压缩强。
 
-1. audio frontend：采样率、分帧、特征提取或 waveform 编码；
-2. speech encoder：把声学输入变成连续 hidden states 或离散 token；
-3. projector：把音频侧维度映射到 LLM hidden size；
-4. LLM backbone：处理文本 token、音频 token 和 prompt 模板；
-5. objective heads：使用生成 loss、CTC loss、AED loss 或辅助对齐 loss。
+工程上的关键问题是：语音侧的信息压缩到什么粒度，才能既保留识别所需细节，又不把 LLM 上下文窗口耗尽。
 
-这五段每一段都可能改变长度、mask 或位置信息。工程上必须把这些变化显式记录下来，而不是只在 forward 里临时拼接。
+## 最小抽象
 
-## 对齐契约有哪些
+可以把 Speech-LLM 拆成四层。
 
-**长度契约**：输入音频多少帧，经过 subsampling 后剩多少 token，projector 是否再改变长度，最终监督序列如何匹配。这个契约不清楚，训练 loss 下降也可能是错的。
+第一层是音频前端和 speech encoder。WeNet、Qwen3-ASR 这类系统会把声学特征压成更高层的语音表示，常见监督包括 CTC、AED 或混合目标。
 
-**位置契约**：文本 token 和音频 token 是否共享 RoPE，是否需要多维位置，音频 token 插入 prompt 的哪个区域，padding 是否影响位置编号。
+第二层是 projector 或 adapter。它负责把 speech encoder 输出映射到 LLM 可消费的向量空间。这里不是简单维度对齐，还包括时间下采样、位置编码和模态边界。
 
-**mask 契约**：attention mask、loss mask、padding mask 不是一回事。一个位置可以参与 attention 但不参与 loss，也可以只作为上下文条件存在。把它们混在一起，是语音 LLM 最常见的隐性错误。
+第三层是 LLM 主干。Qwen-Omni 这类多模态系统需要同时处理语音、文本甚至其他模态，因此输入序列必须标记清楚模态、时间和角色。
 
-**目标契约**：CTC 更关心单调对齐，AED 更关心序列到序列，LLM loss 更关心生成协议。多目标训练时，要能单独观察每个 loss 的行为。
+第四层是输出协议。系统到底输出转写、语义回答、结构化字段，还是边听边生成，会决定训练样本和解码策略。
 
-## 最小闭环优先于复杂结构
+## 工程闭环
 
-开源模型工程化时，不建议一开始就堆复杂结构。更稳的顺序是：
+对齐问题必须可观测。至少要记录：
 
-1. 固定 LLM，只训练 projector，在极小样本上验证过拟合；
-2. 加入明确的音频 token 长度日志；
-3. 检查 padding 位置不参与 loss；
-4. 单独跑短音频、长音频、静音片段和噪声片段；
-5. 再逐步解冻 encoder 或加入辅助目标。
+- 音频时长到 speech token 数量的压缩比；
+- CTC 或 ASR 辅助目标是否稳定；
+- projector 输出是否导致 LLM 上下文过长；
+- 流式场景下 partial 结果是否可回滚；
+- 错误来自声学识别、模态对齐还是语言生成。
 
-这条路径能把“系统能跑”和“系统能学”分开。前者是 smoke test，后者才是建模有效性的起点。
+一个实用排查顺序是先看 ASR 能力，再看对齐层，再看 LLM 生成。如果基础转写已经不稳定，直接调 prompt 或扩大 LLM 很难解决问题。
 
-## Qwen 与 WeNet 的工程启发
+## 直接结论
 
-Qwen 类模型提示我们，现代 LLM 的位置编码和输入封装并不一定是传统 HuggingFace decoder 的简单结构。不要凭字段名猜测模型内部模块，应该以官方加载入口、配置和源码为准。
+Speech-LLM 的工程边界在音频 token 契约，而不是模型名字。先定义清楚音频如何压缩、如何接入 LLM、如何监督、如何流式输出，再比较 Qwen3-ASR、Qwen-Omni、WeNet 或其他方案。
 
-WeNet 和 CTC-AED 路线提示我们，语音任务仍然需要单调对齐、时间边界和流式约束。LLM 主干很强，但它不能替代语音侧对齐诊断。
-
-更实际的做法是把两类能力组合起来：语音侧负责稳定编码和对齐，LLM 侧负责语言建模、指令跟随和复杂生成。
-
-## 流式场景的额外约束
-
-一旦进入流式输入，问题会更复杂：
-
-- 音频 chunk 之间是否共享缓存；
-- 当前文本生成是否可以被新音频打断；
-- 旧音频 token 是否需要压缩或丢弃；
-- 取消请求时 decoder state 如何清理；
-- partial hypothesis 是否会污染最终输出。
-
-这些都不是模型结构图能解决的问题，而是运行时状态管理问题。
-
-## 小结
-
-语音大模型工程的核心不是把 encoder 和 LLM 拼起来，而是明确音频 token 如何获得位置、如何参与 attention、如何参与 loss、如何在流式状态中被更新。只要这些契约没有写清楚，模型越大，调试越困难。
-
-## 输入入口一致性
-
-Speech-LLM debugging should include an input-contract test. The same utterance should be passed through every supported input path, then compare sampling rate, channel handling, feature length, audio-token length, position ids, attention mask, loss mask, and decoded text.
-
-Path-based input often hides loading, mixdown, resampling, and normalization steps. Tensor or precomputed-feature input may bypass them. If these paths are not tested side by side, a model issue can be mistaken for an input-contract issue.
+下一步阅读：[LLM 与语音模型推理服务：队列、流式与可观测性](/2026/06/10/LLM-Speech-Inference-Serving-Observability/)

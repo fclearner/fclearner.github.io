@@ -15,10 +15,12 @@ For split topics, the current article should stop at a natural conclusion instea
 
 Public posts under `source/_posts` may only use public-safe technical discussion. They must not include local paths, private project names, internal business context, unpublished notes, raw dialogue records, or implementation details that reveal private ideas.
 
-The Adaptive RAG public update is implemented as:
+The public update is implemented as a full-site content pass:
 
-- Part 1: why retrieval timing matters more than retrieval volume.
-- Part 2: how to judge whether a retrieval gate should fire.
+- Legacy ASR and BCI notes become problem-driven foundation articles.
+- The 2026 AI engineering posts become a connected technical series.
+- Operational posts, including Hexo/GitHub setup and Agent Engineering Radar, keep their original purpose but follow the same problem-chain style.
+- Every public post ends with a direct conclusion and, where useful, a next-reading link to an existing generated page.
 
 ## Local Private Blog
 
@@ -30,3 +32,5 @@ The local private blog can read and display `/mnt/e/workspace/ai_projects`, but 
 - the next step or next reading path.
 
 Raw materials remain available below the curated or synthesized reading layer.
+
+Each local project page should also have a short curated guide that names the practical problem, the smallest abstraction, the verification loop, the direct conclusion, and the next local review path. This guide may be generated from local project context and must remain local-only.
