@@ -1,73 +1,114 @@
 ---
-title: Adaptive RAG：从相似度检索到信息需求调度
+title: Adaptive RAG（一）：何时检索比检索多少更重要
 date: 2026-06-10 17:00:00
 tags: [AI, RAG, LLM, Open Source]
 ---
 
-RAG 的第一阶段很直观：把文档切块，向量化，按相似度取回若干段，再交给 LLM 生成答案。这个流程足够实用，但它默认了一个强假设：模型在生成前就知道自己需要什么信息。复杂问题里，这个假设经常不成立。
+RAG 最容易被讲成一个检索增强公式：切块、向量化、取 top-k、拼进 prompt、让模型回答。这个公式很实用，但它默认了一件事：系统在回答之前已经知道自己缺什么信息。
 
-更值得关注的方向是 Adaptive RAG。它不是单纯换一个向量库，而是把检索变成生成过程中的调度动作：什么时候检索、检索什么、检索几次、是否改写查询、是否把证据图谱化，都由任务状态决定。
+复杂任务里，这个假设经常不成立。问题可能在生成到一半才暴露，证据可能和当前结论冲突，召回内容也可能只是语义相似而不是事实支撑。于是 Adaptive RAG 真正要解决的不是“多检索一些”，而是：**系统什么时候应该承认当前上下文不够，并把检索变成下一步可验证动作**。
 
 <!--more-->
 
-## 固定检索的问题
+## 一、问题不是召回器不够强
 
-固定检索通常有三个隐性成本。
+固定检索的失败通常不来自某一个 retriever 太弱，而来自检索时机和信息需求没有被显式建模。
 
-第一，召回时机固定。很多问题只有生成到一半才暴露信息缺口，提前检索会把上下文预算花在弱相关材料上。
+一个简单 RAG 流程会在用户问题进入后立刻检索。这样做稳定、便宜、容易缓存，但它把不同问题压成同一个接口：不管是事实核验、多跳推理、摘要归纳还是工具调用后的验证，都先取一批相似片段。
 
-第二，检索粒度固定。一个事实核验问题可能只需要一个段落；一个归因问题可能需要实体、关系和多跳路径。统一取 top-k chunk 会把不同类型的信息需求压成同一个接口。
+这会带来三个工程问题。
 
-第三，失败原因不清晰。答案错了，可能是查询写得差、召回不足、证据冲突、排序失败，也可能是生成阶段没有忠实使用证据。如果系统没有把这些阶段拆开记录，后续只能凭感觉调参数。
+第一，语义相关不等于证据支持。向量检索很容易取回同主题材料，但同主题材料未必能支持当前结论。模型看到这些材料后，反而可能更自信地说错。
 
-## 四类触发机制
+第二，召回时机固定。很多缺口只有在中间结论出现后才清楚，提前检索会浪费上下文窗口，也会把不稳定材料提前注入 prompt。
 
-Adaptive RAG 可以按触发机制拆开看。
+第三，失败原因不可分解。答案错了，到底是没有触发检索、query 写错、召回不足、rerank 失败，还是生成阶段没有忠实使用证据？如果系统没有阶段日志，只能靠感觉调参数。
 
-**显式 token 触发**：Self-RAG 这类方法让模型生成控制标记，决定是否检索、是否继续、答案是否被支撑。优点是可解释性强，缺点是需要训练或 prompt 约束来保证控制标记稳定。
+所以 Adaptive RAG 的第一性问题不是 top-k，而是 evidence gap detection：当前状态是否真的缺少外部证据。
 
-**不确定性触发**：当模型分布熵升高、候选答案分歧变大，或关键槽位没有依据时再检索。这类方法适合做轻量工程化，但要防止把语言模型的自信误当成事实可靠性。
+## 二、把“信息需求”看成状态
 
-**信息需求触发**：DRAGIN 这类思路更强调“当前生成需要什么信息”。它关心的不是泛泛的不确定，而是上下文里缺少哪类证据。
+一个更稳的抽象不是“某个 token 需要检索”，而是“当前状态暴露了一个证据缺口”。可以把它写成一个最小状态对象：
 
-**工作流触发**：Agentic RAG 把检索作为工作流节点，与查询改写、工具调用、证据压缩、反思和答案校验组合。它的上限更高，但状态管理和日志要求也更高。
+```text
+information_need = {
+  state: 当前子问题、生成阶段或工作流节点,
+  uncertainty: 不确定性来自模型分歧、槽位缺失还是证据冲突,
+  evidence_gap: 需要什么外部证据才能继续,
+  action: 是否检索、查什么、查哪里、如何验证
+}
+```
 
-## GraphRAG 的位置
+这个抽象比单纯看 token 置信度更贴近工程。低置信度不一定代表需要检索，高置信度也不代表事实可靠。Self-RAG、FLARE、DRAGIN 这类方法的启发在于把检索放进生成过程，但落地时仍然要回答一个更朴素的问题：这次检索为什么发生。
 
-GraphRAG 和 KG-RAG 解决的是另一个维度：检索对象不再只是文本块，而是实体、关系、社区摘要和路径。它特别适合需要跨文档归纳的问题，比如“某个技术路线为什么演化成现在这样”。
+## 三、先做显式 retrieval gate
 
-不过图结构不是免费午餐。构图质量、实体消歧、关系抽取、更新频率、图检索召回都会影响最终效果。工程上可以先把图当成证据组织层，而不是一开始就替换所有向量检索。
+第一版 Adaptive RAG 不必一开始就把触发权完全交给模型。更可控的做法是先加一个显式 retrieval gate，让它在每个关键状态点判断是否检索。
 
-## 开源落地接口
+一个可落地的流程是：
 
-一个可维护的 Adaptive RAG 系统，建议至少把接口拆成五层：
+```text
+State Snapshot
+  -> Retrieval Gate(reason_code)
+  -> Query Builder(query, assumptions)
+  -> Hybrid Retriever(candidates)
+  -> Reranker(ranked_candidates)
+  -> Evidence Validator(supported / unsupported / conflict)
+  -> Generate or Rollback
+```
 
-1. query planner：决定原问题是否需要拆解；
-2. retriever router：选择向量检索、关键词检索、图检索或混合检索；
-3. evidence store：保留证据来源、版本、分数和路径；
-4. context composer：控制证据压缩、排序和上下文预算；
-5. answer verifier：检查答案是否被证据支撑。
+这里的 gate 不能只输出 yes/no。它至少要输出 reason code，例如：
 
-这样做的价值是每一层都能单独评测。召回不够就看 retriever，证据过长就看 composer，答案跑偏就看 verifier，而不是把所有错误都归因给 LLM。
+- `missing_fact`: 当前结论缺少外部事实；
+- `stale_context`: 当前上下文可能过期；
+- `entity_ambiguous`: 实体或术语有歧义；
+- `evidence_conflict`: 已有证据互相冲突；
+- `cost_guard`: 检索收益不足以覆盖延迟和 token 成本。
 
-## 评测不要只看最终答案
+这样做的价值不是让规则看起来复杂，而是让后续评测能分清错误来源。没有 reason code，检索只是 prompt 里的隐性副作用；有了 reason code，检索才变成可以审计的策略。
 
-Adaptive RAG 的评测应该拆成阶段指标：
+## 四、GraphRAG 不是第一步默认答案
 
-- 查询拆解是否覆盖必要子问题；
-- 召回证据是否包含关键事实；
-- 证据排序是否把关键材料放进上下文窗口；
-- 生成答案是否引用了正确证据；
-- 无证据时是否拒答或提示不确定。
+GraphRAG 和 KG-RAG 解决的是证据组织问题：把文本块升级为实体、关系、社区摘要和路径。它适合跨文档、多跳、关系密集的场景，也能缓解单段 chunk 无法表达全局结构的问题。
 
-如果只看最终答案准确率，很难知道系统是因为检索做对了，还是模型靠参数记忆猜对了。
+但图不是免费的。实体抽取、关系归并、增量更新、图召回和摘要压缩都会引入新误差。很多系统在第一阶段更应该先把 retrieval gate、query builder 和 evidence validator 做清楚，再决定是否把某些证据集合图谱化。
 
-## 小结
+换句话说，图检索不是 Adaptive RAG 的起点，而是证据组织层的一个增强选项。没有可观测的检索触发和证据验证，GraphRAG 也可能只是更昂贵的上下文注入。
 
-Adaptive RAG 的核心不是“多检索几次”，而是让检索成为可观测、可调度、可评测的动作。真正的工程分界线也不在向量库品牌，而在系统是否能回答：这次检索为什么发生，拿到了什么证据，证据如何进入上下文，答案为什么可信。
+## 五、评测要拆到触发和证据
 
-## Retrieval decision log
+只看最终答案准确率，无法判断 Adaptive RAG 是否真的变好。一个可用的评测面板至少要拆成三组。
 
-Adaptive RAG should keep a decision log for every answer. A useful record contains the trigger reason, rewritten query, retriever type, top evidence, discarded evidence, final context window, and fallback path.
+触发质量：
 
-This log turns retrieval from a hidden prompt side effect into an auditable policy. When an answer is wrong, the error can be assigned to trigger timing, query decomposition, recall, reranking, context compression, or generation not following evidence. That split is more actionable than only judging the final answer.
+- retrieval trigger precision；
+- retrieval trigger recall；
+- 不必要检索率；
+- 应检索未检索率；
+- 平均每轮检索次数。
+
+证据质量：
+
+- Recall@K；
+- MRR / nDCG；
+- evidence support rate；
+- conflict evidence rate；
+- rerank 后关键证据进入上下文窗口的比例。
+
+系统质量：
+
+- 答案准确率；
+- hallucination rate；
+- P95 延迟；
+- token 和检索成本；
+- 无证据时的拒答或降级比例。
+
+其中最关键的是 evidence support rate。它把“召回到了相似内容”和“召回到了能支撑答案的证据”区分开。没有这个指标，Adaptive RAG 很容易退化成 expensive RAG。
+
+## 小结：先把检索变成可验证动作
+
+Adaptive RAG 的核心不是“多检索几次”，而是让检索成为可记录、可回放、可评估的动作。第一版系统最应该做的是显式 retrieval gate：说明为什么触发，构造了什么 query，召回了哪些候选，证据是否支持当前结论，以及这次检索带来了多少延迟和成本。
+
+只要这条链路清楚，后面再替换成 Self-RAG、FLARE、DRAGIN 或 GraphRAG，都有比较基线。否则系统只是把更多上下文交给模型碰运气。
+
+下一篇：[Adaptive RAG（二）：Retrieval Gate 怎么判断该不该检索](/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/)

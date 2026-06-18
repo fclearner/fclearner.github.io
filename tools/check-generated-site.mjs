@@ -4,7 +4,7 @@ import path from 'node:path';
 const root = process.cwd();
 const publicDir = path.join(root, 'public');
 const sourcePostsDir = path.join(root, 'source', '_posts');
-const expectedPostCount = 19;
+const expectedPostCount = 20;
 const errors = [];
 const warnings = [];
 
@@ -96,6 +96,7 @@ if (!errors.length) {
     '2021/08/24/ASR-LAS-model/LAS_flow.png',
     '2026/06/09/PVAD2-engineering-loop/index.html',
     '2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/index.html',
+    '2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/index.html',
     '2026/06/10/Speech-LLM-Audio-Token-Alignment/index.html',
     '2026/06/10/ASR-Data-Quality-Pipeline-Open-Source/index.html',
     '2026/06/10/PEFT-Engineering-Tradeoffs/index.html',
@@ -248,7 +249,12 @@ if (!errors.length) {
     {
       source: 'AI-Adaptive-RAG-Retrieval-Scheduling.md',
       html: ['2026', '06', '10', 'AI-Adaptive-RAG-Retrieval-Scheduling', 'index.html'],
-      required: ['Adaptive RAG', 'Self-RAG', 'GraphRAG', 'retriever']
+      required: ['Adaptive RAG', 'Self-RAG', 'GraphRAG', 'retriever', 'Retrieval Gate']
+    },
+    {
+      source: 'AI-Adaptive-RAG-Retrieval-Gate.md',
+      html: ['2026', '06', '10', 'AI-Adaptive-RAG-Retrieval-Gate', 'index.html'],
+      required: ['Adaptive RAG', 'retrieval gate', 'Self-RAG', 'FLARE']
     },
     {
       source: 'Speech-LLM-Audio-Token-Alignment.md',
