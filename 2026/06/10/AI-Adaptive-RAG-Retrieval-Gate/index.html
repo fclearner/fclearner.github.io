@@ -28,7 +28,7 @@
 <meta property="og:description" content="上一篇把 Adaptive RAG 的问题收束到一个工程动作：先做显式 retrieval gate。它不是为了替代 Self-RAG、FLARE 或 DRAGIN，而是先给系统建立一个可观测的判断层：当前状态到底该不该检索。 这篇继续往下走，讨论 retrieval gate 应该吃什么信号、输出什么结论，以及怎么评测它。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T09:10:00.000Z">
-<meta property="article:modified_time" content="2026-06-18T02:29:04.284Z">
+<meta property="article:modified_time" content="2026-06-18T03:08:50.327Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="AI">
 <meta property="article:tag" content="LLM">
@@ -161,7 +161,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E4%B8%8D%E8%A6%81%E6%8A%8A%E4%BD%8E%E7%BD%AE%E4%BF%A1%E5%BA%A6%E7%9B%B4%E6%8E%A5%E7%AD%89%E5%90%8C%E4%BA%8E%E6%A3%80%E7%B4%A2%E9%9C%80%E6%B1%82"><span class="nav-number">1.</span> <span class="nav-text">一、不要把低置信度直接等同于检索需求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E8%BE%93%E5%85%A5%E4%BF%A1%E5%8F%B7%E8%A6%81%E5%88%86%E5%B1%82"><span class="nav-number">2.</span> <span class="nav-text">二、输入信号要分层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E8%BE%93%E5%87%BA%E4%B8%8D%E8%83%BD%E5%8F%AA%E6%98%AF-yes-no"><span class="nav-number">3.</span> <span class="nav-text">三、输出不能只是 yes&#x2F;no</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81query-builder-%E8%A6%81%E9%81%BF%E5%85%8D%E6%94%BE%E5%A4%A7%E7%8C%9C%E6%B5%8B"><span class="nav-number">4.</span> <span class="nav-text">四、query builder 要避免放大猜测</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E8%AF%84%E6%B5%8B-gate%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF%E5%8F%AA%E8%AF%84%E6%B5%8B%E7%AD%94%E6%A1%88"><span class="nav-number">5.</span> <span class="nav-text">五、评测 gate，而不是只评测答案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93%EF%BC%9Agate-%E6%98%AF%E6%A3%80%E7%B4%A2%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%B4%A3%E4%BB%BB%E8%BE%B9%E7%95%8C"><span class="nav-number">6.</span> <span class="nav-text">小结：gate 是检索系统的责任边界</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -242,7 +242,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 10:29:04" itemprop="dateModified" datetime="2026-06-18T10:29:04+08:00">2026-06-18</time>
+      <time title="Modified: 2026-06-18 11:08:50" itemprop="dateModified" datetime="2026-06-18T11:08:50+08:00">2026-06-18</time>
     </span>
 
   
@@ -258,64 +258,26 @@
 <p>这篇继续往下走，讨论 retrieval gate 应该吃什么信号、输出什么结论，以及怎么评测它。</p>
 <span id="more"></span>
 
-<h2 id="一、不要把低置信度直接等同于检索需求"><a href="#一、不要把低置信度直接等同于检索需求" class="headerlink" title="一、不要把低置信度直接等同于检索需求"></a>一、不要把低置信度直接等同于检索需求</h2><p>很多 Adaptive RAG 方案会从模型不确定性入手，这个方向有价值，但不能直接把“模型不确定”翻译成“必须检索”。</p>
-<p>低置信度可能来自语言表达困难、格式约束复杂、候选答案接近，也可能只是模型在一个不需要外部事实的问题上犹豫。反过来，高置信度也不代表答案被证据支持。模型可以非常自信地复述一个错误事实。</p>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>不要把低置信度直接等同于检索需求。低置信度可能来自语言表达困难、格式约束复杂、候选答案接近，也可能只是模型在一个不需要外部事实的问题上犹豫。</p>
+<p>反过来，高置信度也不代表答案被证据支持。模型可以非常自信地复述一个错误事实。</p>
 <p>所以 retrieval gate 的判断目标应该是 evidence gap，而不是 confidence gap。它要回答的是：继续生成前，当前结论是否缺少外部证据、是否需要查证、是否存在冲突材料，以及检索的收益是否超过成本。</p>
-<h2 id="二、输入信号要分层"><a href="#二、输入信号要分层" class="headerlink" title="二、输入信号要分层"></a>二、输入信号要分层</h2><p>一个可用的 retrieval gate 不应该只看最后一段 prompt。更合理的输入可以分成四层。</p>
-<p>任务层：</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一个可用的 retrieval gate 不应该只看最后一段 prompt。输入可以分成四层：</p>
 <ul>
-<li>问题是否要求事实核验；</li>
-<li>是否存在时间、版本、地点、实体等容易过期或混淆的信息；</li>
-<li>当前任务是生成、总结、归因、比较还是验证。</li>
+<li>任务层：是否要求事实核验，是否有时间、版本、实体等易变信息；</li>
+<li>状态层：当前子问题是什么，已有证据覆盖了哪些结论；</li>
+<li>模型层：候选答案是否分歧，关键槽位是否缺失；</li>
+<li>成本层：延迟预算、上下文窗口、检索次数和 rerank 成本。</li>
 </ul>
-<p>状态层：</p>
-<ul>
-<li>当前子问题是什么；</li>
-<li>已有证据覆盖了哪些结论；</li>
-<li>是否有中间结论还没有证据；</li>
-<li>是否进入了答案校验或回退阶段。</li>
-</ul>
-<p>模型层：</p>
-<ul>
-<li>候选答案是否分歧；</li>
-<li>关键槽位是否缺失；</li>
-<li>模型是否产生了需要查证的具体实体；</li>
-<li>自我评估是否提示证据不足。</li>
-</ul>
-<p>成本层：</p>
-<ul>
-<li>当前延迟预算还剩多少；</li>
-<li>上下文窗口是否足够；</li>
-<li>检索和 rerank 的边际收益是否足够；</li>
-<li>同一轮是否已经多次检索。</li>
-</ul>
-<p>这些信号不需要一开始就全部建模。第一版可以先用规则和轻量分类器，把高风险触发点记录下来；等日志足够多，再考虑把 gate 学成模型。</p>
-<h2 id="三、输出不能只是-yes-no"><a href="#三、输出不能只是-yes-no" class="headerlink" title="三、输出不能只是 yes&#x2F;no"></a>三、输出不能只是 yes&#x2F;no</h2><p>retrieval gate 如果只输出 <code>true</code> 或 <code>false</code>，后面很难优化。更实用的输出应该包含动作、原因和约束。</p>
+<p>输出也不能只是 yes&#x2F;no：</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;should_retrieve&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;reason_code&quot;</span><span class="punctuation">:</span> <span class="string">&quot;missing_fact&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;query_intent&quot;</span><span class="punctuation">:</span> <span class="string">&quot;verify-current-claim&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;required_evidence&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;source&quot;</span><span class="punctuation">,</span> <span class="string">&quot;version&quot;</span><span class="punctuation">,</span> <span class="string">&quot;date&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;budget&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;max_candidates&quot;</span><span class="punctuation">:</span> <span class="number">20</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;max_context_tokens&quot;</span><span class="punctuation">:</span> <span class="number">1800</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;fallback&quot;</span><span class="punctuation">:</span> <span class="string">&quot;answer_with_uncertainty&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
-<p>这里的 <code>reason_code</code> 是后续评测的关键。它能把失败分成几类：不该检索却检索了、该检索却没检索、query intent 错了、证据要求写得太宽、成本预算过紧，或者 fallback 策略不合理。</p>
-<p>这比单独调 top-k 更有效，因为很多 RAG 错误根本不在 top-k，而在触发前的判断。</p>
-<h2 id="四、query-builder-要避免放大猜测"><a href="#四、query-builder-要避免放大猜测" class="headerlink" title="四、query builder 要避免放大猜测"></a>四、query builder 要避免放大猜测</h2><p>gate 之后通常会接 query builder。这里有一个容易忽略的风险：不要把模型尚未验证的猜测直接写进 query。</p>
-<p>如果模型在中间推理里猜出了一个具体实体，query builder 应该把它标记成 assumption，而不是当成事实。对于事实核验，query 更应该围绕稳定约束构造；对于多跳问题，query 应该绑定当前子问题；对于冲突证据，query 应该主动寻找反证，而不是只找支持材料。</p>
-<p>一个简单规则是：query 里可以有候选假设，但日志里必须区分它们来自用户输入、已有证据，还是模型推断。否则检索会变成确认偏误的放大器。</p>
-<h2 id="五、评测-gate，而不是只评测答案"><a href="#五、评测-gate，而不是只评测答案" class="headerlink" title="五、评测 gate，而不是只评测答案"></a>五、评测 gate，而不是只评测答案</h2><p>retrieval gate 的评测要有自己的标注和指标。最小可行集可以这样设计：</p>
-<ul>
-<li>对样本标注 <code>should_retrieve</code>；</li>
-<li>标注触发原因，例如缺事实、实体歧义、证据冲突、上下文过期；</li>
-<li>记录 gate 的实际决策；</li>
-<li>记录检索后证据是否真的支持答案；</li>
-<li>记录最终答案是否因检索改善。</li>
-</ul>
-<p>对应指标可以分成三类：</p>
-<ul>
-<li>trigger precision：触发的检索有多少是真需要的；</li>
-<li>trigger recall：需要检索的场景有多少被覆盖；</li>
-<li>support gain：触发检索后，证据支持率和答案质量是否提升。</li>
-</ul>
-<p>这里要特别警惕一个假阳性：检索发生了，答案也对了，但证据并没有支撑答案。这个样本不能算 retrieval gate 成功，因为系统只是多走了一步碰巧没有坏掉。</p>
-<h2 id="小结：gate-是检索系统的责任边界"><a href="#小结：gate-是检索系统的责任边界" class="headerlink" title="小结：gate 是检索系统的责任边界"></a>小结：gate 是检索系统的责任边界</h2><p>retrieval gate 的价值不是让 Adaptive RAG 看起来更复杂，而是把检索从隐式 prompt 技巧变成显式责任边界。它负责判断何时查证、为什么查证、查什么、查到什么程度，以及失败时如何降级。</p>
+<p>这里的 <code>reason_code</code> 是优化入口。它能把失败分成不该检索却检索、该检索却没检索、query intent 错、证据要求过宽、成本预算过紧或 fallback 不合理。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>Gate 之后通常接 query builder。这里要避免把模型尚未验证的猜测直接写进 query。模型猜出的实体应该标记成 assumption，而不是事实。</p>
+<p>评测 gate 时，需要单独标注 <code>should_retrieve</code>、触发原因、实际决策、检索后证据是否支持答案，以及最终答案是否因检索改善。核心指标包括 trigger precision、trigger recall 和 support gain。</p>
+<p>要警惕一个假阳性：检索发生了，答案也对了，但证据并没有支撑答案。这个样本不能算 retrieval gate 成功，因为系统只是多走了一步碰巧没有坏掉。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>retrieval gate 的价值不是让 Adaptive RAG 看起来更复杂，而是把检索从隐式 prompt 技巧变成显式责任边界。它负责判断何时查证、为什么查证、查什么、查到什么程度，以及失败时如何降级。</p>
 <p>当 gate、query builder、retriever、reranker、evidence validator 都有日志和指标时，RAG 才能进入真正的工程迭代。否则每次效果波动都只能归因给“模型不稳定”。</p>
-<p>上一篇：<a href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/">Adaptive RAG（一）：何时检索比检索多少更重要</a></p>
+<p>下一步阅读：<a href="/2026/06/10/Agentic-Coding-Governance/">Agentic Coding 工程治理：多模型协作先定义责任边界</a></p>
 
     </div>
 
@@ -335,13 +297,13 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2026/06/10/Speech-LLM-Audio-Token-Alignment/" rel="prev" title="语音大模型工程：音频 token、LLM 主干与对齐契约">
-                  <i class="fa fa-angle-left"></i> 语音大模型工程：音频 token、LLM 主干与对齐契约
+                <a href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/" rel="prev" title="Adaptive RAG（一）：何时检索比检索多少更重要">
+                  <i class="fa fa-angle-left"></i> Adaptive RAG（一）：何时检索比检索多少更重要
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2026/06/10/ASR-Data-Quality-Pipeline-Open-Source/" rel="next" title="ASR 数据质量流水线：伪标签、切分与可追溯评测">
-                  ASR 数据质量流水线：伪标签、切分与可追溯评测 <i class="fa fa-angle-right"></i>
+                <a href="/2026/06/10/Speech-LLM-Audio-Token-Alignment/" rel="next" title="语音大模型工程：音频 token、LLM 主干与对齐契约">
+                  语音大模型工程：音频 token、LLM 主干与对齐契约 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>

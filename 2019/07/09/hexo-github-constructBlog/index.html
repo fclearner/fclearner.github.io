@@ -20,12 +20,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="前言以前一直想自己写个博客网站，无奈一直没有时间，最近在师兄和好兄弟的推荐下，使用了hexo这一基于Node.js的静态博客框架，并将其托管于github上。总算是圆了个梦！">
+    <meta name="description" content="个人博客最重要的第一步不是主题多漂亮，而是发布链路是否稳定：本地能写，静态站能生成，GitHub Pages 能托管，域名能访问，后续文章能持续更新。 Hexo + GitHub Pages 的价值在于把这个链路压到足够轻：Markdown 写作、Node.js 生成静态页面、GitHub 托管、域名解析到 Pages。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hexo&amp;Github construct blog">
+<meta property="og:title" content="Hexo + GitHub Pages：个人博客先把发布链路跑通">
 <meta property="og:url" content="https://alanfangblog.com/2019/07/09/hexo-github-constructBlog/index.html">
 <meta property="og:site_name" content="AlanFangBlog">
-<meta property="og:description" content="前言以前一直想自己写个博客网站，无奈一直没有时间，最近在师兄和好兄弟的推荐下，使用了hexo这一基于Node.js的静态博客框架，并将其托管于github上。总算是圆了个梦！">
+<meta property="og:description" content="个人博客最重要的第一步不是主题多漂亮，而是发布链路是否稳定：本地能写，静态站能生成，GitHub Pages 能托管，域名能访问，后续文章能持续更新。 Hexo + GitHub Pages 的价值在于把这个链路压到足够轻：Markdown 写作、Node.js 生成静态页面、GitHub 托管、域名解析到 Pages。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://alanfangblog.com/2019/07/09/hexo-github-constructBlog/gitbash.png">
 <meta property="og:image" content="https://alanfangblog.com/2019/07/09/hexo-github-constructBlog/ssh.jpg">
@@ -39,7 +39,7 @@
 <meta property="og:image" content="https://alanfangblog.com/2019/07/09/hexo-github-constructBlog/domain3.jpg">
 <meta property="og:image" content="https://alanfangblog.com/2019/07/09/hexo-github-constructBlog/domain4.jpg">
 <meta property="article:published_time" content="2019-07-09T08:59:17.000Z">
-<meta property="article:modified_time" content="2021-08-24T07:18:25.720Z">
+<meta property="article:modified_time" content="2026-06-18T03:05:55.558Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="Blog">
 <meta property="article:tag" content="Github">
@@ -50,10 +50,10 @@
 <link rel="canonical" href="https://alanfangblog.com/2019/07/09/hexo-github-constructBlog/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2019/07/09/hexo-github-constructBlog/","path":"2019/07/09/hexo-github-constructBlog/","title":"Hexo&Github construct blog"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2019/07/09/hexo-github-constructBlog/","path":"2019/07/09/hexo-github-constructBlog/","title":"Hexo + GitHub Pages：个人博客先把发布链路跑通"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>Hexo&Github construct blog | AlanFangBlog</title>
+<title>Hexo + GitHub Pages：个人博客先把发布链路跑通 | AlanFangBlog</title>
   
 
 
@@ -171,7 +171,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%90%AD%E5%BB%BA%E6%AD%A5%E9%AA%A4"><span class="nav-number">2.</span> <span class="nav-text">搭建步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#github%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E4%BB%93%E5%BA%93"><span class="nav-number">2.1.</span> <span class="nav-text">github搭建个人仓库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85git"><span class="nav-number">2.2.</span> <span class="nav-text">安装git</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE%E7%94%A8%E6%88%B7%E5%90%8D%E5%92%8C%E9%82%AE%E7%AE%B1"><span class="nav-number">2.2.1.</span> <span class="nav-text">设置用户名和邮箱</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%9F%E6%88%90ssh%E5%AF%86%E9%92%A5%E6%96%87%E4%BB%B6"><span class="nav-number">2.2.2.</span> <span class="nav-text">生成ssh密钥文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%8D%E5%88%B6%E5%AF%86%E9%92%A5"><span class="nav-number">2.2.3.</span> <span class="nav-text">复制密钥</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B0%E5%BB%BASSH-key"><span class="nav-number">2.2.4.</span> <span class="nav-text">新建SSH key</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Node-js"><span class="nav-number">2.3.</span> <span class="nav-text">安装Node.js</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85hexo"><span class="nav-number">2.4.</span> <span class="nav-text">安装hexo</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8A%E4%BC%A0%E5%8D%9A%E5%AE%A2%E5%86%85%E5%AE%B9%E8%87%B3github%E4%BB%93%E5%BA%93"><span class="nav-number">2.5.</span> <span class="nav-text">上传博客内容至github仓库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%91%E5%AE%9A%E5%9F%9F%E5%90%8D"><span class="nav-number">2.6.</span> <span class="nav-text">绑定域名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E5%AE%83"><span class="nav-number">2.7.</span> <span class="nav-text">其它</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%99%84%E5%BD%95"><span class="nav-number">3.</span> <span class="nav-text">附录</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#References"><span class="nav-number">4.1.</span> <span class="nav-text">References</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -229,12 +229,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="Hexo&amp;Github construct blog | AlanFangBlog">
+      <meta itemprop="name" content="Hexo + GitHub Pages：个人博客先把发布链路跑通 | AlanFangBlog">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Hexo&Github construct blog
+          Hexo + GitHub Pages：个人博客先把发布链路跑通
         </h1>
 
         <div class="post-meta-container">
@@ -252,7 +252,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2021-08-24 15:18:25" itemprop="dateModified" datetime="2021-08-24T15:18:25+08:00">2021-08-24</time>
+      <time title="Modified: 2026-06-18 11:05:55" itemprop="dateModified" datetime="2026-06-18T11:05:55+08:00">2026-06-18</time>
     </span>
 
   
@@ -264,43 +264,47 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>以前一直想自己写个博客网站，无奈一直没有时间，最近在师兄和好兄弟的推荐下，使用了hexo这一基于Node.js的静态博客框架，并将其托管于github上。总算是圆了个梦！</p>
+    <div class="post-body" itemprop="articleBody"><p>个人博客最重要的第一步不是主题多漂亮，而是发布链路是否稳定：本地能写，静态站能生成，GitHub Pages 能托管，域名能访问，后续文章能持续更新。</p>
+<p>Hexo + GitHub Pages 的价值在于把这个链路压到足够轻：Markdown 写作、Node.js 生成静态页面、GitHub 托管、域名解析到 Pages。</p>
 <span id="more"></span>
-<h2 id="搭建步骤"><a href="#搭建步骤" class="headerlink" title="搭建步骤"></a>搭建步骤</h2><ul>
-<li>github创建个人仓库</li>
-<li>安装git</li>
-<li>安装Node.js</li>
-<li>安装hexo</li>
-<li>上传博客内容至github仓库</li>
-<li>绑定域名</li>
-<li>其它</li>
-<li>附录</li>
-</ul>
-<h3 id="github搭建个人仓库"><a href="#github搭建个人仓库" class="headerlink" title="github搭建个人仓库"></a>github搭建个人仓库</h3><p>登录github,在github仓库中创建新仓库, 仓库名按:<strong>用户名.github.io</strong>的格式命名, 注意:这个用户名使用你的GitHub帐号名称代替，否则在博客创建时会出现无法工作的情况。</p>
-<h3 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h3><p>git是一个分散式版本控制软件，最初由林纳斯·托瓦兹创作，于2005年以GPL释出。最初目的是为更好地管理Linux核心开发而设计。请自行搜索git下载工具。<br>下载安装完成后，windows右键中即可出现git bash字样。<br><img src="/2019/07/09/hexo-github-constructBlog/gitbash.png"><br>以下步骤是为了省去每次上传github都需要繁复输入密码:</p>
-<h4 id="设置用户名和邮箱"><a href="#设置用户名和邮箱" class="headerlink" title="设置用户名和邮箱"></a>设置用户名和邮箱</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git config --global user.name &quot;你的GitHub用户名&quot;</span><br><span class="line">git config --global user.email &quot;你的GitHub注册邮箱&quot;</span><br></pre></td></tr></table></figure>
-<h4 id="生成ssh密钥文件"><a href="#生成ssh密钥文件" class="headerlink" title="生成ssh密钥文件"></a>生成ssh密钥文件</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa -C &quot;你的GitHub注册邮箱&quot;</span><br></pre></td></tr></table></figure>
-<h4 id="复制密钥"><a href="#复制密钥" class="headerlink" title="复制密钥"></a>复制密钥</h4><p>找到生成的.ssh的文件夹中的id_rsa.pub密钥, 将内容全部复制<br><img src="/2019/07/09/hexo-github-constructBlog/ssh.jpg"></p>
-<h4 id="新建SSH-key"><a href="#新建SSH-key" class="headerlink" title="新建SSH key"></a>新建SSH key</h4><p>打开GitHub_Settings_keys 页面, 新建new SSH Key, 将复制的内容写入key部分, title的名字可随意命名, 最后点击 Add SSH Key。<br><img src="/2019/07/09/hexo-github-constructBlog/newSSHKey.jpg"><br>添加成功后可按下图测试。<br><img src="/2019/07/09/hexo-github-constructBlog/SSHTest.jpg"></p>
-<h3 id="安装Node-js"><a href="#安装Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h3><p>请自行搜索Node.js进行安装, 安装完成后, 可按下图测试。<br><img src="/2019/07/09/hexo-github-constructBlog/NodeJsTest.jpg"></p>
-<h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><p>在命令行中输入</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
-<p>安装时间较长, 安装完成后, 初始化博客, 输入</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo init blog</span><br></pre></td></tr></table></figure>
-<p>下列为hexo常用命令:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">hexo new myblogpage</span><br><span class="line">hexo g</span><br><span class="line">hexo s</span><br><span class="line">hexo d</span><br><span class="line">hexo clean</span><br></pre></td></tr></table></figure>
-<p>hexo new 可生成新的页面<br>hexo g 生成博客<br>hexo s 启动服务器预览<br>hexo d 部署至github仓库<br>hexo clean 清除缓存</p>
-<h3 id="上传博客内容至github仓库"><a href="#上传博客内容至github仓库" class="headerlink" title="上传博客内容至github仓库"></a>上传博客内容至github仓库</h3><p>首先将之前创建的github仓库与我们的博客相关联, 打开下图的_config.yml文件,该文件为hexo blog的设置文件,可在内部修改一些基础设置。<br><img src="/2019/07/09/hexo-github-constructBlog/BlogConfig1.jpg"><br>在文件的最后, 按下图编辑修改, 注意:由于语法格式问题, 冒号后请空一格, 否则无法正常工作。<br><img src="/2019/07/09/hexo-github-constructBlog/BlogConfig2.jpg"><br>设置完成后, 安装git部署插件, 输入</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure>
-<p>接着, 我们分别输入三条命令</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hexo clean </span><br><span class="line">hexo g </span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>
-<p>接着访问<strong>XXX.github.io</strong>, 你会发现你的博客已经上线。</p>
-<h3 id="绑定域名"><a href="#绑定域名" class="headerlink" title="绑定域名"></a>绑定域名</h3><p>上述步骤实现后, 博客已经可以正常上线, 接下来只需学会markdown的基础写作(超简单)即可正式发布博客。<br>但是若你不满足于XXX.github.io的网址形式, 想要个性化。那么即可购买域名与XXX.github.io进行绑定。以阿里云域名构建为例：<br>购买域名前,请确认你想构建的域名是否已存在。再进行购买。<br><img src="/2019/07/09/hexo-github-constructBlog/domain1.jpg"><br>域名购买成功后,按下图进入解析界面:<br><img src="/2019/07/09/hexo-github-constructBlog/domain2.jpg"><br>添加如下两个记录:<br><img src="/2019/07/09/hexo-github-constructBlog/domain3.jpg"><br>接着在github的仓库设置界面填入你的域名,保存<br><img src="/2019/07/09/hexo-github-constructBlog/domain4.jpg"><br>在本地blog&#x2F;source文件夹下, 新建CNAME记事本文件, 输入域名, 建议不要加www, 保存成<strong>所有文件</strong>而不是<strong>txt</strong>文件。<br>接着在blog目录下执行以下三条命令即可:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hexo clean</span><br><span class="line">hexo g</span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>
-<p>域名绑定成功！</p>
-<h3 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h3><p>如果你还想更换博客样式的话, 请查阅hexo更换主题相关内容, 常用的主题为next。<br>hexo图片加载缓慢时,可采用图床加快加载速度,具体请搜索hexo图床相关内容。</p>
-<p>[错误 Usage: hexo &lt; command &gt; 解决]<br>这是太长时间没使用hexo的缘故，hexo更新使得原来的本地服务不能使用，需要重新部署一下hexo本地服务器<br>在hexo的根目录下输入命令：npm install hexo-server –save<br>如果没有在hexo的根目录下输入该命令，则会报错找不到package.json文件</p>
-<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><p>参考: <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26625249">https://zhuanlan.zhihu.com/p/26625249</a></p>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>自建博客常见失败点不是不会写文章，而是发布路径太重。服务器、数据库、后台、主题和域名同时上，很容易让写作被运维打断。</p>
+<p>静态博客的思路是把动态能力降到最低：文章在本地生成 HTML，远端只托管静态文件。这样就不需要自建数据库和后端服务。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一条最小发布链路如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Markdown posts</span><br><span class="line">  -&gt; Hexo generate</span><br><span class="line">  -&gt; Git commit / deploy</span><br><span class="line">  -&gt; GitHub Pages</span><br><span class="line">  -&gt; Custom domain</span><br></pre></td></tr></table></figure>
+
+<p>先在 GitHub 创建 <code>username.github.io</code> 仓库，再安装 Git、Node.js 和 Hexo CLI。</p>
+<p><img src="/2019/07/09/hexo-github-constructBlog/gitbash.png"></p>
+<p>Git 身份和 SSH key 的作用是让本地可以稳定推送到 GitHub：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git config --global user.name <span class="string">&quot;your-github-name&quot;</span></span><br><span class="line">git config --global user.email <span class="string">&quot;your-email@example.com&quot;</span></span><br><span class="line">ssh-keygen -t rsa -C <span class="string">&quot;your-email@example.com&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2019/07/09/hexo-github-constructBlog/ssh.jpg"></p>
+<p><img src="/2019/07/09/hexo-github-constructBlog/newSSHKey.jpg"></p>
+<p><img src="/2019/07/09/hexo-github-constructBlog/SSHTest.jpg"></p>
+<p>Node.js 安装完成后确认 <code>node</code> 和 <code>npm</code> 可用：</p>
+<p><img src="/2019/07/09/hexo-github-constructBlog/NodeJsTest.jpg"></p>
+<p>Hexo 最小命令集：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br><span class="line">hexo init blog</span><br><span class="line">hexo new my-post</span><br><span class="line">hexo clean</span><br><span class="line">hexo generate</span><br><span class="line">hexo server</span><br><span class="line">hexo deploy</span><br></pre></td></tr></table></figure>
+
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>部署要变成可重复动作，而不是一次性教程。</p>
+<p>首先在 <code>_config.yml</code> 中配置 deploy 目标和基础站点信息：</p>
+<p><img src="/2019/07/09/hexo-github-constructBlog/BlogConfig1.jpg"></p>
+<p><img src="/2019/07/09/hexo-github-constructBlog/BlogConfig2.jpg"></p>
+<p>然后安装部署插件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br><span class="line">hexo clean</span><br><span class="line">hexo generate</span><br><span class="line">hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>绑定域名时，关键是两边都要配置：域名解析指向 GitHub Pages，仓库或生成目录中保留 <code>CNAME</code> 文件。</p>
+<p><img src="/2019/07/09/hexo-github-constructBlog/domain1.jpg"></p>
+<p><img src="/2019/07/09/hexo-github-constructBlog/domain2.jpg"></p>
+<p><img src="/2019/07/09/hexo-github-constructBlog/domain3.jpg"></p>
+<p><img src="/2019/07/09/hexo-github-constructBlog/domain4.jpg"></p>
+<p>如果长时间未更新后 <code>hexo server</code> 报错，通常是依赖漂移或本地服务包缺失，可以在博客根目录重新安装服务依赖：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-server --save</span><br></pre></td></tr></table></figure>
+
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Hexo + GitHub Pages 的核心价值是把个人博客的发布成本降到最低。先保证“写作 -&gt; 生成 -&gt; 预览 -&gt; 部署 -&gt; 域名访问”这条链路稳定，再考虑主题、评论、搜索和自动化。</p>
+<p>博客系统不需要一开始就复杂。真正值得长期维护的是可重复发布、可备份、可迁移和可验证。</p>
+<p>下一步阅读：<a href="/2026/06/10/Agentic-Coding-Governance/">Agentic Coding 工程治理：多模型协作的角色、权限与验证闭环</a></p>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26625249">Hexo 建站参考</a></p>
 
     </div>
 
@@ -320,8 +324,8 @@
             <div class="post-nav-item">
             </div>
             <div class="post-nav-item">
-                <a href="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/" rel="next" title="CCA application in SSVEP frequency detection">
-                  CCA application in SSVEP frequency detection <i class="fa fa-angle-right"></i>
+                <a href="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/" rel="next" title="CCA 与 SSVEP 频率识别：为什么线性相关仍然有效">
+                  CCA 与 SSVEP 频率识别：为什么线性相关仍然有效 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>

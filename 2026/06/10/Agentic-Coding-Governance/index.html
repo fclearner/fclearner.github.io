@@ -20,15 +20,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="代码生成工具越来越强，多模型协作也越来越常见。真正的问题已经不只是“哪个模型会写代码”，而是多个代理如何共享上下文、谁能写文件、谁负责审查、如何避免互相覆盖，以及如何验证最终结果。 Agentic Coding 的难点更像工程治理，而不是单纯模型能力。">
+    <meta name="description" content="代码生成工具越来越强，多模型协作也越来越常见。但真正的问题已经不是“哪个模型会写代码”，而是多个代理如何共享上下文、谁能写文件、谁负责审查、如何避免互相覆盖，以及如何验证最终结果。 Agentic Coding 的难点更像工程治理，而不是单纯模型能力。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Agentic Coding 工程治理：多模型协作的角色、权限与验证闭环">
+<meta property="og:title" content="Agentic Coding 工程治理：多模型协作先定义责任边界">
 <meta property="og:url" content="https://alanfangblog.com/2026/06/10/Agentic-Coding-Governance/index.html">
 <meta property="og:site_name" content="AlanFangBlog">
-<meta property="og:description" content="代码生成工具越来越强，多模型协作也越来越常见。真正的问题已经不只是“哪个模型会写代码”，而是多个代理如何共享上下文、谁能写文件、谁负责审查、如何避免互相覆盖，以及如何验证最终结果。 Agentic Coding 的难点更像工程治理，而不是单纯模型能力。">
+<meta property="og:description" content="代码生成工具越来越强，多模型协作也越来越常见。但真正的问题已经不是“哪个模型会写代码”，而是多个代理如何共享上下文、谁能写文件、谁负责审查、如何避免互相覆盖，以及如何验证最终结果。 Agentic Coding 的难点更像工程治理，而不是单纯模型能力。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T10:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-10T08:26:25.464Z">
+<meta property="article:modified_time" content="2026-06-18T03:08:16.869Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="AI">
 <meta property="article:tag" content="Agent">
@@ -40,10 +40,10 @@
 <link rel="canonical" href="https://alanfangblog.com/2026/06/10/Agentic-Coding-Governance/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2026/06/10/Agentic-Coding-Governance/","path":"2026/06/10/Agentic-Coding-Governance/","title":"Agentic Coding 工程治理：多模型协作的角色、权限与验证闭环"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2026/06/10/Agentic-Coding-Governance/","path":"2026/06/10/Agentic-Coding-Governance/","title":"Agentic Coding 工程治理：多模型协作先定义责任边界"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>Agentic Coding 工程治理：多模型协作的角色、权限与验证闭环 | AlanFangBlog</title>
+<title>Agentic Coding 工程治理：多模型协作先定义责任边界 | AlanFangBlog</title>
   
 
 
@@ -161,7 +161,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%88%E5%88%86%E8%A7%92%E8%89%B2%EF%BC%8C%E5%86%8D%E6%8E%A5%E5%B7%A5%E5%85%B7"><span class="nav-number">1.</span> <span class="nav-text">先分角色，再接工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%95%E4%B8%80%E5%86%99%E5%85%A5%E8%80%85%E5%8E%9F%E5%88%99"><span class="nav-number">2.</span> <span class="nav-text">单一写入者原则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A6%81%E5%8F%AF%E5%A4%8D%E7%9B%98"><span class="nav-number">3.</span> <span class="nav-text">上下文要可复盘</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MCP-%E4%B8%8E%E5%B7%A5%E5%85%B7%E6%9D%83%E9%99%90"><span class="nav-number">4.</span> <span class="nav-text">MCP 与工具权限</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81%E9%97%AD%E7%8E%AF"><span class="nav-number">5.</span> <span class="nav-text">验证闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E6%BA%90%E5%AE%9E%E8%B7%B5%E6%96%B9%E5%90%91"><span class="nav-number">6.</span> <span class="nav-text">开源实践方向</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">7.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Role-state-handoff"><span class="nav-number">8.</span> <span class="nav-text">Role-state handoff</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -219,12 +219,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="Agentic Coding 工程治理：多模型协作的角色、权限与验证闭环 | AlanFangBlog">
+      <meta itemprop="name" content="Agentic Coding 工程治理：多模型协作先定义责任边界 | AlanFangBlog">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Agentic Coding 工程治理：多模型协作的角色、权限与验证闭环
+          Agentic Coding 工程治理：多模型协作先定义责任边界
         </h1>
 
         <div class="post-meta-container">
@@ -234,9 +234,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-10 18:00:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T18:00:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 18:00:00" itemprop="dateCreated datePublished" datetime="2026-06-10T18:00:00+08:00">2026-06-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 11:08:16" itemprop="dateModified" datetime="2026-06-18T11:08:16+08:00">2026-06-18</time>
     </span>
 
   
@@ -248,59 +254,34 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>代码生成工具越来越强，多模型协作也越来越常见。真正的问题已经不只是“哪个模型会写代码”，而是多个代理如何共享上下文、谁能写文件、谁负责审查、如何避免互相覆盖，以及如何验证最终结果。</p>
+    <div class="post-body" itemprop="articleBody"><p>代码生成工具越来越强，多模型协作也越来越常见。但真正的问题已经不是“哪个模型会写代码”，而是多个代理如何共享上下文、谁能写文件、谁负责审查、如何避免互相覆盖，以及如何验证最终结果。</p>
 <p>Agentic Coding 的难点更像工程治理，而不是单纯模型能力。</p>
 <span id="more"></span>
 
-<h2 id="先分角色，再接工具"><a href="#先分角色，再接工具" class="headerlink" title="先分角色，再接工具"></a>先分角色，再接工具</h2><p>一个稳定的多代理流程，至少应该区分四类角色：</p>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>如果所有 agent 都能同时读、写、运行命令和发布，系统很快会失控。一个 agent 做探索，一个 agent 改代码，另一个 agent 又根据旧上下文审查，最后 integrator 不知道该相信谁。</p>
+<p>多代理系统最危险的不是某个模型犯错，而是错误被协作流程放大。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一个稳定流程至少区分四类角色：</p>
 <ul>
 <li>explorer：只读探索代码，回答具体问题；</li>
 <li>worker：负责明确文件范围内的实现；</li>
 <li>reviewer：检查风险、回归和测试缺口；</li>
 <li>integrator：合并结果、运行验证、决定是否发布。</li>
 </ul>
-<p>如果所有代理都能同时写同一批文件，冲突和回退风险会急剧上升。写入权限应该比读取权限更谨慎。</p>
-<h2 id="单一写入者原则"><a href="#单一写入者原则" class="headerlink" title="单一写入者原则"></a>单一写入者原则</h2><p>多代理不是越并行越好。最容易失控的情况，是多个代理同时修改同一模块，却没有统一状态机。</p>
-<p>一个实用原则是：同一文件或同一行为边界，在同一阶段只交给一个写入者。其他代理可以读、审、提建议，但不要并发改同一处。</p>
-<p>如果确实要并行实现，写入范围必须物理隔离，例如一个负责测试，一个负责文档，一个负责某个独立模块。</p>
-<h2 id="上下文要可复盘"><a href="#上下文要可复盘" class="headerlink" title="上下文要可复盘"></a>上下文要可复盘</h2><p>代理之间共享的不是聊天热情，而是结构化上下文。关键决策应该进入任务记录：</p>
-<ul>
-<li>要改什么行为；</li>
-<li>不改什么边界；</li>
-<li>已验证什么事实；</li>
-<li>失败过哪些方案；</li>
-<li>哪些测试必须通过；</li>
-<li>当前还有什么风险。</li>
-</ul>
-<p>这些信息如果只留在对话里，下一轮代理很容易重复踩坑。</p>
-<h2 id="MCP-与工具权限"><a href="#MCP-与工具权限" class="headerlink" title="MCP 与工具权限"></a>MCP 与工具权限</h2><p>MCP、浏览器控制、终端、GitHub 连接器都能扩展代理能力。能力越强，权限边界越重要。</p>
-<p>建议把工具分成三类：</p>
-<ol>
-<li>read-only：搜索、读取、截图、日志查看；</li>
-<li>scoped-write：只允许写指定目录或文件；</li>
-<li>privileged：发布、删除、重置、凭证相关操作。</li>
-</ol>
-<p>默认给 read-only，需要写入时再按任务授权。这样可以减少无意副作用。</p>
-<h2 id="验证闭环"><a href="#验证闭环" class="headerlink" title="验证闭环"></a>验证闭环</h2><p>Agentic Coding 的交付不能停在“模型说完成了”。至少要有三类验证：</p>
+<p>同一文件或同一行为边界，在同一阶段只应该有一个写入者。其他角色可以读、审、提建议，但不要并发修改同一处。</p>
+<p>MCP、浏览器控制、终端和 GitHub 连接器都应该按权限分层：read-only、scoped-write、privileged。默认读，需要写入或发布时再提升权限。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>Agentic Coding 的状态机可以压成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">explore -&gt; propose -&gt; apply -&gt; review -&gt; verify -&gt; publish</span><br></pre></td></tr></table></figure>
+
+<p>每个状态都要定义允许工具、写入边界、交付物和 handoff 内容。handoff 里保留已验证事实、拒绝过的假设、触碰文件、测试证据、剩余风险和下一步动作。</p>
+<p>验证也要分三类：</p>
 <ul>
 <li>静态验证：格式、lint、类型、配置检查；</li>
 <li>行为验证：测试、构建、端到端 smoke；</li>
 <li>变更验证：diff 审阅、敏感信息扫描、发布前检查。</li>
 </ul>
-<p>如果代理修改了验证脚本本身，还要确认验证规则没有被放松。</p>
-<h2 id="开源实践方向"><a href="#开源实践方向" class="headerlink" title="开源实践方向"></a>开源实践方向</h2><p>这个方向适合沉淀成可复用模板：</p>
-<ul>
-<li>任务计划格式；</li>
-<li>代理角色说明；</li>
-<li>写入范围声明；</li>
-<li>审查 checklist；</li>
-<li>发布前检查脚本；</li>
-<li>失败记录和恢复流程。</li>
-</ul>
-<p>模型会变，工具会变，但这些治理结构相对稳定。</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Agentic Coding 的关键不是把多个模型接到一起，而是明确角色、权限、状态和验证。没有边界的多代理系统，只会把单模型的不确定性放大成协作层面的不确定性。</p>
-<h2 id="Role-state-handoff"><a href="#Role-state-handoff" class="headerlink" title="Role-state handoff"></a>Role-state handoff</h2><p>Agentic coding workflows benefit from a small state machine: explore, propose, apply, review, verify, publish. Each state should define the allowed tools, write boundary, expected artifact, and handoff summary.</p>
-<p>The handoff should preserve verified facts, rejected assumptions, touched files, test evidence, residual risks, and the next action. This is more reliable than preserving a raw transcript, because later agents need current state and evidence, not every intermediate turn.</p>
+<p>如果 agent 修改了验证脚本本身，还要确认验证规则没有被放松。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Agentic Coding 的关键不是把多个模型接到一起，而是明确角色、权限、状态和验证。没有边界的多代理系统，只会把单模型的不确定性放大成协作层面的不确定性。</p>
+<p>下一步阅读：<a href="/2026/06/16/Agent-Engineering-Radar-2026-06-16/">【Agent Engineering Radar】2026-06-16 Agent 工程技术雷达</a></p>
 
     </div>
 

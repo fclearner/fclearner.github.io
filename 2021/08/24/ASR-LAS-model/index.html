@@ -20,16 +20,16 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="前言&nbsp;&nbsp;&nbsp;&nbsp;论文《Listen Attend and Spell》LAS模型简介及代码复现">
+    <meta name="description" content="传统 ASR 通常把声学模型、发音词典和语言模型拆成多个模块。LAS（Listen, Attend and Spell）提出的是另一种问题表述：能不能让模型先听完整段语音，再通过 attention 找到相关声学片段，最后像拼写一样输出字符序列。 这篇文章不把 LAS 当成历史模型罗列，而是把它看成端到端 ASR 的一个关键抽象：对齐不必显式写死，可以由 decoder 在生成时学习。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="ASR-LAS-model">
+<meta property="og:title" content="LAS 模型：把语音识别改写成听、对齐、拼写">
 <meta property="og:url" content="https://alanfangblog.com/2021/08/24/ASR-LAS-model/index.html">
 <meta property="og:site_name" content="AlanFangBlog">
-<meta property="og:description" content="前言&nbsp;&nbsp;&nbsp;&nbsp;论文《Listen Attend and Spell》LAS模型简介及代码复现">
+<meta property="og:description" content="传统 ASR 通常把声学模型、发音词典和语言模型拆成多个模块。LAS（Listen, Attend and Spell）提出的是另一种问题表述：能不能让模型先听完整段语音，再通过 attention 找到相关声学片段，最后像拼写一样输出字符序列。 这篇文章不把 LAS 当成历史模型罗列，而是把它看成端到端 ASR 的一个关键抽象：对齐不必显式写死，可以由 decoder 在生成时学习。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://alanfangblog.com/2021/08/24/ASR-LAS-model/LAS_flow.png">
 <meta property="article:published_time" content="2021-08-24T07:29:20.000Z">
-<meta property="article:modified_time" content="2022-04-30T09:15:45.073Z">
+<meta property="article:modified_time" content="2026-06-18T03:05:02.446Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="ASR">
 <meta property="article:tag" content="ASR-Classic">
@@ -42,10 +42,10 @@
 <link rel="canonical" href="https://alanfangblog.com/2021/08/24/ASR-LAS-model/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2021/08/24/ASR-LAS-model/","path":"2021/08/24/ASR-LAS-model/","title":"ASR-LAS-model"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2021/08/24/ASR-LAS-model/","path":"2021/08/24/ASR-LAS-model/","title":"LAS 模型：把语音识别改写成听、对齐、拼写"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>ASR-LAS-model | AlanFangBlog</title>
+<title>LAS 模型：把语音识别改写成听、对齐、拼写 | AlanFangBlog</title>
   
 
 
@@ -163,7 +163,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="nav-number">2.</span> <span class="nav-text">论文核心思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E5%A4%8D%E7%8E%B0%E4%BB%A3%E7%A0%81%E5%8F%82%E8%80%83"><span class="nav-number">3.</span> <span class="nav-text">论文复现代码参考</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LAS%E6%A8%A1%E5%9E%8B%E5%8E%9F%E7%90%86%E5%9B%BE"><span class="nav-number">4.</span> <span class="nav-text">LAS模型原理图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#References"><span class="nav-number">5.</span> <span class="nav-text">References</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#References"><span class="nav-number">4.1.</span> <span class="nav-text">References</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -221,12 +221,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="ASR-LAS-model | AlanFangBlog">
+      <meta itemprop="name" content="LAS 模型：把语音识别改写成听、对齐、拼写 | AlanFangBlog">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          ASR-LAS-model
+          LAS 模型：把语音识别改写成听、对齐、拼写
         </h1>
 
         <div class="post-meta-container">
@@ -244,7 +244,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2022-04-30 17:15:45" itemprop="dateModified" datetime="2022-04-30T17:15:45+08:00">2022-04-30</time>
+      <time title="Modified: 2026-06-18 11:05:02" itemprop="dateModified" datetime="2026-06-18T11:05:02+08:00">2026-06-18</time>
     </span>
 
   
@@ -256,14 +256,31 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;论文《Listen Attend and Spell》LAS模型简介及代码复现</p>
+    <div class="post-body" itemprop="articleBody"><p>传统 ASR 通常把声学模型、发音词典和语言模型拆成多个模块。LAS（Listen, Attend and Spell）提出的是另一种问题表述：能不能让模型先听完整段语音，再通过 attention 找到相关声学片段，最后像拼写一样输出字符序列。</p>
+<p>这篇文章不把 LAS 当成历史模型罗列，而是把它看成端到端 ASR 的一个关键抽象：<strong>对齐不必显式写死，可以由 decoder 在生成时学习</strong>。</p>
 <span id="more"></span>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;论文地址: <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1508.01211v2">https://arxiv.org/abs/1508.01211v2</a></p>
-<h3 id="论文核心思想"><a href="#论文核心思想" class="headerlink" title="论文核心思想"></a>论文核心思想</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;语音识别模型，模型分为两个部分：listener和speller：<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;listener是三角形的pyramidal bidirecional lstm。<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;spller是基于attention的decoder,论文的label是以字符为单位的。</p>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;Encoder:<br>&nbsp;&nbsp;&nbsp;&nbsp;Decoder:</p>
-<h3 id="论文复现代码参考"><a href="#论文复现代码参考" class="headerlink" title="论文复现代码参考"></a>论文复现代码参考</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;pytorch版: <a target="_blank" rel="noopener" href="https://github.com/AzizCode92/Listen-Attend-and-Spell-Pytorch">https://github.com/AzizCode92/Listen-Attend-and-Spell-Pytorch</a></p>
-<h3 id="LAS模型原理图"><a href="#LAS模型原理图" class="headerlink" title="LAS模型原理图"></a>LAS模型原理图</h3><p><img src="/2021/08/24/ASR-LAS-model/LAS_flow.png"></p>
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1]《<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/80967163%E3%80%8B">https://zhuanlan.zhihu.com/p/80967163》</a></p>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>语音识别最难的部分之一是对齐。音频帧很多，文字标签较短，而且两者长度比例不固定。传统系统通过 HMM、词典和语言模型显式管理这个问题，工程上可控，但模块多、训练链路长。</p>
+<p>LAS 试图把问题压成一个序列到序列任务：输入是声学特征序列，输出是字符或子词序列。模型需要自己学习什么时候关注哪段音频。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>LAS 可以拆成两个部分。</p>
+<p>Listener 是编码器，通常使用 pyramidal BiLSTM 压缩时间维度，把长音频帧变成更短的高层表示。时间下采样很重要，否则 decoder 每一步都要在过长的帧序列上做 attention。</p>
+<p>Speller 是带 attention 的 decoder。它在每个输出步根据历史字符和 attention context 预测下一个字符。</p>
+<p><img src="/2021/08/24/ASR-LAS-model/LAS_flow.png"></p>
+<p>这个结构的本质是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">audio frames -&gt; listener states -&gt; attention context -&gt; next character</span><br></pre></td></tr></table></figure>
+
+<p>CTC 假设时间步相对独立，LAS 则把输出历史纳入 decoder。它更像翻译模型，因此语言建模能力更强，但训练和解码也更依赖数据规模与搜索策略。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>评估 LAS 这类 attention ASR，不能只看最终 WER。至少要看四件事。</p>
+<ul>
+<li>对齐是否稳定：长音频、重复词、静音段是否导致 attention 漂移；</li>
+<li>解码是否可控：beam size、长度惩罚和外部语言模型如何影响结果；</li>
+<li>延迟是否可接受：完整 attention 更适合离线，流式化需要额外结构；</li>
+<li>错误是否可解释：插入、删除、重复和漏识别分别来自 encoder、attention 还是 decoder。</li>
+</ul>
+<p>LAS 的历史价值在于证明端到端 ASR 可以直接学习声学到文本的映射。但在实时和长音频场景里，attention 漂移、解码成本和流式约束会变成主要工程问题。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>LAS 适合用来理解端到端 ASR 的基本范式：encoder 压缩语音，attention 做软对齐，decoder 负责条件生成。它不是现代 ASR 的终点，但很多后来的 AED、Transducer 和 Speech-LLM 结构都能从这里看出影子。</p>
+<p>下一步阅读：<a href="/2026/06/10/Speech-LLM-Audio-Token-Alignment/">语音大模型工程：音频 token、LLM 主干与对齐契约</a></p>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1508.01211">Listen, Attend and Spell</a><br>[2] <a target="_blank" rel="noopener" href="https://github.com/AzizCode92/Listen-Attend-and-Spell-Pytorch">Listen-Attend-and-Spell-Pytorch</a></p>
 
     </div>
 
@@ -283,13 +300,13 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2021/08/24/ASR-preprocess/" rel="prev" title="ASR-preprocess">
-                  <i class="fa fa-angle-left"></i> ASR-preprocess
+                <a href="/2021/08/24/ASR-preprocess/" rel="prev" title="ASR 特征前端：从原始波形到可训练的声学表示">
+                  <i class="fa fa-angle-left"></i> ASR 特征前端：从原始波形到可训练的声学表示
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2021/08/24/ASR-CMVN/" rel="next" title="ASR-CMVN">
-                  ASR-CMVN <i class="fa fa-angle-right"></i>
+                <a href="/2021/08/24/ASR-CMVN/" rel="next" title="ASR 特征归一化：CMVN 解决的不是数值美观，而是通道偏移">
+                  ASR 特征归一化：CMVN 解决的不是数值美观，而是通道偏移 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>

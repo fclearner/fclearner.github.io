@@ -28,7 +28,7 @@
 <meta property="og:description" content="RAG 最容易被讲成一个检索增强公式：切块、向量化、取 top-k、拼进 prompt、让模型回答。这个公式很实用，但它默认了一件事：系统在回答之前已经知道自己缺什么信息。 复杂任务里，这个假设经常不成立。问题可能在生成到一半才暴露，证据可能和当前结论冲突，召回内容也可能只是语义相似而不是事实支撑。于是 Adaptive RAG 真正要解决的不是“多检索一些”，而是：系统什么时候应该承认当前上下文">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T09:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-18T02:29:04.065Z">
+<meta property="article:modified_time" content="2026-06-18T03:08:49.778Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="AI">
 <meta property="article:tag" content="LLM">
@@ -161,7 +161,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E9%97%AE%E9%A2%98%E4%B8%8D%E6%98%AF%E5%8F%AC%E5%9B%9E%E5%99%A8%E4%B8%8D%E5%A4%9F%E5%BC%BA"><span class="nav-number">1.</span> <span class="nav-text">一、问题不是召回器不够强</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%8A%8A%E2%80%9C%E4%BF%A1%E6%81%AF%E9%9C%80%E6%B1%82%E2%80%9D%E7%9C%8B%E6%88%90%E7%8A%B6%E6%80%81"><span class="nav-number">2.</span> <span class="nav-text">二、把“信息需求”看成状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%85%88%E5%81%9A%E6%98%BE%E5%BC%8F-retrieval-gate"><span class="nav-number">3.</span> <span class="nav-text">三、先做显式 retrieval gate</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81GraphRAG-%E4%B8%8D%E6%98%AF%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%BB%98%E8%AE%A4%E7%AD%94%E6%A1%88"><span class="nav-number">4.</span> <span class="nav-text">四、GraphRAG 不是第一步默认答案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E8%AF%84%E6%B5%8B%E8%A6%81%E6%8B%86%E5%88%B0%E8%A7%A6%E5%8F%91%E5%92%8C%E8%AF%81%E6%8D%AE"><span class="nav-number">5.</span> <span class="nav-text">五、评测要拆到触发和证据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93%EF%BC%9A%E5%85%88%E6%8A%8A%E6%A3%80%E7%B4%A2%E5%8F%98%E6%88%90%E5%8F%AF%E9%AA%8C%E8%AF%81%E5%8A%A8%E4%BD%9C"><span class="nav-number">6.</span> <span class="nav-text">小结：先把检索变成可验证动作</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -242,7 +242,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 10:29:04" itemprop="dateModified" datetime="2026-06-18T10:29:04+08:00">2026-06-18</time>
+      <time title="Modified: 2026-06-18 11:08:49" itemprop="dateModified" datetime="2026-06-18T11:08:49+08:00">2026-06-18</time>
     </span>
 
   
@@ -255,65 +255,26 @@
     
     
     <div class="post-body" itemprop="articleBody"><p>RAG 最容易被讲成一个检索增强公式：切块、向量化、取 top-k、拼进 prompt、让模型回答。这个公式很实用，但它默认了一件事：系统在回答之前已经知道自己缺什么信息。</p>
-<p>复杂任务里，这个假设经常不成立。问题可能在生成到一半才暴露，证据可能和当前结论冲突，召回内容也可能只是语义相似而不是事实支撑。于是 Adaptive RAG 真正要解决的不是“多检索一些”，而是：<strong>系统什么时候应该承认当前上下文不够，并把检索变成下一步可验证动作</strong>。</p>
+<p>复杂任务里，这个假设经常不成立。问题可能在生成到一半才暴露，证据可能和当前结论冲突，召回内容也可能只是语义相似而不是事实支撑。于是 Adaptive RAG 真正要解决的不是“多检索一些”，而是：系统什么时候应该承认当前上下文不够，并把检索变成下一步可验证动作。</p>
 <span id="more"></span>
 
-<h2 id="一、问题不是召回器不够强"><a href="#一、问题不是召回器不够强" class="headerlink" title="一、问题不是召回器不够强"></a>一、问题不是召回器不够强</h2><p>固定检索的失败通常不来自某一个 retriever 太弱，而来自检索时机和信息需求没有被显式建模。</p>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>固定检索的失败通常不来自某一个 retriever 太弱，而来自检索时机和信息需求没有被显式建模。</p>
 <p>一个简单 RAG 流程会在用户问题进入后立刻检索。这样做稳定、便宜、容易缓存，但它把不同问题压成同一个接口：不管是事实核验、多跳推理、摘要归纳还是工具调用后的验证，都先取一批相似片段。</p>
-<p>这会带来三个工程问题。</p>
-<p>第一，语义相关不等于证据支持。向量检索很容易取回同主题材料，但同主题材料未必能支持当前结论。模型看到这些材料后，反而可能更自信地说错。</p>
-<p>第二，召回时机固定。很多缺口只有在中间结论出现后才清楚，提前检索会浪费上下文窗口，也会把不稳定材料提前注入 prompt。</p>
-<p>第三，失败原因不可分解。答案错了，到底是没有触发检索、query 写错、召回不足、rerank 失败，还是生成阶段没有忠实使用证据？如果系统没有阶段日志，只能靠感觉调参数。</p>
+<p>这会带来三个工程问题。语义相关不等于证据支持；召回时机固定会浪费上下文窗口；失败原因不可分解，无法判断错误来自触发、query、召回、rerank 还是生成。</p>
 <p>所以 Adaptive RAG 的第一性问题不是 top-k，而是 evidence gap detection：当前状态是否真的缺少外部证据。</p>
-<h2 id="二、把“信息需求”看成状态"><a href="#二、把“信息需求”看成状态" class="headerlink" title="二、把“信息需求”看成状态"></a>二、把“信息需求”看成状态</h2><p>一个更稳的抽象不是“某个 token 需要检索”，而是“当前状态暴露了一个证据缺口”。可以把它写成一个最小状态对象：</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一个更稳的抽象不是“某个 token 需要检索”，而是“当前状态暴露了一个证据缺口”：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">information_need = &#123;</span><br><span class="line">  state: 当前子问题、生成阶段或工作流节点,</span><br><span class="line">  uncertainty: 不确定性来自模型分歧、槽位缺失还是证据冲突,</span><br><span class="line">  evidence_gap: 需要什么外部证据才能继续,</span><br><span class="line">  action: 是否检索、查什么、查哪里、如何验证</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>这个抽象比单纯看 token 置信度更贴近工程。低置信度不一定代表需要检索，高置信度也不代表事实可靠。Self-RAG、FLARE、DRAGIN 这类方法的启发在于把检索放进生成过程，但落地时仍然要回答一个更朴素的问题：这次检索为什么发生。</p>
-<h2 id="三、先做显式-retrieval-gate"><a href="#三、先做显式-retrieval-gate" class="headerlink" title="三、先做显式 retrieval gate"></a>三、先做显式 retrieval gate</h2><p>第一版 Adaptive RAG 不必一开始就把触发权完全交给模型。更可控的做法是先加一个显式 retrieval gate，让它在每个关键状态点判断是否检索。</p>
-<p>一个可落地的流程是：</p>
+<p>Self-RAG、FLARE、DRAGIN 这类方法的启发在于把检索放进生成过程，但落地时仍然要回答一个更朴素的问题：这次检索为什么发生。</p>
+<p>GraphRAG 和 KG-RAG 则解决证据组织问题，把文本块升级为实体、关系、社区摘要和路径。它们适合跨文档、多跳、关系密集的场景，但不应该替代最基础的触发和验证机制。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>第一版 Adaptive RAG 更适合先做显式 Retrieval Gate：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">State Snapshot</span><br><span class="line">  -&gt; Retrieval Gate(reason_code)</span><br><span class="line">  -&gt; Query Builder(query, assumptions)</span><br><span class="line">  -&gt; Hybrid Retriever(candidates)</span><br><span class="line">  -&gt; Reranker(ranked_candidates)</span><br><span class="line">  -&gt; Evidence Validator(supported / unsupported / conflict)</span><br><span class="line">  -&gt; Generate or Rollback</span><br></pre></td></tr></table></figure>
 
-<p>这里的 gate 不能只输出 yes&#x2F;no。它至少要输出 reason code，例如：</p>
-<ul>
-<li><code>missing_fact</code>: 当前结论缺少外部事实；</li>
-<li><code>stale_context</code>: 当前上下文可能过期；</li>
-<li><code>entity_ambiguous</code>: 实体或术语有歧义；</li>
-<li><code>evidence_conflict</code>: 已有证据互相冲突；</li>
-<li><code>cost_guard</code>: 检索收益不足以覆盖延迟和 token 成本。</li>
-</ul>
-<p>这样做的价值不是让规则看起来复杂，而是让后续评测能分清错误来源。没有 reason code，检索只是 prompt 里的隐性副作用；有了 reason code，检索才变成可以审计的策略。</p>
-<h2 id="四、GraphRAG-不是第一步默认答案"><a href="#四、GraphRAG-不是第一步默认答案" class="headerlink" title="四、GraphRAG 不是第一步默认答案"></a>四、GraphRAG 不是第一步默认答案</h2><p>GraphRAG 和 KG-RAG 解决的是证据组织问题：把文本块升级为实体、关系、社区摘要和路径。它适合跨文档、多跳、关系密集的场景，也能缓解单段 chunk 无法表达全局结构的问题。</p>
-<p>但图不是免费的。实体抽取、关系归并、增量更新、图召回和摘要压缩都会引入新误差。很多系统在第一阶段更应该先把 retrieval gate、query builder 和 evidence validator 做清楚，再决定是否把某些证据集合图谱化。</p>
-<p>换句话说，图检索不是 Adaptive RAG 的起点，而是证据组织层的一个增强选项。没有可观测的检索触发和证据验证，GraphRAG 也可能只是更昂贵的上下文注入。</p>
-<h2 id="五、评测要拆到触发和证据"><a href="#五、评测要拆到触发和证据" class="headerlink" title="五、评测要拆到触发和证据"></a>五、评测要拆到触发和证据</h2><p>只看最终答案准确率，无法判断 Adaptive RAG 是否真的变好。一个可用的评测面板至少要拆成三组。</p>
-<p>触发质量：</p>
-<ul>
-<li>retrieval trigger precision；</li>
-<li>retrieval trigger recall；</li>
-<li>不必要检索率；</li>
-<li>应检索未检索率；</li>
-<li>平均每轮检索次数。</li>
-</ul>
-<p>证据质量：</p>
-<ul>
-<li>Recall@K；</li>
-<li>MRR &#x2F; nDCG；</li>
-<li>evidence support rate；</li>
-<li>conflict evidence rate；</li>
-<li>rerank 后关键证据进入上下文窗口的比例。</li>
-</ul>
-<p>系统质量：</p>
-<ul>
-<li>答案准确率；</li>
-<li>hallucination rate；</li>
-<li>P95 延迟；</li>
-<li>token 和检索成本；</li>
-<li>无证据时的拒答或降级比例。</li>
-</ul>
-<p>其中最关键的是 evidence support rate。它把“召回到了相似内容”和“召回到了能支撑答案的证据”区分开。没有这个指标，Adaptive RAG 很容易退化成 expensive RAG。</p>
-<h2 id="小结：先把检索变成可验证动作"><a href="#小结：先把检索变成可验证动作" class="headerlink" title="小结：先把检索变成可验证动作"></a>小结：先把检索变成可验证动作</h2><p>Adaptive RAG 的核心不是“多检索几次”，而是让检索成为可记录、可回放、可评估的动作。第一版系统最应该做的是显式 retrieval gate：说明为什么触发，构造了什么 query，召回了哪些候选，证据是否支持当前结论，以及这次检索带来了多少延迟和成本。</p>
+<p>Gate 不能只输出 yes&#x2F;no。它至少要输出 reason code，例如 <code>missing_fact</code>、<code>stale_context</code>、<code>entity_ambiguous</code>、<code>evidence_conflict</code>、<code>cost_guard</code>。这样后续评测才能分清是不该检索却检索了，还是该检索却没检索。</p>
+<p>评测也要拆成触发质量、证据质量和系统质量。尤其要看 evidence support rate，把“召回到了相似内容”和“召回到了能支撑答案的证据”区分开。没有这个指标，Adaptive RAG 很容易退化成 expensive RAG。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Adaptive RAG 的核心不是“多检索几次”，而是让检索成为可记录、可回放、可评估的动作。第一版系统最应该做的是显式 Retrieval Gate：说明为什么触发，构造了什么 query，召回了哪些候选，证据是否支持当前结论，以及这次检索带来了多少延迟和成本。</p>
 <p>只要这条链路清楚，后面再替换成 Self-RAG、FLARE、DRAGIN 或 GraphRAG，都有比较基线。否则系统只是把更多上下文交给模型碰运气。</p>
-<p>下一篇：<a href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/">Adaptive RAG（二）：Retrieval Gate 怎么判断该不该检索</a></p>
+<p>下一步阅读：<a href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/">Adaptive RAG（二）：Retrieval Gate 怎么判断该不该检索</a></p>
 
     </div>
 
@@ -333,13 +294,13 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2026/06/09/PVAD2-engineering-loop/" rel="prev" title="Personal VAD 2.0 工程化：外部说话人嵌入与训练闭环">
-                  <i class="fa fa-angle-left"></i> Personal VAD 2.0 工程化：外部说话人嵌入与训练闭环
+                <a href="/2026/06/09/PVAD2-engineering-loop/" rel="prev" title="Personal VAD 2.0 工程化：把目标说话人判断做成闭环">
+                  <i class="fa fa-angle-left"></i> Personal VAD 2.0 工程化：把目标说话人判断做成闭环
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2026/06/10/Speech-LLM-Audio-Token-Alignment/" rel="next" title="语音大模型工程：音频 token、LLM 主干与对齐契约">
-                  语音大模型工程：音频 token、LLM 主干与对齐契约 <i class="fa fa-angle-right"></i>
+                <a href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/" rel="next" title="Adaptive RAG（二）：Retrieval Gate 怎么判断该不该检索">
+                  Adaptive RAG（二）：Retrieval Gate 怎么判断该不该检索 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>

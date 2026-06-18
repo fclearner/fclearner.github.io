@@ -20,15 +20,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="前言&nbsp;&nbsp;&nbsp;&nbsp;CMVN在语音识别中的作用">
+    <meta name="description" content="语音识别里的特征归一化很容易被当成预处理细节：把均值拉到 0，把方差压到 1，然后继续训练模型。这个理解没有错，但它没有说清楚 CMVN 真正解决的问题。 CMVN 要处理的是录音设备、信道、说话环境和能量尺度带来的系统性偏移。它不是为了让特征“好看”，而是为了让声学模型少花容量去适配无关的通道差异。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="ASR-CMVN">
+<meta property="og:title" content="ASR 特征归一化：CMVN 解决的不是数值美观，而是通道偏移">
 <meta property="og:url" content="https://alanfangblog.com/2021/08/24/ASR-CMVN/index.html">
 <meta property="og:site_name" content="AlanFangBlog">
-<meta property="og:description" content="前言&nbsp;&nbsp;&nbsp;&nbsp;CMVN在语音识别中的作用">
+<meta property="og:description" content="语音识别里的特征归一化很容易被当成预处理细节：把均值拉到 0，把方差压到 1，然后继续训练模型。这个理解没有错，但它没有说清楚 CMVN 真正解决的问题。 CMVN 要处理的是录音设备、信道、说话环境和能量尺度带来的系统性偏移。它不是为了让特征“好看”，而是为了让声学模型少花容量去适配无关的通道差异。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-08-24T07:41:18.000Z">
-<meta property="article:modified_time" content="2021-08-30T08:42:14.068Z">
+<meta property="article:modified_time" content="2026-06-18T03:05:01.945Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="ASR">
 <meta property="article:tag" content="Feature-engineering">
@@ -38,10 +38,10 @@
 <link rel="canonical" href="https://alanfangblog.com/2021/08/24/ASR-CMVN/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2021/08/24/ASR-CMVN/","path":"2021/08/24/ASR-CMVN/","title":"ASR-CMVN"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2021/08/24/ASR-CMVN/","path":"2021/08/24/ASR-CMVN/","title":"ASR 特征归一化：CMVN 解决的不是数值美观，而是通道偏移"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>ASR-CMVN | AlanFangBlog</title>
+<title>ASR 特征归一化：CMVN 解决的不是数值美观，而是通道偏移 | AlanFangBlog</title>
   
 
 
@@ -159,7 +159,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#noun-%E7%BF%BB%E8%AF%91"><span class="nav-number">2.</span> <span class="nav-text">noun 翻译</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CMVN"><span class="nav-number">3.</span> <span class="nav-text">CMVN</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#References"><span class="nav-number">3.1.</span> <span class="nav-text">References</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#References"><span class="nav-number">4.1.</span> <span class="nav-text">References</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -217,12 +217,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="ASR-CMVN | AlanFangBlog">
+      <meta itemprop="name" content="ASR 特征归一化：CMVN 解决的不是数值美观，而是通道偏移 | AlanFangBlog">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          ASR-CMVN
+          ASR 特征归一化：CMVN 解决的不是数值美观，而是通道偏移
         </h1>
 
         <div class="post-meta-container">
@@ -240,7 +240,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2021-08-30 16:42:14" itemprop="dateModified" datetime="2021-08-30T16:42:14+08:00">2021-08-30</time>
+      <time title="Modified: 2026-06-18 11:05:01" itemprop="dateModified" datetime="2026-06-18T11:05:01+08:00">2026-06-18</time>
     </span>
 
   
@@ -252,11 +252,29 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CMVN在语音识别中的作用</p>
+    <div class="post-body" itemprop="articleBody"><p>语音识别里的特征归一化很容易被当成预处理细节：把均值拉到 0，把方差压到 1，然后继续训练模型。这个理解没有错，但它没有说清楚 CMVN 真正解决的问题。</p>
+<p>CMVN 要处理的是录音设备、信道、说话环境和能量尺度带来的系统性偏移。它不是为了让特征“好看”，而是为了让声学模型少花容量去适配无关的通道差异。</p>
 <span id="more"></span>
-<h2 id="noun-翻译"><a href="#noun-翻译" class="headerlink" title="noun 翻译"></a>noun 翻译</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CMN：Cepstral Mean Normalisation，倒谱均值归一化；<br>&nbsp;&nbsp;&nbsp;&nbsp;CMVN：Cepstral Mean Variance Normalisation，倒谱均值方差归一化；</p>
-<h2 id="CMVN"><a href="#CMVN" class="headerlink" title="CMVN"></a>CMVN</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CMVN与数据归一化相似，但CMVN的意义更偏向于对音频数据进行滤波，可提升识别精度。<br>&nbsp;&nbsp;&nbsp;&nbsp;在线的CMVN是基于滑动窗口进行的，会影响语音识别响应时间；feature norm是对所有训练数据进行统计，然后单帧计算<br>&nbsp;&nbsp;&nbsp;&nbsp;因CMVN占用识别响应时间，最新的端到端识别中未使用<br>&nbsp;&nbsp;&nbsp;&nbsp;CMVN详细原理可参考References中的论文[1]</p>
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1]<a target="_blank" rel="noopener" href="http://www.apsipa.org/proceedings/2020/pdfs/0000532.pdf">《Significance of CMVN for Replay Spoof Detection》</a></p>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>ASR 特征通常来自频谱或倒谱空间。同一句话在不同麦克风、不同音量、不同环境下，语义内容没有变，但特征分布会整体漂移。如果模型直接学习这种漂移，就会把说话内容和采集条件混在一起。</p>
+<p>这会带来两个后果。第一，训练集和线上环境不一致时，识别效果容易波动。第二，模型会浪费参数容量去拟合信道差异，而不是发音和词序本身。</p>
+<p>CMN（Cepstral Mean Normalisation）只减均值，CMVN（Cepstral Mean Variance Normalisation）同时处理均值和方差。它们的核心都是把每段语音或每个窗口内的统计尺度拉回到相对稳定的空间。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 CMVN 看成一个局部滤波器：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">feature_t -&gt; feature_t - mean(window)</span><br><span class="line">feature_t -&gt; (feature_t - mean(window)) / std(window)</span><br></pre></td></tr></table></figure>
+
+<p>这个抽象有两个关键点。第一，它处理的是特征统计分布，而不是语音内容。第二，它需要一个统计窗口，窗口越长越稳定，延迟越高；窗口越短越实时，统计越不稳。</p>
+<p>离线训练时，可以基于整段语音或全训练集统计。在线识别时，只能用滑动窗口或历史缓存，这就引入了响应时间和边界效应。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>CMVN 是否值得保留，不能只看单条样本效果，应该看三个维度。</p>
+<ul>
+<li>准确率：字错率、词错率或关键实体召回是否改善；</li>
+<li>延迟：在线滑动窗口是否增加首包或尾包时间；</li>
+<li>鲁棒性：不同设备、不同音量、不同噪声条件下是否更稳定。</li>
+</ul>
+<p>在传统 GMM-HMM、DNN-HMM 或较浅的声学模型里，CMVN 往往很有价值。端到端模型和大规模预训练模型吸收了更多数据分布，特征归一化的重要性会下降，但并不代表它永远无用。只要输入分布漂移明显，CMVN 仍然是一个低成本诊断点。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>CMVN 的工程定位是“消除无关通道偏移”，不是固定必须打开的预处理模板。离线任务可以优先验证全局或说话人级统计；实时任务要额外评估滑动窗口带来的延迟和边界误差。</p>
+<p>如果模型已经足够强、训练覆盖足够广，CMVN 可能收益很小；如果线上设备、音量或环境差异明显，它仍然值得作为第一批鲁棒性实验。</p>
+<p>下一步阅读：<a href="/2021/08/29/ASR-CTC/">ASR CTC：没有帧级标注时，如何把音频和文本对齐</a></p>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a target="_blank" rel="noopener" href="http://www.apsipa.org/proceedings/2020/pdfs/0000532.pdf">Significance of CMVN for Replay Spoof Detection</a></p>
 
     </div>
 
@@ -274,13 +292,13 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2021/08/24/ASR-LAS-model/" rel="prev" title="ASR-LAS-model">
-                  <i class="fa fa-angle-left"></i> ASR-LAS-model
+                <a href="/2021/08/24/ASR-LAS-model/" rel="prev" title="LAS 模型：把语音识别改写成听、对齐、拼写">
+                  <i class="fa fa-angle-left"></i> LAS 模型：把语音识别改写成听、对齐、拼写
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2021/08/29/ASR-CTC/" rel="next" title="ASR-CTC">
-                  ASR-CTC <i class="fa fa-angle-right"></i>
+                <a href="/2021/08/29/ASR-CTC/" rel="next" title="ASR CTC：没有帧级标注时，如何把音频和文本对齐">
+                  ASR CTC：没有帧级标注时，如何把音频和文本对齐 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>

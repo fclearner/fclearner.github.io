@@ -20,30 +20,30 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="推理服务的性能问题，很多时候不在单次 GPU forward，而在排队、预处理、batch 调度、流式输出、取消机制和可观测性之间。模型越大，单次推理越重要；系统越复杂，队列和状态越容易成为真正瓶颈。 vLLM、SGLang、Triton Inference Server、TensorRT-LLM 等开源生态，提供的是不同层级的解法。选型前要先拆清楚瓶颈在哪里。">
+    <meta name="description" content="推理服务的问题经常被简化成“换更快的框架”。vLLM、SGLang、Triton 都很重要，但如果系统不能解释一次请求的延迟来自排队、预填充、解码、音频前端、网络还是后处理，换框架只是碰运气。 语音和 LLM 结合后，延迟问题更复杂：音频切片、流式 partial、模型队列、token 生成和系统超时会叠在一起。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="LLM 与语音模型推理服务：队列、流式与可观测性">
+<meta property="og:title" content="LLM 与语音模型推理服务：先把延迟拆成可观测链路">
 <meta property="og:url" content="https://alanfangblog.com/2026/06/10/LLM-Speech-Inference-Serving-Observability/index.html">
 <meta property="og:site_name" content="AlanFangBlog">
-<meta property="og:description" content="推理服务的性能问题，很多时候不在单次 GPU forward，而在排队、预处理、batch 调度、流式输出、取消机制和可观测性之间。模型越大，单次推理越重要；系统越复杂，队列和状态越容易成为真正瓶颈。 vLLM、SGLang、Triton Inference Server、TensorRT-LLM 等开源生态，提供的是不同层级的解法。选型前要先拆清楚瓶颈在哪里。">
+<meta property="og:description" content="推理服务的问题经常被简化成“换更快的框架”。vLLM、SGLang、Triton 都很重要，但如果系统不能解释一次请求的延迟来自排队、预填充、解码、音频前端、网络还是后处理，换框架只是碰运气。 语音和 LLM 结合后，延迟问题更复杂：音频切片、流式 partial、模型队列、token 生成和系统超时会叠在一起。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T09:40:00.000Z">
-<meta property="article:modified_time" content="2026-06-10T08:26:25.443Z">
+<meta property="article:modified_time" content="2026-06-18T03:14:41.759Z">
 <meta property="article:author" content="Alan Fang">
-<meta property="article:tag" content="ASR">
+<meta property="article:tag" content="Engineering">
 <meta property="article:tag" content="Inference">
 <meta property="article:tag" content="LLM">
-<meta property="article:tag" content="Open Source">
+<meta property="article:tag" content="Speech">
 <meta name="twitter:card" content="summary">
 
 
 <link rel="canonical" href="https://alanfangblog.com/2026/06/10/LLM-Speech-Inference-Serving-Observability/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2026/06/10/LLM-Speech-Inference-Serving-Observability/","path":"2026/06/10/LLM-Speech-Inference-Serving-Observability/","title":"LLM 与语音模型推理服务：队列、流式与可观测性"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2026/06/10/LLM-Speech-Inference-Serving-Observability/","path":"2026/06/10/LLM-Speech-Inference-Serving-Observability/","title":"LLM 与语音模型推理服务：先把延迟拆成可观测链路"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>LLM 与语音模型推理服务：队列、流式与可观测性 | AlanFangBlog</title>
+<title>LLM 与语音模型推理服务：先把延迟拆成可观测链路 | AlanFangBlog</title>
   
 
 
@@ -161,7 +161,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8D%E8%A6%81%E5%8F%AA%E7%9C%8B%E7%AB%AF%E5%88%B0%E7%AB%AF%E8%80%97%E6%97%B6"><span class="nav-number">1.</span> <span class="nav-text">不要只看端到端耗时</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vLLM-%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88"><span class="nav-number">2.</span> <span class="nav-text">vLLM 适合什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SGLang-%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="nav-number">3.</span> <span class="nav-text">SGLang 的位置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Triton-%E4%B8%8E%E5%BA%95%E5%B1%82%E5%BC%95%E6%93%8E"><span class="nav-number">4.</span> <span class="nav-text">Triton 与底层引擎</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%AD%E9%9F%B3%E6%A8%A1%E5%9E%8B%E7%9A%84%E9%A2%9D%E5%A4%96%E5%8F%98%E9%87%8F"><span class="nav-number">5.</span> <span class="nav-text">语音模型的额外变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95%E6%80%8E%E4%B9%88%E5%81%9A"><span class="nav-number">6.</span> <span class="nav-text">基准测试怎么做</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">7.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Request-trace-schema"><span class="nav-number">8.</span> <span class="nav-text">Request trace schema</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -219,12 +219,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="LLM 与语音模型推理服务：队列、流式与可观测性 | AlanFangBlog">
+      <meta itemprop="name" content="LLM 与语音模型推理服务：先把延迟拆成可观测链路 | AlanFangBlog">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          LLM 与语音模型推理服务：队列、流式与可观测性
+          LLM 与语音模型推理服务：先把延迟拆成可观测链路
         </h1>
 
         <div class="post-meta-container">
@@ -234,9 +234,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-10 17:40:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:40:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:40:00" itemprop="dateCreated datePublished" datetime="2026-06-10T17:40:00+08:00">2026-06-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 11:14:41" itemprop="dateModified" datetime="2026-06-18T11:14:41+08:00">2026-06-18</time>
     </span>
 
   
@@ -248,48 +254,31 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>推理服务的性能问题，很多时候不在单次 GPU forward，而在排队、预处理、batch 调度、流式输出、取消机制和可观测性之间。模型越大，单次推理越重要；系统越复杂，队列和状态越容易成为真正瓶颈。</p>
-<p>vLLM、SGLang、Triton Inference Server、TensorRT-LLM 等开源生态，提供的是不同层级的解法。选型前要先拆清楚瓶颈在哪里。</p>
+    <div class="post-body" itemprop="articleBody"><p>推理服务的问题经常被简化成“换更快的框架”。vLLM、SGLang、Triton 都很重要，但如果系统不能解释一次请求的延迟来自排队、预填充、解码、音频前端、网络还是后处理，换框架只是碰运气。</p>
+<p>语音和 LLM 结合后，延迟问题更复杂：音频切片、流式 partial、模型队列、token 生成和系统超时会叠在一起。</p>
 <span id="more"></span>
 
-<h2 id="不要只看端到端耗时"><a href="#不要只看端到端耗时" class="headerlink" title="不要只看端到端耗时"></a>不要只看端到端耗时</h2><p>端到端耗时是结果，不是诊断。一个请求慢，可能慢在：</p>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>线上推理关注的不是平均速度，而是尾延迟和稳定性。一个服务平均很快，但 p99 经常超时，用户体验仍然不可接受。</p>
+<p>语音模型还多了几个阶段：音频读取、重采样、特征提取、chunk 组织、ASR 或 speech encoder 推理、LLM 解码、流式输出。任何一层都可能放大延迟。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把请求生命周期拆成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ingress</span><br><span class="line">  -&gt; queue</span><br><span class="line">  -&gt; preprocess</span><br><span class="line">  -&gt; prefill / encode</span><br><span class="line">  -&gt; decode / stream</span><br><span class="line">  -&gt; postprocess</span><br><span class="line">  -&gt; response</span><br></pre></td></tr></table></figure>
+
+<p>vLLM 和 SGLang 主要优化 LLM serving 的调度、KV cache、batch 和解码吞吐；Triton 更适合做模型服务编排和算子级部署。它们解决的是不同层次的问题，不能用单一 benchmark 直接替代系统观测。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>服务必须记录分阶段指标：</p>
 <ul>
-<li>等待队列；</li>
-<li>tokenizer 或 audio frontend；</li>
-<li>prefill；</li>
-<li>decode；</li>
-<li>网络传输；</li>
-<li>后处理；</li>
-<li>流式 flush；</li>
-<li>取消请求没有及时生效。</li>
+<li>queue wait；</li>
+<li>preprocess time；</li>
+<li>prefill 或 encoder time；</li>
+<li>first token &#x2F; first partial latency；</li>
+<li>tokens per second；</li>
+<li>p50 &#x2F; p95 &#x2F; p99；</li>
+<li>timeout reason；</li>
+<li>batch size、dtype、KV cache 命中情况。</li>
 </ul>
-<p>如果日志只记录总耗时，系统调优会很盲。至少要把 request queue time、prefill time、decode time、first token latency、p95&#x2F;p99 latency 和 GPU utilization 分开。</p>
-<h2 id="vLLM-适合什么"><a href="#vLLM-适合什么" class="headerlink" title="vLLM 适合什么"></a>vLLM 适合什么</h2><p>vLLM 的重点是高吞吐 LLM serving，PagedAttention 和 continuous batching 是它的核心优势。它适合请求量较高、输入输出长度差异明显、需要动态 batch 的场景。</p>
-<p>但 vLLM 不是所有问题的答案。若瓶颈在音频预处理、外部工具调用、复杂后处理或流式状态管理，仅替换引擎未必能带来明显收益。</p>
-<h2 id="SGLang-的位置"><a href="#SGLang-的位置" class="headerlink" title="SGLang 的位置"></a>SGLang 的位置</h2><p>SGLang 更强调结构化生成和运行时控制。它适合把 prompt、约束解码、工具调用、并行分支和缓存复用组织成更可控的程序。</p>
-<p>如果系统需要复杂推理流程，SGLang 这类运行时可以减少手写 glue code。但它也要求把生成过程抽象得更清晰，否则只是把复杂度换了位置。</p>
-<h2 id="Triton-与底层引擎"><a href="#Triton-与底层引擎" class="headerlink" title="Triton 与底层引擎"></a>Triton 与底层引擎</h2><p>Triton 更像通用推理编排层，适合把预处理、模型、后处理拆成可观测组件。TensorRT-LLM 更偏底层引擎优化，依赖硬件、版本和模型结构匹配。</p>
-<p>它们更适合明确瓶颈已经在底层执行路径的场景。如果请求排队、数据转换和状态管理没有先量化，过早下沉到引擎优化很容易浪费时间。</p>
-<h2 id="语音模型的额外变量"><a href="#语音模型的额外变量" class="headerlink" title="语音模型的额外变量"></a>语音模型的额外变量</h2><p>语音模型比纯文本 LLM 多几类状态：</p>
-<ul>
-<li>音频 chunk 边界；</li>
-<li>重叠窗口；</li>
-<li>frontend 缓存；</li>
-<li>partial hypothesis；</li>
-<li>长音频切分；</li>
-<li>实时输入的取消和刷新。</li>
-</ul>
-<p>这些状态如果没有清晰生命周期，会造成内存泄漏、延迟抖动或输出污染。流式服务不是把接口改成 SSE 就结束了，核心是状态如何创建、复用、取消和回收。</p>
-<h2 id="基准测试怎么做"><a href="#基准测试怎么做" class="headerlink" title="基准测试怎么做"></a>基准测试怎么做</h2><p>建议至少准备三组基准：</p>
-<ol>
-<li>单请求基准：观察模型和预处理的最低延迟；</li>
-<li>并发基准：观察队列、batch 和 p99；</li>
-<li>长运行基准：观察内存、句柄、缓存和错误恢复。</li>
-</ol>
-<p>语音任务还要加入短音频、长音频、静音、噪声和连续 chunk。只测理想样本会低估线上复杂度。</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>推理服务的关键不是“哪个框架最快”，而是哪一层正在限制系统。先把队列、预处理、prefill、decode、流式输出和取消行为拆开观测，再决定是换 serving runtime、加调度层，还是优化数据路径。</p>
-<h2 id="Request-trace-schema"><a href="#Request-trace-schema" class="headerlink" title="Request trace schema"></a>Request trace schema</h2><p>Serving logs should carry a trace id across client, gateway, frontend, model runtime, and streaming output. A minimal trace separates client send time, server receive time, queue time, preprocessing, prefill, decode, postprocessing, first-token latency, final-token latency, and client receive time.</p>
-<p>For speech and multimodal workloads, the trace also needs feature length, chunk count, cache reuse, cancellation state, and output flush timing. Otherwise p99 latency is visible, but not explainable.</p>
+<p>对流式语音系统，还要单独看 partial 的稳定性：早出结果是否经常回滚，回滚是否影响下游，semantic end 或 turn-taking 判断是否被延迟拖垮。</p>
+<p>没有这些指标，优化就会变成只看 GPU 利用率。GPU 忙不代表服务健康，GPU 不忙也可能是队列、网络或调度策略出了问题。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>推理框架选型前，先把延迟链路拆开并落日志。vLLM、SGLang、Triton 都可以进入候选，但判断依据应该是分阶段延迟、吞吐、p99、资源利用和失败原因，而不是单次 demo 的响应速度。</p>
+<p>下一步阅读：<a href="/2026/06/10/Speech-Batch-Consistency-Debugging/">音频模型 Batch 一致性排查：从有效输入区间到逐层 diff</a></p>
 
     </div>
 
@@ -300,8 +289,8 @@
     <footer class="post-footer">
           <div class="post-tags">
               <a href="/tags/LLM/" rel="tag"># LLM</a>
-              <a href="/tags/Open-Source/" rel="tag"># Open Source</a>
-              <a href="/tags/ASR/" rel="tag"># ASR</a>
+              <a href="/tags/Engineering/" rel="tag"># Engineering</a>
+              <a href="/tags/Speech/" rel="tag"># Speech</a>
               <a href="/tags/Inference/" rel="tag"># Inference</a>
           </div>
 
@@ -309,8 +298,8 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2026/06/10/PEFT-Engineering-Tradeoffs/" rel="prev" title="PEFT 工程取舍：LoRA、Prefix 与低成本适配的边界">
-                  <i class="fa fa-angle-left"></i> PEFT 工程取舍：LoRA、Prefix 与低成本适配的边界
+                <a href="/2026/06/10/PEFT-Engineering-Tradeoffs/" rel="prev" title="PEFT 工程取舍：省参数只是入口，部署路径才是边界">
+                  <i class="fa fa-angle-left"></i> PEFT 工程取舍：省参数只是入口，部署路径才是边界
                 </a>
             </div>
             <div class="post-nav-item">

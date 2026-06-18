@@ -224,9 +224,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-16 09:00:00 / Modified: 14:45:01" itemprop="dateCreated datePublished" datetime="2026-06-16T09:00:00+08:00">2026-06-16</time>
+      <time title="Created: 2026-06-16 09:00:00" itemprop="dateCreated datePublished" datetime="2026-06-16T09:00:00+08:00">2026-06-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 11:08:17" itemprop="dateModified" datetime="2026-06-18T11:08:17+08:00">2026-06-18</time>
     </span>
 
   
@@ -239,7 +245,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>今天的信号很明确：agent 技术栈的竞争正在从“哪个框架更会跑 demo”，转向“哪个框架更容易被实现、验证、观测和约束”。近期几篇评测型论文和工具文档都指向同一个结论：不要先押注单一框架，先把评测、工具边界、trace 和安全门槛做成自己的吸收系统。</p>
+          <p>本期信号很明确：agent 技术栈的竞争正在从“哪个框架更会跑 demo”，转向“哪个框架更容易被实现、验证、观测和约束”。公开评测、trace 规范、MCP 工具连接和 skills 基准都指向同一个结论：先建设吸收机制，再选择框架。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2026/06/16/Agent-Engineering-Radar-2026-06-16/#more" rel="contents">
@@ -301,9 +307,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-11 14:00:00 / Modified: 13:48:32" itemprop="dateCreated datePublished" datetime="2026-06-11T14:00:00+08:00">2026-06-11</time>
+      <time title="Created: 2026-06-11 14:30:00" itemprop="dateCreated datePublished" datetime="2026-06-11T14:30:00+08:00">2026-06-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 11:07:34" itemprop="dateModified" datetime="2026-06-18T11:07:34+08:00">2026-06-18</time>
     </span>
 
   
@@ -316,8 +328,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>用大模型合成对话数据很容易，难的是让这批数据真正进入语音系统的训练和评测闭环。一个可用的语音对话样本，不只是几轮看起来顺畅的文本。它还要保留角色、话轮、时间、通道、实体槽位、ASR 噪声、口语现象和质量标记。</p>
-<p>如果这些约束只写在 prompt 里，数据规模一大就会漂移：格式不稳定、标签不一致、口语化过度、实体边界模糊，最后训练出来的模型学到的不是交互能力，而是一批生成器的随机习惯。</p>
+          <p>合成对话数据的风险不是“生成得不够多”，而是生成得太像模板、太干净、太不符合语音输入的真实噪声。数量扩大很容易，难的是让样本既覆盖任务，又不把模型训练成只会回答标准文本。</p>
+<p>所以语音对话合成数据要先设计质量闸门，再谈规模。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2026/06/11/Speech-Dialog-Data-Synthesis-Quality-Gates/#more" rel="contents">
@@ -379,9 +391,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-10 18:20:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T18:20:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 18:10:00" itemprop="dateCreated datePublished" datetime="2026-06-10T18:10:00+08:00">2026-06-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 11:07:35" itemprop="dateModified" datetime="2026-06-18T11:07:35+08:00">2026-06-18</time>
     </span>
 
   
@@ -394,8 +412,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>音频模型在 batch size 改变后输出不一致，是很常见但容易误判的问题。不要一开始就怀疑最后的解码结果。更稳的排查顺序是：先证明输入等价，再证明 mask 和有效长度等价，最后逐层定位数值差异从哪里开始放大。</p>
-<p>这篇文章整理一套通用排查协议，适用于 ASR、VAD、speaker model 和其他时序音频模型。</p>
+          <p>同一个音频，batch size 不同却输出不同，这是音频模型排障里很典型的问题。它通常不是“模型随机性”一句话能解释的，而是 padding、mask、dtype、subsampling、归一化或缓存边界出了问题。</p>
+<p>排查这类问题，关键是把有效输入区间和逐层差异记录下来。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2026/06/10/Speech-Batch-Consistency-Debugging/#more" rel="contents">
@@ -457,9 +475,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-10 18:10:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T18:10:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 18:05:00" itemprop="dateCreated datePublished" datetime="2026-06-10T18:05:00+08:00">2026-06-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 11:07:34" itemprop="dateModified" datetime="2026-06-18T11:07:34+08:00">2026-06-18</time>
     </span>
 
   
@@ -472,8 +496,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>实时语音交互里，端点检测只能回答“声音是否停止”，不能直接回答“系统现在是否应该接话”。更有用的建模目标是 turn-taking：判断当前轮次是否完整、是否需要继续等待、是否允许系统响应，以及错误响应会带来什么交互代价。</p>
-<p>这类问题适合公开讨论，因为它不依赖具体场景。核心是标签定义、输入噪声、延迟预算和评测切分。</p>
+          <p>实时语音系统里，判断用户“说完了”比看起来更难。静音不一定代表结束，短停顿可能只是思考；语义已经完整，也可能还会补充条件。Turn-taking 要解决的不是单纯端点检测，而是系统什么时候可以安全接话。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/#more" rel="contents">
@@ -525,7 +548,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/06/10/Agentic-Coding-Governance/" class="post-title-link" itemprop="url">Agentic Coding 工程治理：多模型协作的角色、权限与验证闭环</a>
+          <a href="/2026/06/10/Agentic-Coding-Governance/" class="post-title-link" itemprop="url">Agentic Coding 工程治理：多模型协作先定义责任边界</a>
         </h2>
 
         <div class="post-meta-container">
@@ -535,9 +558,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-10 18:00:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T18:00:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 18:00:00" itemprop="dateCreated datePublished" datetime="2026-06-10T18:00:00+08:00">2026-06-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 11:08:16" itemprop="dateModified" datetime="2026-06-18T11:08:16+08:00">2026-06-18</time>
     </span>
 
   
@@ -550,7 +579,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>代码生成工具越来越强，多模型协作也越来越常见。真正的问题已经不只是“哪个模型会写代码”，而是多个代理如何共享上下文、谁能写文件、谁负责审查、如何避免互相覆盖，以及如何验证最终结果。</p>
+          <p>代码生成工具越来越强，多模型协作也越来越常见。但真正的问题已经不是“哪个模型会写代码”，而是多个代理如何共享上下文、谁能写文件、谁负责审查、如何避免互相覆盖，以及如何验证最终结果。</p>
 <p>Agentic Coding 的难点更像工程治理，而不是单纯模型能力。</p>
           <!--noindex-->
             <div class="post-button">
@@ -613,9 +642,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-10 17:50:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:50:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:50:00" itemprop="dateCreated datePublished" datetime="2026-06-10T17:50:00+08:00">2026-06-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 11:14:41" itemprop="dateModified" datetime="2026-06-18T11:14:41+08:00">2026-06-18</time>
     </span>
 
   
@@ -628,8 +663,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>在 ASR 输出上做 NER 或结构化抽取，不能只把它当成普通文本任务。语音转写会带来插入、删除、替换、同音错误和边界错位，导致实体在参考文本和识别文本中的位置天然不稳定。</p>
-<p>如果仍然用严格字符 span 评测，很多可接受的识别会被误判为错误，真正严重的问题反而可能被掩盖。</p>
+          <p>ASR 结果用于结构化抽取时，评测不能只看整句文本相似度。真实系统关心的是关键实体有没有抽对、位置是否合理、错误来自识别还是 NER、以及噪声会不会把下游结构化结果带偏。</p>
+<p>因此，ASR + NER 的评测要从“文本像不像”转到“实体是否可归因”。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/#more" rel="contents">
@@ -681,7 +716,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/" class="post-title-link" itemprop="url">LLM 与语音模型推理服务：队列、流式与可观测性</a>
+          <a href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/" class="post-title-link" itemprop="url">LLM 与语音模型推理服务：先把延迟拆成可观测链路</a>
         </h2>
 
         <div class="post-meta-container">
@@ -691,9 +726,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-10 17:40:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:40:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:40:00" itemprop="dateCreated datePublished" datetime="2026-06-10T17:40:00+08:00">2026-06-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 11:14:41" itemprop="dateModified" datetime="2026-06-18T11:14:41+08:00">2026-06-18</time>
     </span>
 
   
@@ -706,8 +747,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>推理服务的性能问题，很多时候不在单次 GPU forward，而在排队、预处理、batch 调度、流式输出、取消机制和可观测性之间。模型越大，单次推理越重要；系统越复杂，队列和状态越容易成为真正瓶颈。</p>
-<p>vLLM、SGLang、Triton Inference Server、TensorRT-LLM 等开源生态，提供的是不同层级的解法。选型前要先拆清楚瓶颈在哪里。</p>
+          <p>推理服务的问题经常被简化成“换更快的框架”。vLLM、SGLang、Triton 都很重要，但如果系统不能解释一次请求的延迟来自排队、预填充、解码、音频前端、网络还是后处理，换框架只是碰运气。</p>
+<p>语音和 LLM 结合后，延迟问题更复杂：音频切片、流式 partial、模型队列、token 生成和系统超时会叠在一起。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/#more" rel="contents">
@@ -759,7 +800,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/06/10/PEFT-Engineering-Tradeoffs/" class="post-title-link" itemprop="url">PEFT 工程取舍：LoRA、Prefix 与低成本适配的边界</a>
+          <a href="/2026/06/10/PEFT-Engineering-Tradeoffs/" class="post-title-link" itemprop="url">PEFT 工程取舍：省参数只是入口，部署路径才是边界</a>
         </h2>
 
         <div class="post-meta-container">
@@ -769,9 +810,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-10 17:30:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:30:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:30:00" itemprop="dateCreated datePublished" datetime="2026-06-10T17:30:00+08:00">2026-06-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 11:06:39" itemprop="dateModified" datetime="2026-06-18T11:06:39+08:00">2026-06-18</time>
     </span>
 
   
@@ -784,8 +831,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>PEFT 经常被理解成“少训练一些参数”。这个理解没有错，但不够工程化。真正的选择不是参数量越少越好，而是在训练显存、推理开销、上下文占用、适配能力、部署形态和工具生态之间做权衡。</p>
-<p>不同 PEFT 方法适合解决不同问题。先定义约束，再选方法，比直接比较榜单更可靠。</p>
+          <p>PEFT 常被理解成“少训练一些参数”。这句话没错，但它只说了训练成本，没有说清楚工程边界。真正的选择不是参数越少越好，而是训练显存、适配能力、推理开销、上下文占用、版本管理和回滚方式之间的取舍。</p>
+<p>如果不把这些约束写清楚，LoRA、Prefix-Tuning、P-Tuning、QLoRA 很容易被比较成一张简单榜单，而不是可复用的工程组件。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2026/06/10/PEFT-Engineering-Tradeoffs/#more" rel="contents">
@@ -847,9 +894,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-10 17:20:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:20:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:25:00" itemprop="dateCreated datePublished" datetime="2026-06-10T17:25:00+08:00">2026-06-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 11:07:33" itemprop="dateModified" datetime="2026-06-18T11:07:33+08:00">2026-06-18</time>
     </span>
 
   
@@ -862,8 +915,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>ASR 系统的上限经常不是模型结构先决定的，而是数据质量先决定的。开源模型可以替换，训练框架可以迁移，但如果音频切分、文本规范化、伪标签和评测口径不可靠，最后得到的指标会很快失真。</p>
-<p>一个可靠的 ASR 数据质量流水线，应该把“数据是否可训练”和“模型是否有效”拆开处理。</p>
+          <p>ASR 数据工程最容易被低估。模型指标波动时，很多人先调模型结构，但真正的问题常常在数据：切分不稳、伪标签质量不清、噪声样本混入、热词和实体覆盖不足、评测集不可追溯。</p>
+<p>一条可用的数据质量流水线，核心不是“多收一点音频”，而是让每个样本都能解释来源、标签、置信度和进入训练集的理由。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2026/06/10/ASR-Data-Quality-Pipeline-Open-Source/#more" rel="contents">
@@ -897,7 +950,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/06/10/Speech-LLM-Audio-Token-Alignment/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -915,7 +968,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/" class="post-title-link" itemprop="url">Adaptive RAG（二）：Retrieval Gate 怎么判断该不该检索</a>
+          <a href="/2026/06/10/Speech-LLM-Audio-Token-Alignment/" class="post-title-link" itemprop="url">语音大模型工程：音频 token、LLM 主干与对齐契约</a>
         </h2>
 
         <div class="post-meta-container">
@@ -926,14 +979,14 @@
       </span>
       <span class="post-meta-item-text">Posted on</span>
 
-      <time title="Created: 2026-06-10 17:10:00" itemprop="dateCreated datePublished" datetime="2026-06-10T17:10:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:20:00" itemprop="dateCreated datePublished" datetime="2026-06-10T17:20:00+08:00">2026-06-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 10:29:04" itemprop="dateModified" datetime="2026-06-18T10:29:04+08:00">2026-06-18</time>
+      <time title="Modified: 2026-06-18 11:06:40" itemprop="dateModified" datetime="2026-06-18T11:06:40+08:00">2026-06-18</time>
     </span>
 
   
@@ -946,11 +999,11 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>上一篇把 Adaptive RAG 的问题收束到一个工程动作：先做显式 retrieval gate。它不是为了替代 Self-RAG、FLARE 或 DRAGIN，而是先给系统建立一个可观测的判断层：当前状态到底该不该检索。</p>
-<p>这篇继续往下走，讨论 retrieval gate 应该吃什么信号、输出什么结论，以及怎么评测它。</p>
+          <p>语音大模型不是把 ASR encoder 接到 LLM 上就结束了。真正困难的是接口契约：音频如何被压成 token，token 如何进入 LLM，文本监督如何约束语音表示，流式场景又如何保证延迟和上下文一致。</p>
+<p>如果这个契约不清楚，Qwen3-ASR、Qwen-Omni、WeNet、CTC、AED、speech encoder 和 LLM 主干会变成一堆名词，而不是可排障的系统。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/#more" rel="contents">
+              <a class="btn" href="/2026/06/10/Speech-LLM-Audio-Token-Alignment/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>

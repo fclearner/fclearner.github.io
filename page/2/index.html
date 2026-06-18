@@ -196,7 +196,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/06/10/Speech-LLM-Audio-Token-Alignment/">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -214,7 +214,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/06/10/Speech-LLM-Audio-Token-Alignment/" class="post-title-link" itemprop="url">语音大模型工程：音频 token、LLM 主干与对齐契约</a>
+          <a href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/" class="post-title-link" itemprop="url">Adaptive RAG（二）：Retrieval Gate 怎么判断该不该检索</a>
         </h2>
 
         <div class="post-meta-container">
@@ -224,9 +224,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-10 17:10:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:10:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:10:00" itemprop="dateCreated datePublished" datetime="2026-06-10T17:10:00+08:00">2026-06-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 11:08:50" itemprop="dateModified" datetime="2026-06-18T11:08:50+08:00">2026-06-18</time>
     </span>
 
   
@@ -239,11 +245,11 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>语音大模型正在把 ASR、语音理解和多模态交互拉进 LLM 生态。Qwen3-ASR、Qwen-Omni、WeNet、CTC-AED 等路线背后都有同一个问题：音频表示如何进入语言模型，并且不破坏位置、mask、长度和训练目标的语义。</p>
-<p>这类系统表面上是“接一个 speech encoder 到 LLM”，实际难点在对齐契约。张量 shape 对，不等于语义对。</p>
+          <p>上一篇把 Adaptive RAG 的问题收束到一个工程动作：先做显式 retrieval gate。它不是为了替代 Self-RAG、FLARE 或 DRAGIN，而是先给系统建立一个可观测的判断层：当前状态到底该不该检索。</p>
+<p>这篇继续往下走，讨论 retrieval gate 应该吃什么信号、输出什么结论，以及怎么评测它。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2026/06/10/Speech-LLM-Audio-Token-Alignment/#more" rel="contents">
+              <a class="btn" href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
@@ -310,7 +316,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 10:29:04" itemprop="dateModified" datetime="2026-06-18T10:29:04+08:00">2026-06-18</time>
+      <time title="Modified: 2026-06-18 11:08:49" itemprop="dateModified" datetime="2026-06-18T11:08:49+08:00">2026-06-18</time>
     </span>
 
   
@@ -324,7 +330,7 @@
     
     <div class="post-body" itemprop="articleBody">
           <p>RAG 最容易被讲成一个检索增强公式：切块、向量化、取 top-k、拼进 prompt、让模型回答。这个公式很实用，但它默认了一件事：系统在回答之前已经知道自己缺什么信息。</p>
-<p>复杂任务里，这个假设经常不成立。问题可能在生成到一半才暴露，证据可能和当前结论冲突，召回内容也可能只是语义相似而不是事实支撑。于是 Adaptive RAG 真正要解决的不是“多检索一些”，而是：<strong>系统什么时候应该承认当前上下文不够，并把检索变成下一步可验证动作</strong>。</p>
+<p>复杂任务里，这个假设经常不成立。问题可能在生成到一半才暴露，证据可能和当前结论冲突，召回内容也可能只是语义相似而不是事实支撑。于是 Adaptive RAG 真正要解决的不是“多检索一些”，而是：系统什么时候应该承认当前上下文不够，并把检索变成下一步可验证动作。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/#more" rel="contents">
@@ -376,7 +382,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/06/09/PVAD2-engineering-loop/" class="post-title-link" itemprop="url">Personal VAD 2.0 工程化：外部说话人嵌入与训练闭环</a>
+          <a href="/2026/06/09/PVAD2-engineering-loop/" class="post-title-link" itemprop="url">Personal VAD 2.0 工程化：把目标说话人判断做成闭环</a>
         </h2>
 
         <div class="post-meta-container">
@@ -387,14 +393,14 @@
       </span>
       <span class="post-meta-item-text">Posted on</span>
 
-      <time title="Created: 2026-06-09 14:40:00" itemprop="dateCreated datePublished" datetime="2026-06-09T14:40:00+08:00">2026-06-09</time>
+      <time title="Created: 2026-06-09 14:30:00" itemprop="dateCreated datePublished" datetime="2026-06-09T14:30:00+08:00">2026-06-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-10 16:26:25" itemprop="dateModified" datetime="2026-06-10T16:26:25+08:00">2026-06-10</time>
+      <time title="Modified: 2026-06-18 11:08:17" itemprop="dateModified" datetime="2026-06-18T11:08:17+08:00">2026-06-18</time>
     </span>
 
   
@@ -407,9 +413,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>普通 VAD 只判断“有没有人声”，Personal VAD 还要判断“是不是目标说话人”。在端侧语音识别里，这个区别很关键：系统不仅要过滤静音和噪声，还要在多人说话场景下保留目标说话人的语音片段。</p>
-<p>这篇文章记录一次把 Personal VAD 2.0 论文思路落到可训练工程骨架时的设计取舍。重点是模型接口、外部 speaker embedding、数据 manifest、训练闭环和标签对齐风险。</p>
-<p>项目代码：<a target="_blank" rel="noopener" href="https://github.com/fclearner/Personal-vad-2.0">https://github.com/fclearner/Personal-vad-2.0</a>。</p>
+          <p>普通 VAD 只回答“这里有没有人声”。Personal VAD 要回答更难的问题：这里有没有目标说话人的声音。这个差异会把任务从声学检测推进到说话人条件建模。</p>
+<p>项目代码可参考：<a target="_blank" rel="noopener" href="https://github.com/fclearner/Personal-vad-2.0">Personal-vad-2.0</a></p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2026/06/09/PVAD2-engineering-loop/#more" rel="contents">
@@ -461,7 +466,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/04/22/ASR-Multilingual/" class="post-title-link" itemprop="url">ASR-Multilingual</a>
+          <a href="/2022/04/22/ASR-Multilingual/" class="post-title-link" itemprop="url">多语种 ASR：低资源、口音和统一部署之间的取舍</a>
         </h2>
 
         <div class="post-meta-container">
@@ -479,7 +484,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2022-04-30 16:49:32" itemprop="dateModified" datetime="2022-04-30T16:49:32+08:00">2022-04-30</time>
+      <time title="Modified: 2026-06-18 11:05:54" itemprop="dateModified" datetime="2026-06-18T11:05:54+08:00">2026-06-18</time>
     </span>
 
   
@@ -492,7 +497,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;多语种语音识别overview</p>
+          <p>多语种 ASR 不是把多个单语模型简单合并。它真正要解决的是三个工程问题：低资源语种数据不足，口音和方言带来分布偏移，多语种部署让模型数量和维护成本快速上升。</p>
+<p>如果只把多语种识别理解成“一个模型识别很多语言”，很容易忽略它背后的取舍：共享越多，迁移越强，但语种之间的干扰也越明显。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2022/04/22/ASR-Multilingual/#more" rel="contents">
@@ -544,7 +550,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/08/29/ASR-CTC/" class="post-title-link" itemprop="url">ASR-CTC</a>
+          <a href="/2021/08/29/ASR-CTC/" class="post-title-link" itemprop="url">ASR CTC：没有帧级标注时，如何把音频和文本对齐</a>
         </h2>
 
         <div class="post-meta-container">
@@ -562,7 +568,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2021-09-08 17:53:50" itemprop="dateModified" datetime="2021-09-08T17:53:50+08:00">2021-09-08</time>
+      <time title="Modified: 2026-06-18 11:05:03" itemprop="dateModified" datetime="2026-06-18T11:05:03+08:00">2026-06-18</time>
     </span>
 
   
@@ -575,7 +581,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CTC(Connectionist Temporal Classification)可以在未对输入序列与输出标签进行FA(Force Alignment)的情况下完成时序对齐及分类工作，主要用于语音识别及手写识别[1]。</p>
+          <p>ASR 训练里有一个基础矛盾：音频是长帧序列，文本是短标签序列，但训练数据通常只有整句转写，没有每个字对应哪几帧的强制对齐。CTC（Connectionist Temporal Classification）解决的就是这个问题。</p>
+<p>它的核心不是一个普通 loss，而是一套弱对齐建模方式：允许模型在不知道帧级标签的情况下，对所有可能对齐路径求和，再优化目标文本的总概率。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2021/08/29/ASR-CTC/#more" rel="contents">
@@ -627,7 +634,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/08/24/ASR-CMVN/" class="post-title-link" itemprop="url">ASR-CMVN</a>
+          <a href="/2021/08/24/ASR-CMVN/" class="post-title-link" itemprop="url">ASR 特征归一化：CMVN 解决的不是数值美观，而是通道偏移</a>
         </h2>
 
         <div class="post-meta-container">
@@ -645,7 +652,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2021-08-30 16:42:14" itemprop="dateModified" datetime="2021-08-30T16:42:14+08:00">2021-08-30</time>
+      <time title="Modified: 2026-06-18 11:05:01" itemprop="dateModified" datetime="2026-06-18T11:05:01+08:00">2026-06-18</time>
     </span>
 
   
@@ -658,7 +665,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;CMVN在语音识别中的作用</p>
+          <p>语音识别里的特征归一化很容易被当成预处理细节：把均值拉到 0，把方差压到 1，然后继续训练模型。这个理解没有错，但它没有说清楚 CMVN 真正解决的问题。</p>
+<p>CMVN 要处理的是录音设备、信道、说话环境和能量尺度带来的系统性偏移。它不是为了让特征“好看”，而是为了让声学模型少花容量去适配无关的通道差异。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2021/08/24/ASR-CMVN/#more" rel="contents">
@@ -710,7 +718,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/08/24/ASR-LAS-model/" class="post-title-link" itemprop="url">ASR-LAS-model</a>
+          <a href="/2021/08/24/ASR-LAS-model/" class="post-title-link" itemprop="url">LAS 模型：把语音识别改写成听、对齐、拼写</a>
         </h2>
 
         <div class="post-meta-container">
@@ -728,7 +736,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2022-04-30 17:15:45" itemprop="dateModified" datetime="2022-04-30T17:15:45+08:00">2022-04-30</time>
+      <time title="Modified: 2026-06-18 11:05:02" itemprop="dateModified" datetime="2026-06-18T11:05:02+08:00">2026-06-18</time>
     </span>
 
   
@@ -741,7 +749,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;论文《Listen Attend and Spell》LAS模型简介及代码复现</p>
+          <p>传统 ASR 通常把声学模型、发音词典和语言模型拆成多个模块。LAS（Listen, Attend and Spell）提出的是另一种问题表述：能不能让模型先听完整段语音，再通过 attention 找到相关声学片段，最后像拼写一样输出字符序列。</p>
+<p>这篇文章不把 LAS 当成历史模型罗列，而是把它看成端到端 ASR 的一个关键抽象：<strong>对齐不必显式写死，可以由 decoder 在生成时学习</strong>。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2021/08/24/ASR-LAS-model/#more" rel="contents">
@@ -793,7 +802,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/08/24/ASR-preprocess/" class="post-title-link" itemprop="url">ASR-preprocess</a>
+          <a href="/2021/08/24/ASR-preprocess/" class="post-title-link" itemprop="url">ASR 特征前端：从原始波形到可训练的声学表示</a>
         </h2>
 
         <div class="post-meta-container">
@@ -811,7 +820,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2021-08-30 16:34:39" itemprop="dateModified" datetime="2021-08-30T16:34:39+08:00">2021-08-30</time>
+      <time title="Modified: 2026-06-18 11:05:03" itemprop="dateModified" datetime="2026-06-18T11:05:03+08:00">2026-06-18</time>
     </span>
 
   
@@ -824,7 +833,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;语音信号预处理相关流程简介, 包括预加重、分帧加窗、DFT、FBank等</p>
+          <p>ASR 模型看到的通常不是原始波形，而是一组经过短时分析和频率压缩的声学特征。预加重、分帧、加窗、傅里叶变换、Mel 滤波这些步骤看起来像传统信号处理清单，但它们共同解决一个问题：<strong>把连续、非平稳的语音波形变成模型可以稳定学习的局部谱表示</strong>。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2021/08/24/ASR-preprocess/#more" rel="contents">
@@ -876,7 +885,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/" class="post-title-link" itemprop="url">CCA application in SSVEP frequency detection</a>
+          <a href="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/" class="post-title-link" itemprop="url">CCA 与 SSVEP 频率识别：为什么线性相关仍然有效</a>
         </h2>
 
         <div class="post-meta-container">
@@ -894,7 +903,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2022-04-24 11:48:57" itemprop="dateModified" datetime="2022-04-24T11:48:57+08:00">2022-04-24</time>
+      <time title="Modified: 2026-06-18 11:05:54" itemprop="dateModified" datetime="2026-06-18T11:05:54+08:00">2026-06-18</time>
     </span>
 
   
@@ -907,7 +916,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="典型相关分析在稳态视觉诱发电位频率识别方面的应用"><a href="#典型相关分析在稳态视觉诱发电位频率识别方面的应用" class="headerlink" title="典型相关分析在稳态视觉诱发电位频率识别方面的应用"></a>典型相关分析在稳态视觉诱发电位频率识别方面的应用</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;随着脑机接口的快速发展，典型相关分析在稳态视觉诱发电位频率识别方面占据着重要的地位，由于脑电信号非线性的特征，使得机器学习算法在该领域的使用不具备优势，而比较信号同向变化相似率的CCA算法却取得了十分出色的效果。本文将对于CCA在SSVEP方面的应用发展以及优缺点进行介绍，希望为国内的脑机接口博客发展做出贡献。</p>
+          <p>脑机接口里的 SSVEP 频率识别有一个很实际的问题：训练数据少、个体差异大、信号噪声高，但系统仍然需要快速判断用户注视的是哪个闪烁频率。</p>
+<p>CCA（Canonical Correlation Analysis）看起来是一个传统线性统计方法，却长期在 SSVEP 中有效。原因不在于它复杂，而在于它抓住了任务里最稳定的结构：刺激频率和脑电响应之间的相关性。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/#more" rel="contents">
@@ -959,7 +969,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2019/07/09/hexo-github-constructBlog/" class="post-title-link" itemprop="url">Hexo&Github construct blog</a>
+          <a href="/2019/07/09/hexo-github-constructBlog/" class="post-title-link" itemprop="url">Hexo + GitHub Pages：个人博客先把发布链路跑通</a>
         </h2>
 
         <div class="post-meta-container">
@@ -977,7 +987,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2021-08-24 15:18:25" itemprop="dateModified" datetime="2021-08-24T15:18:25+08:00">2021-08-24</time>
+      <time title="Modified: 2026-06-18 11:05:55" itemprop="dateModified" datetime="2026-06-18T11:05:55+08:00">2026-06-18</time>
     </span>
 
   
@@ -990,7 +1000,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>以前一直想自己写个博客网站，无奈一直没有时间，最近在师兄和好兄弟的推荐下，使用了hexo这一基于Node.js的静态博客框架，并将其托管于github上。总算是圆了个梦！</p>
+          <p>个人博客最重要的第一步不是主题多漂亮，而是发布链路是否稳定：本地能写，静态站能生成，GitHub Pages 能托管，域名能访问，后续文章能持续更新。</p>
+<p>Hexo + GitHub Pages 的价值在于把这个链路压到足够轻：Markdown 写作、Node.js 生成静态页面、GitHub 托管、域名解析到 Pages。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/07/09/hexo-github-constructBlog/#more" rel="contents">

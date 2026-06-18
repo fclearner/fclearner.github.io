@@ -20,17 +20,18 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="普通 VAD 只判断“有没有人声”，Personal VAD 还要判断“是不是目标说话人”。在端侧语音识别里，这个区别很关键：系统不仅要过滤静音和噪声，还要在多人说话场景下保留目标说话人的语音片段。 这篇文章记录一次把 Personal VAD 2.0 论文思路落到可训练工程骨架时的设计取舍。重点是模型接口、外部 speaker embedding、数据 manifest、训练闭环和标签对齐风险。">
+    <meta name="description" content="普通 VAD 只回答“这里有没有人声”。Personal VAD 要回答更难的问题：这里有没有目标说话人的声音。这个差异会把任务从声学检测推进到说话人条件建模。 项目代码可参考：Personal-vad-2.0">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Personal VAD 2.0 工程化：外部说话人嵌入与训练闭环">
+<meta property="og:title" content="Personal VAD 2.0 工程化：把目标说话人判断做成闭环">
 <meta property="og:url" content="https://alanfangblog.com/2026/06/09/PVAD2-engineering-loop/index.html">
 <meta property="og:site_name" content="AlanFangBlog">
-<meta property="og:description" content="普通 VAD 只判断“有没有人声”，Personal VAD 还要判断“是不是目标说话人”。在端侧语音识别里，这个区别很关键：系统不仅要过滤静音和噪声，还要在多人说话场景下保留目标说话人的语音片段。 这篇文章记录一次把 Personal VAD 2.0 论文思路落到可训练工程骨架时的设计取舍。重点是模型接口、外部 speaker embedding、数据 manifest、训练闭环和标签对齐风险。">
+<meta property="og:description" content="普通 VAD 只回答“这里有没有人声”。Personal VAD 要回答更难的问题：这里有没有目标说话人的声音。这个差异会把任务从声学检测推进到说话人条件建模。 项目代码可参考：Personal-vad-2.0">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2026-06-09T06:40:00.000Z">
-<meta property="article:modified_time" content="2026-06-10T08:26:25.475Z">
+<meta property="article:published_time" content="2026-06-09T06:30:00.000Z">
+<meta property="article:modified_time" content="2026-06-18T03:08:17.895Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="ASR">
+<meta property="article:tag" content="Open Source">
 <meta property="article:tag" content="PVAD">
 <meta property="article:tag" content="Speaker Embedding">
 <meta property="article:tag" content="VAD">
@@ -40,10 +41,10 @@
 <link rel="canonical" href="https://alanfangblog.com/2026/06/09/PVAD2-engineering-loop/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2026/06/09/PVAD2-engineering-loop/","path":"2026/06/09/PVAD2-engineering-loop/","title":"Personal VAD 2.0 工程化：外部说话人嵌入与训练闭环"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2026/06/09/PVAD2-engineering-loop/","path":"2026/06/09/PVAD2-engineering-loop/","title":"Personal VAD 2.0 工程化：把目标说话人判断做成闭环"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>Personal VAD 2.0 工程化：外部说话人嵌入与训练闭环 | AlanFangBlog</title>
+<title>Personal VAD 2.0 工程化：把目标说话人判断做成闭环 | AlanFangBlog</title>
   
 
 
@@ -161,7 +162,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BB%E5%8A%A1%E5%AE%9A%E4%B9%89"><span class="nav-number">1.</span> <span class="nav-text">任务定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E7%BB%93%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">模型结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%96%E9%83%A8-Speaker-Embedding"><span class="nav-number">3.</span> <span class="nav-text">外部 Speaker Embedding</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE-Manifest"><span class="nav-number">4.</span> <span class="nav-text">数据 Manifest</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E9%97%AD%E7%8E%AF"><span class="nav-number">5.</span> <span class="nav-text">训练闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Enrollment-less-Augmentation"><span class="nav-number">6.</span> <span class="nav-text">Enrollment-less Augmentation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Subsampling-%E4%B8%8E%E6%A0%87%E7%AD%BE%E5%AF%B9%E9%BD%90"><span class="nav-number">7.</span> <span class="nav-text">Subsampling 与标签对齐</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E8%B7%AF%E7%BA%BF"><span class="nav-number">8.</span> <span class="nav-text">实验路线</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">9.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Speaker-%E6%9D%A1%E4%BB%B6%E6%B6%88%E8%9E%8D"><span class="nav-number">10.</span> <span class="nav-text">Speaker 条件消融</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -219,12 +220,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="Personal VAD 2.0 工程化：外部说话人嵌入与训练闭环 | AlanFangBlog">
+      <meta itemprop="name" content="Personal VAD 2.0 工程化：把目标说话人判断做成闭环 | AlanFangBlog">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Personal VAD 2.0 工程化：外部说话人嵌入与训练闭环
+          Personal VAD 2.0 工程化：把目标说话人判断做成闭环
         </h1>
 
         <div class="post-meta-container">
@@ -235,14 +236,14 @@
       </span>
       <span class="post-meta-item-text">Posted on</span>
 
-      <time title="Created: 2026-06-09 14:40:00" itemprop="dateCreated datePublished" datetime="2026-06-09T14:40:00+08:00">2026-06-09</time>
+      <time title="Created: 2026-06-09 14:30:00" itemprop="dateCreated datePublished" datetime="2026-06-09T14:30:00+08:00">2026-06-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-10 16:26:25" itemprop="dateModified" datetime="2026-06-10T16:26:25+08:00">2026-06-10</time>
+      <time title="Modified: 2026-06-18 11:08:17" itemprop="dateModified" datetime="2026-06-18T11:08:17+08:00">2026-06-18</time>
     </span>
 
   
@@ -254,148 +255,27 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>普通 VAD 只判断“有没有人声”，Personal VAD 还要判断“是不是目标说话人”。在端侧语音识别里，这个区别很关键：系统不仅要过滤静音和噪声，还要在多人说话场景下保留目标说话人的语音片段。</p>
-<p>这篇文章记录一次把 Personal VAD 2.0 论文思路落到可训练工程骨架时的设计取舍。重点是模型接口、外部 speaker embedding、数据 manifest、训练闭环和标签对齐风险。</p>
-<p>项目代码：<a target="_blank" rel="noopener" href="https://github.com/fclearner/Personal-vad-2.0">https://github.com/fclearner/Personal-vad-2.0</a>。</p>
+    <div class="post-body" itemprop="articleBody"><p>普通 VAD 只回答“这里有没有人声”。Personal VAD 要回答更难的问题：这里有没有目标说话人的声音。这个差异会把任务从声学检测推进到说话人条件建模。</p>
+<p>项目代码可参考：<a target="_blank" rel="noopener" href="https://github.com/fclearner/Personal-vad-2.0">Personal-vad-2.0</a></p>
 <span id="more"></span>
 
-<h2 id="任务定义"><a href="#任务定义" class="headerlink" title="任务定义"></a>任务定义</h2><p>Personal VAD 可以建模为逐帧三分类任务：</p>
-<ul>
-<li><code>0</code>：目标说话人语音；</li>
-<li><code>1</code>：非目标说话人语音；</li>
-<li><code>2</code>：非语音。</li>
-</ul>
-<p>和普通 VAD 相比，PVAD 多了一个目标说话人的条件输入。这个条件通常来自 enrollment 音频，经过 speaker encoder 提取成 embedding，再输入 PVAD 主模型。</p>
-<p>一个可落地的工程接口可以保持很窄：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">logits = model(features, embedding)</span><br><span class="line">logits, lengths = model(features, embedding, lengths, return_lengths=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>真实语音场景里，经常不只一个人说话。普通 VAD 能检测语音活动，却无法区分当前语音是否来自目标说话人。对于个性化唤醒、会议选择性转写、目标说话人增强和说话人相关过滤，这个能力不够。</p>
+<p>Personal VAD 的核心矛盾是：模型既要保持 VAD 的帧级时序敏感，又要利用 speaker embedding 识别目标说话人。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 PVAD 写成一个条件检测问题：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">audio_features + target_speaker_embedding -&gt; target_speech_activity</span><br></pre></td></tr></table></figure>
 
-<p>其中：</p>
+<p>这里的目标不是单独做 speaker verification，也不是单独做 VAD，而是把目标说话人的条件信息注入到帧级检测里。</p>
+<p>训练样本至少要覆盖三类情况：目标说话人说话、非目标说话人说话、无人声或噪声。否则模型很容易学成普通 VAD，或者把所有人声都当成目标。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>PVAD 的评测要拆开。</p>
 <ul>
-<li><code>features</code>：<code>(batch, frames, 512)</code>；</li>
-<li><code>embedding</code>：<code>(batch, speaker_embedding_dim)</code> 或 <code>(batch, frames, speaker_embedding_dim)</code>；</li>
-<li><code>logits</code>：<code>(batch, frames_out, 3)</code>。</li>
+<li>VAD 层：speech &#x2F; non-speech 的召回和误报；</li>
+<li>说话人层：目标和非目标说话人的区分能力；</li>
+<li>时序层：起止边界、短语音、重叠语音和噪声下的稳定性；</li>
+<li>训练层：embedding 来源、采样策略、正负样本比例和标签对齐。</li>
 </ul>
-<p><code>embedding=None</code> 时可以用零向量表示无 enrollment 条件，这样同一套模型能覆盖“有目标说话人条件”和“无条件 VAD 退化模式”。</p>
-<h2 id="模型结构"><a href="#模型结构" class="headerlink" title="模型结构"></a>模型结构</h2><p>一个实用的 PVAD 骨架可以拆成四层：</p>
-<ol>
-<li>acoustic encoder：处理堆叠后的声学特征；</li>
-<li>speaker projection：把外部 speaker embedding 投影到 encoder 维度；</li>
-<li>speaker conditioning：用 speaker 信息调制 acoustic 表示；</li>
-<li>frame classifier：输出三类逐帧 logits。</li>
-</ol>
-<p>工程上最容易出问题的地方不是分类头，而是 speaker 条件如何进入主干网络。</p>
-<p>一种稳妥做法是让 speaker embedding 先经过投影层，再生成调制参数：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">speaker embedding</span><br><span class="line">  -&gt; speaker_embedding_proj</span><br><span class="line">  -&gt; speaker_pre_net</span><br><span class="line">  -&gt; FiLM / cosine conditioning</span><br><span class="line">  -&gt; acoustic encoder states</span><br></pre></td></tr></table></figure>
-
-<p>这样做有两个好处：</p>
-<ul>
-<li>embedding 维度不需要写死，64 维、192 维或其他外部向量都可以通过投影层接入；</li>
-<li>speaker encoder 可以先冻结在 PVAD 训练图之外，降低第一阶段闭环难度。</li>
-</ul>
-<p>如果一开始就把 speaker extractor、PVAD encoder 和训练目标端到端绑在一起，数据、显存、收敛和调试成本都会同时上升。更稳的顺序是先把外部 embedding 文件接进训练，再决定是否做联合训练或蒸馏。</p>
-<h2 id="外部-Speaker-Embedding"><a href="#外部-Speaker-Embedding" class="headerlink" title="外部 Speaker Embedding"></a>外部 Speaker Embedding</h2><p>外部 speaker embedding 的推荐接入方式是预提取，而不是在线抽取：</p>
-<ol>
-<li>enrollment 音频进入 speaker verification 模型；</li>
-<li>导出固定维度 embedding，例如 CAM++ 常见的 192 维向量；</li>
-<li>将 embedding 保存为 <code>.npy</code> 或 <code>.pt</code>；</li>
-<li>训练 manifest 中引用对应 embedding 文件；</li>
-<li>PVAD 模型通过 <code>speaker_embedding_dim</code> 读取并投影。</li>
-</ol>
-<p>例如：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">model = Pvad2(speaker_embedding_dim=<span class="number">192</span>)</span><br></pre></td></tr></table></figure>
-
-<p>这条路径把 speaker encoder 和 PVAD 主训练解耦。第一阶段只需要验证三件事：</p>
-<ul>
-<li>embedding shape 是否稳定；</li>
-<li>embedding 是否能和样本 speaker identity 对齐；</li>
-<li>PVAD forward、loss、checkpoint 是否能稳定跑通。</li>
-</ul>
-<p>等真实数据闭环完成后，再比较不同 speaker 条件策略：</p>
-<ul>
-<li>零 embedding；</li>
-<li>随机或已有 embedding；</li>
-<li>CAM++ &#x2F; 3D-Speaker embedding；</li>
-<li>外部 embedding 加轻量 adapter；</li>
-<li>speaker encoder 蒸馏或联合训练。</li>
-</ul>
-<h2 id="数据-Manifest"><a href="#数据-Manifest" class="headerlink" title="数据 Manifest"></a>数据 Manifest</h2><p>训练数据最适合用 manifest 显式描述，而不是把路径规则写死在 dataset 里。JSONL 可以覆盖大多数场景：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;utt001&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;features&quot;</span><span class="punctuation">:</span> <span class="string">&quot;features/utt001.npy&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;labels&quot;</span><span class="punctuation">:</span> <span class="string">&quot;labels/utt001.npy&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;embedding&quot;</span><span class="punctuation">:</span> <span class="string">&quot;embeddings/spk001.npy&quot;</span><span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;utt002&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;features&quot;</span><span class="punctuation">:</span> <span class="string">&quot;features/utt002.npy&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;labels&quot;</span><span class="punctuation">:</span> <span class="string">&quot;labels/utt002.npy&quot;</span><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>字段约束：</p>
-<ul>
-<li><code>features</code>：<code>(frames, 512)</code>；</li>
-<li><code>labels</code>：<code>(frames,)</code>；</li>
-<li><code>embedding</code>：可选，<code>(speaker_embedding_dim,)</code>；</li>
-<li>未提供 <code>embedding</code> 时，用零向量补齐。</li>
-</ul>
-<p>路径相对 manifest 文件所在目录解析，这样数据目录迁移后不需要重写所有样本路径。</p>
-<p>对 frame-level 任务，manifest 里最重要的不是路径本身，而是 feature frame 和 label frame 是否严格对齐。只要这里错一帧，训练 loss 仍然可能下降，但指标会失真。</p>
-<h2 id="训练闭环"><a href="#训练闭环" class="headerlink" title="训练闭环"></a>训练闭环</h2><p>最小训练闭环建议包含：</p>
-<ul>
-<li>manifest dataset；</li>
-<li>padding-aware collate；</li>
-<li><code>CrossEntropyLoss(ignore_index=-100)</code>；</li>
-<li>train &#x2F; valid loop；</li>
-<li><code>last.pt</code> 和 <code>best.pt</code> checkpoint；</li>
-<li>CPU synthetic smoke test；</li>
-<li>小样本 overfit test。</li>
-</ul>
-<p>训练入口可以保持直接：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">python train.py \</span><br><span class="line">  --train-manifest data/small_train.jsonl \</span><br><span class="line">  --valid-manifest data/small_valid.jsonl \</span><br><span class="line">  --speaker-embedding-dim 192 \</span><br><span class="line">  --epochs 50 \</span><br><span class="line">  --batch-size 4 \</span><br><span class="line">  --device cuda</span><br></pre></td></tr></table></figure>
-
-<p>在没有真实数据前，synthetic smoke test 只能证明代码路径能跑，不能证明模型有效。真正有价值的第一个实验应该是小样本 overfit：</p>
-<ul>
-<li>loss 能稳定下降；</li>
-<li>frame accuracy 明显升高；</li>
-<li>padding 位置不参与 loss；</li>
-<li>logits 不出现 NaN；</li>
-<li>checkpoint 能保存和恢复；</li>
-<li>enrollment 缺失样本不会破坏 batch。</li>
-</ul>
-<h2 id="Enrollment-less-Augmentation"><a href="#Enrollment-less-Augmentation" class="headerlink" title="Enrollment-less Augmentation"></a>Enrollment-less Augmentation</h2><p>Personal VAD 2.0 里一个重要训练机制是 enrollment-less augmentation。直觉上，它让模型在没有目标说话人条件时退化成更接近普通 VAD 的行为。</p>
-<p>一个可实现的版本是：</p>
-<ol>
-<li>对部分 utterance 采样 dropout mask；</li>
-<li>将这些样本的 speaker embedding 置零；</li>
-<li>将这些样本里的非目标说话人语音标签 <code>1</code> 改成目标语音标签 <code>0</code>；</li>
-<li>padding label <code>-100</code> 保持不变。</li>
-</ol>
-<p>这一步必须同时改 embedding 和 label。如果只把 embedding 置零，不改 label，模型会在“无目标说话人信息”的条件下被要求区分目标与非目标，说法上就不一致。</p>
-<h2 id="Subsampling-与标签对齐"><a href="#Subsampling-与标签对齐" class="headerlink" title="Subsampling 与标签对齐"></a>Subsampling 与标签对齐</h2><p>PVAD 很容易在 subsampling 上踩坑。假设模型支持两种入口：</p>
-<ul>
-<li><code>linear</code>：特征已经按预期堆叠或下采样后送入模型；</li>
-<li><code>conv2d3</code>：模型内部做卷积子采样。</li>
-</ul>
-<p>如果 logits 长度和 labels 长度不同，简单截断或补 ignore index 只能让代码继续跑，不等于语义正确。更严谨的做法是为每一种 subsampling 明确定义 label 下采样策略，例如：</p>
-<ul>
-<li>取中心帧标签；</li>
-<li>窗口多数投票；</li>
-<li>目标语音优先；</li>
-<li>非语音优先；</li>
-<li>混合帧标记为 ignore。</li>
-</ul>
-<p>策略选择会直接影响 precision、recall 和误报行为，不能隐藏在 collate 或 loss 的容错逻辑里。</p>
-<h2 id="实验路线"><a href="#实验路线" class="headerlink" title="实验路线"></a>实验路线</h2><p>比起继续堆模型结构，更值得优先跑通的是数据和评价闭环：</p>
-<ol>
-<li>准备 5 到 20 条真实样本，覆盖目标说话人、非目标说话人、非语音、长短句和 enrollment 缺失；</li>
-<li>跑小样本 overfit，确认 loss、accuracy、padding 和 checkpoint；</li>
-<li>固定 PVAD 主干，比较零 embedding、外部 embedding 和轻量 adapter；</li>
-<li>加入真实验证集，拆分 target speech recall、non-target false accept、non-speech false alarm；</li>
-<li>再考虑 streaming cache、ONNX、量化和端侧延迟。</li>
-</ol>
-<p>工程判断上，第一阶段的目标不是复现论文最终指标，而是证明这个系统具备可训练、可评估、可替换 speaker embedding 的闭环。</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>PVAD 的难点不只是模型结构，而是 speaker 条件、frame label、训练目标和数据组织必须同时对齐。一个合理的工程落点是：</p>
-<ul>
-<li>speaker embedding 维度配置化；</li>
-<li>外部 embedding 先离线接入；</li>
-<li>manifest 显式记录 feature、label 和 embedding；</li>
-<li>enrollment-less augmentation 成对修改 embedding 与 label；</li>
-<li>subsampling 必须配套定义 label 对齐；</li>
-<li>smoke test 只验证可运行，小样本 overfit 才开始验证可学习。</li>
-</ul>
-<p>把这些边界先定清楚，后续再替换 speaker encoder、加入 adapter 或做端侧优化，才不会把模型调试和数据问题混在一起。</p>
-<h2 id="Speaker-条件消融"><a href="#Speaker-条件消融" class="headerlink" title="Speaker 条件消融"></a>Speaker 条件消融</h2><p>PVAD should include speaker-conditioning ablations before architecture changes. Compare at least three modes: no speaker condition, random or mismatched speaker condition, and matched speaker condition.</p>
-<p>The expected result is not only higher frame-level F1. The matched condition should improve target-speaker recall, the mismatched condition should degrade predictably, and non-speech false alarms should remain controlled. This proves the model is using the speaker condition rather than learning a generic VAD shortcut.</p>
+<p>如果只看总体准确率，很难发现模型到底是在做目标说话人判断，还是只是在检测有没有声音。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Personal VAD 的工程重点不是把普通 VAD 模型换大，而是把目标说话人条件、帧级标签和负样本设计做成闭环。speaker embedding 只有和训练采样、标签对齐、错误归因一起设计，才会真正改善目标说话人检测。</p>
+<p>下一步阅读：<a href="/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/">实时语音 Turn-taking 评测：从端点检测到可接话判断</a></p>
 
     </div>
 
@@ -405,6 +285,7 @@
 
     <footer class="post-footer">
           <div class="post-tags">
+              <a href="/tags/Open-Source/" rel="tag"># Open Source</a>
               <a href="/tags/ASR/" rel="tag"># ASR</a>
               <a href="/tags/VAD/" rel="tag"># VAD</a>
               <a href="/tags/PVAD/" rel="tag"># PVAD</a>
@@ -415,8 +296,8 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2022/04/22/ASR-Multilingual/" rel="prev" title="ASR-Multilingual">
-                  <i class="fa fa-angle-left"></i> ASR-Multilingual
+                <a href="/2022/04/22/ASR-Multilingual/" rel="prev" title="多语种 ASR：低资源、口音和统一部署之间的取舍">
+                  <i class="fa fa-angle-left"></i> 多语种 ASR：低资源、口音和统一部署之间的取舍
                 </a>
             </div>
             <div class="post-nav-item">

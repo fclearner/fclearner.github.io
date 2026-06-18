@@ -20,15 +20,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="今天的信号很明确：agent 技术栈的竞争正在从“哪个框架更会跑 demo”，转向“哪个框架更容易被实现、验证、观测和约束”。近期几篇评测型论文和工具文档都指向同一个结论：不要先押注单一框架，先把评测、工具边界、trace 和安全门槛做成自己的吸收系统。">
+    <meta name="description" content="本期信号很明确：agent 技术栈的竞争正在从“哪个框架更会跑 demo”，转向“哪个框架更容易被实现、验证、观测和约束”。公开评测、trace 规范、MCP 工具连接和 skills 基准都指向同一个结论：先建设吸收机制，再选择框架。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="【Agent Engineering Radar】2026-06-16 Agent 工程技术雷达">
 <meta property="og:url" content="https://alanfangblog.com/2026/06/16/Agent-Engineering-Radar-2026-06-16/index.html">
 <meta property="og:site_name" content="AlanFangBlog">
-<meta property="og:description" content="今天的信号很明确：agent 技术栈的竞争正在从“哪个框架更会跑 demo”，转向“哪个框架更容易被实现、验证、观测和约束”。近期几篇评测型论文和工具文档都指向同一个结论：不要先押注单一框架，先把评测、工具边界、trace 和安全门槛做成自己的吸收系统。">
+<meta property="og:description" content="本期信号很明确：agent 技术栈的竞争正在从“哪个框架更会跑 demo”，转向“哪个框架更容易被实现、验证、观测和约束”。公开评测、trace 规范、MCP 工具连接和 skills 基准都指向同一个结论：先建设吸收机制，再选择框架。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-16T01:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-16T06:45:01.946Z">
+<meta property="article:modified_time" content="2026-06-18T03:08:17.326Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="AI">
 <meta property="article:tag" content="Agent">
@@ -162,7 +162,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Today%E2%80%99s-Signal"><span class="nav-number">1.</span> <span class="nav-text">Today’s Signal</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Adopt"><span class="nav-number">2.</span> <span class="nav-text">Adopt</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%E5%85%88%E8%A1%8C%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF%E6%A1%86%E6%9E%B6%E5%85%88%E8%A1%8C"><span class="nav-number">2.1.</span> <span class="nav-text">评测先行，而不是框架先行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Agent-%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E4%BD%9C%E4%B8%BA%E9%BB%98%E8%AE%A4%E8%83%BD%E5%8A%9B"><span class="nav-number">2.2.</span> <span class="nav-text">Agent 可观测性作为默认能力</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Trial"><span class="nav-number">3.</span> <span class="nav-text">Trial</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E8%AF%9D%E5%BC%8F-coding-agent-%E8%AF%84%E6%B5%8B"><span class="nav-number">3.1.</span> <span class="nav-text">对话式 coding agent 评测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MCP-%E4%BD%9C%E4%B8%BA%E8%BF%9E%E6%8E%A5%E5%B1%82%EF%BC%8C%E4%BD%86%E4%B8%8D%E7%9B%B4%E6%8E%A5%E7%AD%89%E4%BA%8E%E5%8F%AF%E4%BF%A1%E6%89%A7%E8%A1%8C%E5%B1%82"><span class="nav-number">3.2.</span> <span class="nav-text">MCP 作为连接层，但不直接等于可信执行层</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Watch"><span class="nav-number">4.</span> <span class="nav-text">Watch</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Skills-%E7%9A%84%E7%9C%9F%E5%AE%9E%E5%A2%9E%E7%9B%8A%E6%AF%94%E7%9B%B4%E8%A7%89%E6%9B%B4%E7%AA%84"><span class="nav-number">4.1.</span> <span class="nav-text">Skills 的真实增益比直觉更窄</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Terminal-%E4%BB%BB%E5%8A%A1%E7%9A%84-benchmark-%E6%AD%A3%E5%9C%A8%E5%8F%98%E7%A1%AC"><span class="nav-number">4.2.</span> <span class="nav-text">Terminal 任务的 benchmark 正在变硬</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hold-Risks"><span class="nav-number">5.</span> <span class="nav-text">Hold &#x2F; Risks</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8D%E8%A6%81%E6%8A%8A%E2%80%9C%E6%A1%86%E6%9E%B6%E6%94%AF%E6%8C%81-MCP-tracing-memory%E2%80%9D%E5%BD%93%E6%88%90%E7%94%9F%E4%BA%A7%E6%88%90%E7%86%9F%E5%BA%A6"><span class="nav-number">5.1.</span> <span class="nav-text">不要把“框架支持 MCP &#x2F; tracing &#x2F; memory”当成生产成熟度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8D%E8%A6%81%E7%9B%B2%E7%9B%AE%E7%A7%AF%E7%B4%AF-skills"><span class="nav-number">5.2.</span> <span class="nav-text">不要盲目积累 skills</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Practical-Stack-Adjustments"><span class="nav-number">6.</span> <span class="nav-text">Practical Stack Adjustments</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -235,9 +235,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-16 09:00:00 / Modified: 14:45:01" itemprop="dateCreated datePublished" datetime="2026-06-16T09:00:00+08:00">2026-06-16</time>
+      <time title="Created: 2026-06-16 09:00:00" itemprop="dateCreated datePublished" datetime="2026-06-16T09:00:00+08:00">2026-06-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 11:08:17" itemprop="dateModified" datetime="2026-06-18T11:08:17+08:00">2026-06-18</time>
     </span>
 
   
@@ -249,40 +255,28 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>今天的信号很明确：agent 技术栈的竞争正在从“哪个框架更会跑 demo”，转向“哪个框架更容易被实现、验证、观测和约束”。近期几篇评测型论文和工具文档都指向同一个结论：不要先押注单一框架，先把评测、工具边界、trace 和安全门槛做成自己的吸收系统。</p>
+    <div class="post-body" itemprop="articleBody"><p>本期信号很明确：agent 技术栈的竞争正在从“哪个框架更会跑 demo”，转向“哪个框架更容易被实现、验证、观测和约束”。公开评测、trace 规范、MCP 工具连接和 skills 基准都指向同一个结论：先建设吸收机制，再选择框架。</p>
 <span id="more"></span>
 
-<h2 id="Today’s-Signal"><a href="#Today’s-Signal" class="headerlink" title="Today’s Signal"></a>Today’s Signal</h2><p>ADK Arena 把 51 个 Python Agent Development Kit 放到同一套自动化流程里比较：让同一个 coding agent 学文档、写 agent、修复到测试通过，再跑 SWE-bench、tau2-bench、Terminal-Bench 和 MCP-Atlas 适配器。结果很适合做技术雷达的判断依据：框架生成成功率只有 57%，生成成本相差 5.6 倍，单一 benchmark 上的最佳框架可以做到很强，但中位框架只有 32% 左右的任务解决率。<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2606.05548">来源：arXiv:2606.05548</a></p>
-<p>这说明“社区热度”不能直接等同于“可进入主技术栈”。一个 agent 框架至少要过三关：开发者能否快速写对、工具&#x2F;状态是否可测试、失败时是否可诊断。</p>
-<h2 id="Adopt"><a href="#Adopt" class="headerlink" title="Adopt"></a>Adopt</h2><h3 id="评测先行，而不是框架先行"><a href="#评测先行，而不是框架先行" class="headerlink" title="评测先行，而不是框架先行"></a>评测先行，而不是框架先行</h3><p>把每个新框架都放进同一个最小评测夹具里：工具调用、文件读写、长任务恢复、人类确认、trace 输出、失败重试。ADK Arena 的方法给了一个实用启发：固定任务和验证标准，再比较框架差异，而不是只看文档示例。</p>
-<p>下一步：维护一个本地 <code>agent-stack-smoke</code>，每个候选框架都必须跑同一组任务，输出成功率、步数、token 成本和失败原因。</p>
-<h3 id="Agent-可观测性作为默认能力"><a href="#Agent-可观测性作为默认能力" class="headerlink" title="Agent 可观测性作为默认能力"></a>Agent 可观测性作为默认能力</h3><p>OpenInference 已经把 LLM 调用、检索、外部工具调用等上下文纳入 tracing 规范，并提供 OpenAI Agents SDK、MCP、LangChain、LlamaIndex、CrewAI、AutoGen AgentChat 等 instrumentation。<a target="_blank" rel="noopener" href="https://arize-ai.github.io/openinference/">来源：OpenInference</a></p>
-<p>OpenTelemetry 也已经把 Generative AI、Agent spans、MCP、OpenAI 等语义约定列入文档目录，说明 agent trace 正在从厂商插件变成通用工程接口。<a target="_blank" rel="noopener" href="https://opentelemetry.io/docs/specs/semconv/gen-ai/">来源：OpenTelemetry GenAI semantic conventions</a></p>
-<p>下一步：新 agent demo 默认记录 <code>model -&gt; tool -&gt; observation -&gt; decision -&gt; artifact</code> trace，不接受只有最终答案的 demo。</p>
-<h2 id="Trial"><a href="#Trial" class="headerlink" title="Trial"></a>Trial</h2><h3 id="对话式-coding-agent-评测"><a href="#对话式-coding-agent-评测" class="headerlink" title="对话式 coding agent 评测"></a>对话式 coding agent 评测</h3><p>Dialogue SWE-Bench 关注交互式 coding agent，而不是完全自动解题。它引入用户模拟器和对话质量评估，并指出 coding 能力和 dialogue 能力不是同一个维度。<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2606.13995">来源：arXiv:2606.13995</a></p>
-<p>这对个人工作流很关键：很多真实开发任务不是“一次性 issue -&gt; patch”，而是 agent 需要澄清范围、解释风险、接收用户修正、在新信息下调整计划。</p>
-<p>下一步：把本地评测分成两类：<code>autonomous task</code> 和 <code>dialogue task</code>。前者看完成率，后者还要看澄清质量、是否过早动手、是否保留用户约束。</p>
-<h3 id="MCP-作为连接层，但不直接等于可信执行层"><a href="#MCP-作为连接层，但不直接等于可信执行层" class="headerlink" title="MCP 作为连接层，但不直接等于可信执行层"></a>MCP 作为连接层，但不直接等于可信执行层</h3><p>MCP 官方定义是连接 AI 应用和外部系统的开放标准，可接数据源、工具和 workflow。<a target="_blank" rel="noopener" href="https://modelcontextprotocol.io/docs/getting-started/intro">来源：MCP 官方文档</a></p>
-<p>这适合进入 Trial，而不是无条件 Adopt。原因是 MCP 解决的是接入标准化，不自动解决身份传播、工具预算、结构化错误、安全审计和权限隔离。</p>
-<p>下一步：只把 MCP server 放进最小权限 sandbox；每个工具必须有输入 schema、输出 schema、超时、审计日志和禁用开关。</p>
-<h2 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h2><h3 id="Skills-的真实增益比直觉更窄"><a href="#Skills-的真实增益比直觉更窄" class="headerlink" title="Skills 的真实增益比直觉更窄"></a>Skills 的真实增益比直觉更窄</h3><p>SWE-Skills-Bench 测了 49 个公开 SWE skills，结果显示 39 个没有带来 pass-rate 改善，平均增益只有 +1.2%；只有少数特化 skill 有明显收益，且版本不匹配的指导会伤害结果。<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2603.15401">来源：arXiv:2603.15401</a></p>
-<p>这不是说 skills 没用，而是说明 skill 必须足够贴近任务、版本和项目上下文。泛化的“最佳实践包”很容易变成 token 负担。</p>
-<p>下一步：skill 进入个人栈之前要有 paired eval：同一任务有 skill &#x2F; 无 skill 各跑一组，比较成功率、token、错误类型。</p>
-<h3 id="Terminal-任务的-benchmark-正在变硬"><a href="#Terminal-任务的-benchmark-正在变硬" class="headerlink" title="Terminal 任务的 benchmark 正在变硬"></a>Terminal 任务的 benchmark 正在变硬</h3><p>Terminal-Bench 2.0 提供 89 个真实终端环境任务，带环境、人工解法和测试；官方页面也展示了系统管理、安全、数据处理、模型训练等任务样例。<a target="_blank" rel="noopener" href="https://www.tbench.ai/">来源：Terminal-Bench</a></p>
-<p>TerminalWorld 则从真实终端记录中构造任务，Verified 子集上当前系统最高 pass rate 约 62.5%，并指出它和 expert-curated benchmark 的相关性很弱。<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2605.22535">来源：arXiv:2605.22535</a></p>
-<p>下一步：不要只用 coding benchmark 判断 agent 能力。终端任务要单独看：命令规划、环境感知、文件副作用控制和恢复能力。</p>
-<h2 id="Hold-Risks"><a href="#Hold-Risks" class="headerlink" title="Hold &#x2F; Risks"></a>Hold &#x2F; Risks</h2><h3 id="不要把“框架支持-MCP-tracing-memory”当成生产成熟度"><a href="#不要把“框架支持-MCP-tracing-memory”当成生产成熟度" class="headerlink" title="不要把“框架支持 MCP &#x2F; tracing &#x2F; memory”当成生产成熟度"></a>不要把“框架支持 MCP &#x2F; tracing &#x2F; memory”当成生产成熟度</h3><p>今天的公开材料共同说明一个风险：很多能力已经有接口，但没有形成可靠的工程闭环。MCP 有连接层，OpenInference 有 trace 层，ADK 有框架层，benchmark 有评测层；真正可用的技术栈需要把这几层接起来。</p>
-<p>暂缓动作：不要因为一个框架新增某个集成就迁移主栈。先让它跑过本地 smoke、trace、权限和失败恢复检查。</p>
-<h3 id="不要盲目积累-skills"><a href="#不要盲目积累-skills" class="headerlink" title="不要盲目积累 skills"></a>不要盲目积累 skills</h3><p>Skills 更像精密工具，不是知识库越大越好。版本错位、抽象层级过高、和项目上下文冲突，都会让 agent 更慢或更错。</p>
-<p>暂缓动作：只保留能通过项目级验收的 skill；过期 skill 要归档，而不是长期塞进默认上下文。</p>
-<h2 id="Practical-Stack-Adjustments"><a href="#Practical-Stack-Adjustments" class="headerlink" title="Practical Stack Adjustments"></a>Practical Stack Adjustments</h2><p>本周可以先做四件小事：</p>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>Agent 框架和工具更新很快，但直接追新会带来三个风险。</p>
+<p>第一，文档 demo 成功不代表真实任务成功。ADK Arena 把 51 个 Python Agent Development Kit 放到同一套自动化流程里比较，框架生成成功率只有 57%，生成成本相差 5.6 倍，单一 benchmark 上的最佳框架可以很强，但中位框架只有 32% 左右任务解决率。<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2606.05548">来源：arXiv:2606.05548</a></p>
+<p>第二，连接标准不等于可信执行。MCP 解决 AI 应用和外部系统的连接问题，但身份、权限、预算、审计和禁用开关仍然要自己做。<a target="_blank" rel="noopener" href="https://modelcontextprotocol.io/docs/getting-started/intro">来源：MCP 官方文档</a></p>
+<p>第三，skills 不一定带来收益。SWE-Skills-Bench 测了 49 个公开 SWE skills，很多 skill 没有提升 pass-rate，版本不匹配还会伤害结果。<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2603.15401">来源：arXiv:2603.15401</a></p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 agent 技术栈拆成四层。</p>
+<p>框架层负责 agent loop、状态和工具调用。</p>
+<p>连接层负责 MCP、API、文件系统、浏览器和终端。</p>
+<p>观测层负责 trace、span、成本、错误和 artifact 记录。OpenInference 已经覆盖 LLM 调用、检索、工具调用等上下文，OpenTelemetry 也在推进 GenAI 和 Agent spans 语义约定。<a target="_blank" rel="noopener" href="https://arize-ai.github.io/openinference/">来源：OpenInference</a> <a target="_blank" rel="noopener" href="https://opentelemetry.io/docs/specs/semconv/gen-ai/">来源：OpenTelemetry GenAI semantic conventions</a></p>
+<p>评测层负责 smoke、benchmark、dialogue task 和安全门槛。Dialogue SWE-Bench 提醒我们，交互式 coding agent 的澄清和对话能力与一次性解题不是同一维度。<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2606.13995">来源：arXiv:2606.13995</a></p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>本周真正该做的是小闭环，而不是迁移主栈。</p>
 <ol>
 <li>建一个最小 agent smoke suite，覆盖工具调用、文件修改、测试、恢复和 trace。</li>
-<li>给每次 agent 实验记录四个指标：成功率、成本、步数、失败类型。</li>
-<li>MCP server 默认放入 Trial 清单，必须通过权限和日志检查后再进入常用工具集。</li>
-<li>Skills 采用 paired eval，不再凭主观体验直接加入默认上下文。</li>
+<li>给每次 agent 实验记录成功率、成本、步数和失败类型。</li>
+<li>MCP server 默认进入 Trial 清单，必须通过权限和日志检查后再进入常用工具集。</li>
+<li>Skills 做 paired eval，同一任务有 skill &#x2F; 无 skill 各跑一组，比较成功率、token 和错误类型。</li>
 </ol>
-<p>今天的结论：Agent Engineering 的技术视野要保持开放，但吸收机制要收紧。框架、协议、skills、benchmark 都可以快速跟进；真正进入主技术栈的，只应该是能被验证、能被观测、能被回滚的部分。</p>
+<p>Terminal-Bench 2.0 和 TerminalWorld 也说明，终端任务需要单独评估命令规划、环境感知、文件副作用和恢复能力，不能只用 coding benchmark 替代。<a target="_blank" rel="noopener" href="https://www.tbench.ai/">来源：Terminal-Bench</a> <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2605.22535">来源：arXiv:2605.22535</a></p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Agent Engineering 的技术视野要保持开放，但吸收机制要收紧。框架、协议、skills、benchmark 都可以跟进；真正进入主技术栈的，只应该是能被验证、能被观测、能被回滚的部分。</p>
+<p>下一步阅读：<a href="/2026/06/10/Agentic-Coding-Governance/">Agentic Coding 工程治理：多模型协作先定义责任边界</a></p>
 
     </div>
 
