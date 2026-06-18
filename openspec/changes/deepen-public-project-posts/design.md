@@ -49,3 +49,13 @@ The first depth pass was sufficient for the Adaptive RAG posts but too checklist
 - end with an actionable conclusion rather than another list.
 
 The goal is not longer posts. The goal is a coherent technical essay where each section advances the same argument.
+
+
+## Third-Pass Sitewide Standard
+
+A further audit found that non-project foundation posts, operational posts, and the Agent Engineering Radar still met the four-section outline but did not consistently meet the Adaptive RAG readability bar. The third pass expands the depth standard to every public technical post:
+
+- every post needs an explicit main-line judgment or thesis;
+- every post needs a concrete small-sample walkthrough that turns the abstraction into an engineering decision;
+- the site check should enforce this standard for all current and future public posts;
+- post count checks should use a minimum baseline instead of a fixed count so recurring Radar posts do not break verification.

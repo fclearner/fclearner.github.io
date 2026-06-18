@@ -18,6 +18,12 @@ Agent 框架和工具更新很快，但直接追新会带来三个风险。
 
 第三，skills 不一定带来收益。SWE-Skills-Bench 测了 49 个公开 SWE skills，很多 skill 没有提升 pass-rate，版本不匹配还会伤害结果。[来源：arXiv:2603.15401](https://arxiv.org/abs/2603.15401)
 
+## 主线判断
+
+Agent Engineering Radar 的主线不是收集新闻，而是把外部技术信号压缩成可验证的工程吸收机制。
+
+框架、协议、benchmark、skills 每周都会出现新材料。真正有价值的雷达不是列链接，而是判断哪些变化会影响本地工程决策：是否要试验、如何设安全边界、用什么指标进入或退出主栈。
+
 ## 最小抽象
 
 可以把 agent 技术栈拆成四层。
@@ -40,6 +46,12 @@ Agent 框架和工具更新很快，但直接追新会带来三个风险。
 4. Skills 做 paired eval，同一任务有 skill / 无 skill 各跑一组，比较成功率、token 和错误类型。
 
 Terminal-Bench 2.0 和 TerminalWorld 也说明，终端任务需要单独评估命令规划、环境感知、文件副作用和恢复能力，不能只用 coding benchmark 替代。[来源：Terminal-Bench](https://www.tbench.ai/) [来源：arXiv:2605.22535](https://arxiv.org/abs/2605.22535)
+
+## 小样本推演
+
+看到一个新的 agent framework 时，不应该先迁移项目，而是先放进 Trial 清单。最小验证可以是三类任务：只读检索、受限文件修改、失败恢复。每类记录成功率、工具调用次数、成本、trace 完整度和越权风险。
+
+如果 demo 很强但 trace 不完整、权限不可控或失败后无法恢复，它就只能保留在观察区。雷达的作用是避免被单点亮点牵着走。
 
 ## 直接结论
 

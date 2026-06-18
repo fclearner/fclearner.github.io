@@ -76,7 +76,7 @@ The published GitHub Pages repository is `fclearner/fclearner.github.io`. Use th
 
 ## Publish Flow
 
-The source tree currently contains 19 posts: 7 retained posts after pruning empty and placeholder content, plus the PVAD technical article, 10 focused open-source AI engineering series articles, and the Agent Engineering Radar series. Before publishing, run:
+The source tree currently contains at least 20 public posts: retained foundation posts, the PVAD technical article, focused open-source AI engineering series articles, and the Agent Engineering Radar series. Before publishing, run:
 
 ```bash
 npm run verify

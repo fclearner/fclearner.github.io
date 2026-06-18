@@ -4,9 +4,10 @@ import path from 'node:path';
 const root = process.cwd();
 const publicDir = path.join(root, 'public');
 const sourcePostsDir = path.join(root, 'source', '_posts');
-const expectedPostCount = 20;
+const minimumPostCount = 20;
 const errors = [];
 const warnings = [];
+let generatedPostUrlCount = 0;
 
 function exists(file) {
   return fs.existsSync(file);
@@ -77,8 +78,8 @@ if (!exists(sourcePostsDir)) fail('source/_posts does not exist.');
 
 if (!errors.length) {
   const sourcePosts = fs.readdirSync(sourcePostsDir).filter(name => name.endsWith('.md'));
-  if (sourcePosts.length !== expectedPostCount) {
-    fail(`Expected ${expectedPostCount} source posts, found ${sourcePosts.length}.`);
+  if (sourcePosts.length < minimumPostCount) {
+    fail(`Expected at least ${minimumPostCount} source posts, found ${sourcePosts.length}.`);
   }
 
   const problemDrivenMarkers = [
@@ -94,6 +95,20 @@ if (!errors.length) {
     for (const marker of problemDrivenMarkers) {
       if (!sourceContent.includes(marker)) {
         fail(`Public post ${sourcePost} is missing problem-driven marker ${JSON.stringify(marker)}.`);
+      }
+    }
+  }
+
+  const sitewideDepthMarkers = [
+    '## 主线判断',
+    '## 小样本推演'
+  ];
+  for (const sourcePost of sourcePosts) {
+    const sourcePath = path.join(sourcePostsDir, sourcePost);
+    const sourceContent = read(sourcePath);
+    for (const marker of sitewideDepthMarkers) {
+      if (!sourceContent.includes(marker)) {
+        fail('Public post ' + sourcePost + ' is missing sitewide depth marker ' + marker + '.');
       }
     }
   }
@@ -435,8 +450,9 @@ if (!errors.length) {
       }
     }
   }
-  if (postUrls.size !== expectedPostCount) {
-    fail(`Expected ${expectedPostCount} generated post URLs, found ${postUrls.size}.`);
+  generatedPostUrlCount = postUrls.size;
+  if (postUrls.size < minimumPostCount) {
+    fail(`Expected at least ${minimumPostCount} generated post URLs, found ${postUrls.size}.`);
   }
 }
 
@@ -448,4 +464,4 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`Generated site quality check passed (${expectedPostCount} posts).`);
+console.log(`Generated site quality check passed (${generatedPostUrlCount} posts).`);
