@@ -40,6 +40,31 @@ tags: [ASR, LLM, Speech, Open Source]
 
 一个实用排查顺序是先看 ASR 能力，再看对齐层，再看 LLM 生成。如果基础转写已经不稳定，直接调 prompt 或扩大 LLM 很难解决问题。
 
+## 设计取舍
+
+音频 token 契约至少包含四件事。第一是 token 数量：同一段音频经过 encoder、下采样和 projector 后到底变成多少个 token。这个数字决定上下文成本，也影响长音频是否可用。第二是位置关系：音频 token 插入到文本序列的哪个位置，是否需要特殊 token 标记开始、结束和角色。
+
+第三是 mask 语义：LLM attention 是否可以跨模态自由看，训练标签是否只落在文本输出位置。第四是训练和推理一致性：训练时使用的特殊 token、模板和长度规则，推理时必须完全一致。
+
+CTC/AED 辅助目标也不是越多越好。CTC 可以提供帧级约束，AED 可以增强序列生成能力，但如果某个分支 loss 长期不下降，或者拖累主分支，就要先做独立 overfit 测试。一个小数据集上都无法收敛的分支，不会因为接到更大的 LLM 上就自动变好。
+
+## 失败归因
+
+Speech-LLM 的错误要避免直接归因到模型不够大。如果音频 token 数量异常，先查前端长度、下采样和特殊 token 插入。如果训练 loss 不稳定，先查 label mask 是否只作用在应该监督的位置。如果推理输出缺字或重复，查训练模板和推理模板是否一致。如果流式输出频繁回滚，查 partial 生成和语义决策是否共用了不稳定上下文。
+
+这些问题都属于接口契约，而不是单纯能力问题。契约不稳时，换更强 LLM 只会把错误包装得更流畅。
+
+## 实现契约
+
+建议给每次训练和推理都落一份对齐摘要：audio seconds、encoder frames、speech tokens、text tokens、special tokens、label mask ratio、CTC loss、AED loss、generation loss。
+
+这份摘要能快速发现异常样本：音频过长、token 膨胀、mask 比例异常、辅助 loss 不收敛、模板不一致。它比最终转写文本更接近问题源头。
+## 落地检查
+
+最小验证集应该包含短音频、长音频、静音、带噪音频、纯转写任务和语义回答任务。每个样本都记录音频秒数、encoder 帧数、speech token 数、文本 token 数、特殊 token 数和 label mask 比例。只要这些数字有异常，先修对齐契约，不要急着看最终回答。
+
+训练早期也要分别看辅助分支。CTC loss 稳定下降但生成 loss 不动，问题可能在 projector 或 LLM 监督；生成 loss 下降但 CTC 不动，说明声学侧约束没有真正起作用；两个都不动，优先检查 mask、模板和数据读取。
+
 ## 直接结论
 
 Speech-LLM 的工程边界在音频 token 契约，而不是模型名字。先定义清楚音频如何压缩、如何接入 LLM、如何监督、如何流式输出，再比较 Qwen3-ASR、Qwen-Omni、WeNet 或其他方案。

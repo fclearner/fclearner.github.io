@@ -1,4 +1,4 @@
-﻿import fs from 'node:fs';
+import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
@@ -95,6 +95,43 @@ if (!errors.length) {
       if (!sourceContent.includes(marker)) {
         fail(`Public post ${sourcePost} is missing problem-driven marker ${JSON.stringify(marker)}.`);
       }
+    }
+  }
+
+  const deepenedPublicPosts = [
+    'AI-Adaptive-RAG-Retrieval-Scheduling.md',
+    'AI-Adaptive-RAG-Retrieval-Gate.md',
+    'ASR-Data-Quality-Pipeline-Open-Source.md',
+    'ASR-Noise-Structured-Extraction-Evaluation.md',
+    'Speech-Dialog-Data-Synthesis-Quality-Gates.md',
+    'Realtime-Speech-Turn-Taking-Evaluation.md',
+    'Speech-Batch-Consistency-Debugging.md',
+    'Speech-LLM-Audio-Token-Alignment.md',
+    'LLM-Speech-Inference-Serving-Observability.md',
+    'PVAD2-engineering-loop.md',
+    'PEFT-Engineering-Tradeoffs.md',
+    'Agentic-Coding-Governance.md'
+  ];
+  const advancedAnalysisMarkers = [
+    '## 设计取舍',
+    '## 失败归因',
+    '## 评测矩阵',
+    '## 实现契约',
+    '## 可观测闭环'
+  ];
+  for (const sourcePost of deepenedPublicPosts) {
+    const sourcePath = path.join(sourcePostsDir, sourcePost);
+    if (!exists(sourcePath)) {
+      fail('Deepened public post is missing: ' + sourcePost + '.');
+      continue;
+    }
+    const sourceContent = read(sourcePath);
+    if (sourceContent.length < 1800) {
+      fail('Deepened public post ' + sourcePost + ' is too short: ' + sourceContent.length + ' chars.');
+    }
+    const markerCount = advancedAnalysisMarkers.filter(marker => sourceContent.includes(marker)).length;
+    if (markerCount < 2) {
+      fail('Deepened public post ' + sourcePost + ' needs at least two advanced analysis sections.');
     }
   }
 
