@@ -28,7 +28,7 @@
 <meta property="og:description" content="ASR 结果用于结构化抽取时，评测不能只看整句文本相似度。真实系统关心的是关键实体有没有抽对、位置是否合理、错误来自识别还是 NER、以及噪声会不会把下游结构化结果带偏。 因此，ASR + NER 的评测要从“文本像不像”转到“实体是否可归因”。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T09:50:00.000Z">
-<meta property="article:modified_time" content="2026-06-18T03:14:41.943Z">
+<meta property="article:modified_time" content="2026-06-18T03:49:03.162Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="ASR">
 <meta property="article:tag" content="Evaluation">
@@ -161,7 +161,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E5%8F%96%E8%88%8D"><span class="nav-number">4.</span> <span class="nav-text">设计取舍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%E7%9F%A9%E9%98%B5"><span class="nav-number">5.</span> <span class="nav-text">评测矩阵</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%B1%E8%B4%A5%E5%BD%92%E5%9B%A0"><span class="nav-number">6.</span> <span class="nav-text">失败归因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%90%BD%E5%9C%B0%E6%A3%80%E6%9F%A5"><span class="nav-number">7.</span> <span class="nav-text">落地检查</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">8.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -242,7 +242,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 11:14:41" itemprop="dateModified" datetime="2026-06-18T11:14:41+08:00">2026-06-18</time>
+      <time title="Modified: 2026-06-18 11:49:03" itemprop="dateModified" datetime="2026-06-18T11:49:03+08:00">2026-06-18</time>
     </span>
 
   
@@ -269,6 +269,15 @@
 <p>NER 层看 entity precision、entity recall、span F1、type accuracy。</p>
 <p>归因层看实体错误中有多少来自 ASR，有多少来自抽取模型，有多少来自后处理规则。</p>
 <p>这样才能决定下一步该做什么：补噪声数据、加热词、改 NER 训练集、调整规则，还是优化文本规范化。</p>
+<h2 id="设计取舍"><a href="#设计取舍" class="headerlink" title="设计取舍"></a>设计取舍</h2><p>实体位置匹配有三种常见策略。第一种是绝对 span 匹配，要求预测实体在文本里的起止位置与标注完全一致。这种方式严格，但 ASR 只要前面多识别一个字，后面所有 span 都会错位。第二种是全文搜索，只要预测文本里出现同名实体就算命中。这种方式宽松，但如果同一个实体在远处重复出现，会把错误位置也算成正确。</p>
+<p>第三种是基于字符对齐的局部窗口匹配：先把 reference 和 ASR 输出对齐，再在实体附近的小窗口内判断是否命中。它承认语音识别会带来位置漂移，但不允许模型从整段文本任意位置捡一个相同字符串来冒充正确实体。</p>
+<p>大规模评测还需要候选过滤。可以用多模式匹配先找到可能实体，再进入对齐和归因阶段。这样既保留速度，也避免每个样本都跑重模型。</p>
+<h2 id="评测矩阵"><a href="#评测矩阵" class="headerlink" title="评测矩阵"></a>评测矩阵</h2><p>一套实用矩阵可以按实体是否出现、实体是否落在正确局部窗口拆开。reference 有而 ASR 无，是识别漏召回；ASR 有而 NER 无，是抽取漏召回；ASR 有、NER 有但 span 偏移，是边界问题；ASR 有、NER 有但 type 错，是类型问题；reference 无而 prediction 有，则是插入或未标注实体，需要抽检确认。</p>
+<p>最后一类很容易被误用。不是所有 prediction 多出来都一定是 false positive，因为标注集可能漏标。评测脚本应保留可复核样本，而不是把所有额外实体直接打成错误。</p>
+<h2 id="失败归因"><a href="#失败归因" class="headerlink" title="失败归因"></a>失败归因</h2><p>结构化抽取最常见的陷阱是把 ASR 和 NER 的错误混在一起。ASR 把实体听错，NER 再稳也无能为力；ASR 正确但 NER 漏抽，应该改抽取模型；ASR 和 NER 都对，但后处理把格式改坏，应该修规则。</p>
+<p>因此，评测报告不要只给一个 F1。要输出实体级错误样本、对齐片段、局部窗口、错误类型和可复核原因。这样指标下降才会变成工程任务，而不是一串无法行动的数字。</p>
+<h2 id="落地检查"><a href="#落地检查" class="headerlink" title="落地检查"></a>落地检查</h2><p>做这类评测时，第一版脚本不要追求复杂模型，而要先把样本级可解释性做出来。每个错误实体旁边放 reference 片段、ASR 片段、预测片段、局部对齐窗口和错误类型。只要评测报告里看不到这些局部证据，precision 和 recall 再完整也很难指导修复。</p>
+<p>还要把高频实体和长尾实体分开看。高频实体错误通常暴露规则或规范化问题，长尾实体错误更容易暴露声学识别、热词覆盖和标注稀疏问题。混在一起统计，会让模型看起来只是整体不稳，实际上不同实体桶的修复路径完全不同。</p>
 <h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>ASR 噪声下的结构化抽取评测，关键不是把所有错误合成一个分数，而是把错误分解到 ASR、NER、span 对齐和后处理。只有错误可归因，系统才知道下一轮应该改模型、改数据还是改规则。</p>
 <p>下一步阅读：<a href="/2026/06/11/Speech-Dialog-Data-Synthesis-Quality-Gates/">语音对话合成数据工程：Schema、口语化与质量闸门</a></p>
 

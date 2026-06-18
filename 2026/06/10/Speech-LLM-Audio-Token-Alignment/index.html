@@ -28,7 +28,7 @@
 <meta property="og:description" content="语音大模型不是把 ASR encoder 接到 LLM 上就结束了。真正困难的是接口契约：音频如何被压成 token，token 如何进入 LLM，文本监督如何约束语音表示，流式场景又如何保证延迟和上下文一致。 如果这个契约不清楚，Qwen3-ASR、Qwen-Omni、WeNet、CTC、AED、speech encoder 和 LLM 主干会变成一堆名词，而不是可排障的系统。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T09:20:00.000Z">
-<meta property="article:modified_time" content="2026-06-18T03:06:40.033Z">
+<meta property="article:modified_time" content="2026-06-18T03:49:03.200Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="ASR">
 <meta property="article:tag" content="LLM">
@@ -161,7 +161,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E5%8F%96%E8%88%8D"><span class="nav-number">4.</span> <span class="nav-text">设计取舍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%B1%E8%B4%A5%E5%BD%92%E5%9B%A0"><span class="nav-number">5.</span> <span class="nav-text">失败归因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E5%A5%91%E7%BA%A6"><span class="nav-number">6.</span> <span class="nav-text">实现契约</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%90%BD%E5%9C%B0%E6%A3%80%E6%9F%A5"><span class="nav-number">7.</span> <span class="nav-text">落地检查</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">8.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -242,7 +242,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 11:06:40" itemprop="dateModified" datetime="2026-06-18T11:06:40+08:00">2026-06-18</time>
+      <time title="Modified: 2026-06-18 11:49:03" itemprop="dateModified" datetime="2026-06-18T11:49:03+08:00">2026-06-18</time>
     </span>
 
   
@@ -274,6 +274,15 @@
 <li>错误来自声学识别、模态对齐还是语言生成。</li>
 </ul>
 <p>一个实用排查顺序是先看 ASR 能力，再看对齐层，再看 LLM 生成。如果基础转写已经不稳定，直接调 prompt 或扩大 LLM 很难解决问题。</p>
+<h2 id="设计取舍"><a href="#设计取舍" class="headerlink" title="设计取舍"></a>设计取舍</h2><p>音频 token 契约至少包含四件事。第一是 token 数量：同一段音频经过 encoder、下采样和 projector 后到底变成多少个 token。这个数字决定上下文成本，也影响长音频是否可用。第二是位置关系：音频 token 插入到文本序列的哪个位置，是否需要特殊 token 标记开始、结束和角色。</p>
+<p>第三是 mask 语义：LLM attention 是否可以跨模态自由看，训练标签是否只落在文本输出位置。第四是训练和推理一致性：训练时使用的特殊 token、模板和长度规则，推理时必须完全一致。</p>
+<p>CTC&#x2F;AED 辅助目标也不是越多越好。CTC 可以提供帧级约束，AED 可以增强序列生成能力，但如果某个分支 loss 长期不下降，或者拖累主分支，就要先做独立 overfit 测试。一个小数据集上都无法收敛的分支，不会因为接到更大的 LLM 上就自动变好。</p>
+<h2 id="失败归因"><a href="#失败归因" class="headerlink" title="失败归因"></a>失败归因</h2><p>Speech-LLM 的错误要避免直接归因到模型不够大。如果音频 token 数量异常，先查前端长度、下采样和特殊 token 插入。如果训练 loss 不稳定，先查 label mask 是否只作用在应该监督的位置。如果推理输出缺字或重复，查训练模板和推理模板是否一致。如果流式输出频繁回滚，查 partial 生成和语义决策是否共用了不稳定上下文。</p>
+<p>这些问题都属于接口契约，而不是单纯能力问题。契约不稳时，换更强 LLM 只会把错误包装得更流畅。</p>
+<h2 id="实现契约"><a href="#实现契约" class="headerlink" title="实现契约"></a>实现契约</h2><p>建议给每次训练和推理都落一份对齐摘要：audio seconds、encoder frames、speech tokens、text tokens、special tokens、label mask ratio、CTC loss、AED loss、generation loss。</p>
+<p>这份摘要能快速发现异常样本：音频过长、token 膨胀、mask 比例异常、辅助 loss 不收敛、模板不一致。它比最终转写文本更接近问题源头。</p>
+<h2 id="落地检查"><a href="#落地检查" class="headerlink" title="落地检查"></a>落地检查</h2><p>最小验证集应该包含短音频、长音频、静音、带噪音频、纯转写任务和语义回答任务。每个样本都记录音频秒数、encoder 帧数、speech token 数、文本 token 数、特殊 token 数和 label mask 比例。只要这些数字有异常，先修对齐契约，不要急着看最终回答。</p>
+<p>训练早期也要分别看辅助分支。CTC loss 稳定下降但生成 loss 不动，问题可能在 projector 或 LLM 监督；生成 loss 下降但 CTC 不动，说明声学侧约束没有真正起作用；两个都不动，优先检查 mask、模板和数据读取。</p>
 <h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Speech-LLM 的工程边界在音频 token 契约，而不是模型名字。先定义清楚音频如何压缩、如何接入 LLM、如何监督、如何流式输出，再比较 Qwen3-ASR、Qwen-Omni、WeNet 或其他方案。</p>
 <p>下一步阅读：<a href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/">LLM 与语音模型推理服务：队列、流式与可观测性</a></p>
 

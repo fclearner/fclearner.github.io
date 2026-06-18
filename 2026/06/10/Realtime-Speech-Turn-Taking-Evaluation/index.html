@@ -28,7 +28,7 @@
 <meta property="og:description" content="实时语音系统里，判断用户“说完了”比看起来更难。静音不一定代表结束，短停顿可能只是思考；语义已经完整，也可能还会补充条件。Turn-taking 要解决的不是单纯端点检测，而是系统什么时候可以安全接话。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T10:05:00.000Z">
-<meta property="article:modified_time" content="2026-06-18T03:07:34.905Z">
+<meta property="article:modified_time" content="2026-06-18T03:49:03.180Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="ASR">
 <meta property="article:tag" content="Evaluation">
@@ -161,7 +161,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E5%8F%96%E8%88%8D"><span class="nav-number">4.</span> <span class="nav-text">设计取舍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%E7%9F%A9%E9%98%B5"><span class="nav-number">5.</span> <span class="nav-text">评测矩阵</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%B1%E8%B4%A5%E5%BD%92%E5%9B%A0"><span class="nav-number">6.</span> <span class="nav-text">失败归因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%90%BD%E5%9C%B0%E6%A3%80%E6%9F%A5"><span class="nav-number">7.</span> <span class="nav-text">落地检查</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">8.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -242,7 +242,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 11:07:34" itemprop="dateModified" datetime="2026-06-18T11:07:34+08:00">2026-06-18</time>
+      <time title="Modified: 2026-06-18 11:49:03" itemprop="dateModified" datetime="2026-06-18T11:49:03+08:00">2026-06-18</time>
     </span>
 
   
@@ -268,6 +268,15 @@
 <p>第二类是打断率：系统是否在用户还没说完时抢答。</p>
 <p>第三类是漏接或慢接：用户已经说完但系统迟迟不响应。</p>
 <p>离线评测可以用标注的 turn boundary；在线评测还要记录 partial 变化、ASR 回滚、semantic end 分数和最终用户体验。</p>
+<h2 id="设计取舍"><a href="#设计取舍" class="headerlink" title="设计取舍"></a>设计取舍</h2><p>Turn-taking 不能只由静音触发。静音适合发现候选边界，但最终是否接话要结合语义、partial 稳定性和系统动作成本。</p>
+<p>如果系统接话后还能轻量撤回，那么可以接受更激进的策略；如果一旦开口就会造成明显打断，就要更保守。也就是说，turn-taking 模型不能脱离交互协议单独评估。它输出的不是是否结束这个事实，而是现在行动是否值得的决策。</p>
+<p>实时语音里还有一个常见矛盾：低首包延迟要求模型尽快给出 partial，语义判断却依赖更稳定的上下文。工程上可以把两者分开：识别层尽早输出候选，决策层用稳定度、回滚风险和语义完整度决定是否接话。</p>
+<h2 id="评测矩阵"><a href="#评测矩阵" class="headerlink" title="评测矩阵"></a>评测矩阵</h2><p>更细的评测可以把每个候选边界分成四种结果。正确接话：语义已完成，系统及时响应。过早接话：用户后续仍在补充，系统造成打断。过晚接话：用户已完成，但系统等待过长。正确等待：静音只是短暂停顿，系统没有抢话。</p>
+<p>这四类要分别统计，不要合并成单一准确率。因为过早接话和过晚接话的修复方向相反：前者需要提高语义完成阈值或回滚风险权重，后者需要放松等待策略或优化模型延迟。</p>
+<h2 id="失败归因"><a href="#失败归因" class="headerlink" title="失败归因"></a>失败归因</h2><p>Turn-taking 的错误通常不是某个阈值单点失败，而是多个信号冲突。静音持续时间足够长，但 partial 仍在变化；语义看似完整，但用户语气里还有列举；模型判断可接话，但下游生成首包太慢，最终体验仍然迟钝。</p>
+<p>因此，日志里不能只记录最终 decision。至少要保留候选边界、静音时长、partial 历史、语义分数、回滚次数、实际响应时间和用户后续是否继续说。这样才能判断问题来自识别、语义判断还是系统调度。</p>
+<h2 id="落地检查"><a href="#落地检查" class="headerlink" title="落地检查"></a>落地检查</h2><p>Turn-taking 的第一版评测可以从时间线回放开始。把音频能量、partial 文本、semantic end 分数、静音时长、决策点和真实后续语音放在同一条 timeline 上。只要能看到系统在什么信号组合下接话，阈值调整就不会变成盲调。</p>
+<p>另一个实用检查是把错误按用户后续行为分桶：继续补充、重复同一句、沉默等待、纠正系统。不同分桶对应不同损失。继续补充时被接话是打断问题；沉默等待但系统迟迟不动是慢接问题；重复同一句可能说明前一轮接话时机或反馈不清楚。</p>
 <h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Turn-taking 不是 VAD 的别名，而是声学、语义和延迟预算共同决定的接话策略。先把 partial、semantic end、silence 和 latency 分开记录，再调阈值或训练模型。</p>
 <p>下一步阅读：<a href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/">LLM 与语音模型推理服务：先把延迟拆成可观测链路</a></p>
 

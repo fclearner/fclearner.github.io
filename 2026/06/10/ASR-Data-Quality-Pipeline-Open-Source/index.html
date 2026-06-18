@@ -28,7 +28,7 @@
 <meta property="og:description" content="ASR 数据工程最容易被低估。模型指标波动时，很多人先调模型结构，但真正的问题常常在数据：切分不稳、伪标签质量不清、噪声样本混入、热词和实体覆盖不足、评测集不可追溯。 一条可用的数据质量流水线，核心不是“多收一点音频”，而是让每个样本都能解释来源、标签、置信度和进入训练集的理由。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T09:25:00.000Z">
-<meta property="article:modified_time" content="2026-06-18T03:07:33.311Z">
+<meta property="article:modified_time" content="2026-06-18T03:49:03.151Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="ASR">
 <meta property="article:tag" content="Data">
@@ -161,7 +161,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E5%8F%96%E8%88%8D"><span class="nav-number">4.</span> <span class="nav-text">设计取舍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%E7%9F%A9%E9%98%B5"><span class="nav-number">5.</span> <span class="nav-text">评测矩阵</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%B1%E8%B4%A5%E5%BD%92%E5%9B%A0"><span class="nav-number">6.</span> <span class="nav-text">失败归因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%90%BD%E5%9C%B0%E6%A3%80%E6%9F%A5"><span class="nav-number">7.</span> <span class="nav-text">落地检查</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">8.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -242,7 +242,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 11:07:33" itemprop="dateModified" datetime="2026-06-18T11:07:33+08:00">2026-06-18</time>
+      <time title="Modified: 2026-06-18 11:49:03" itemprop="dateModified" datetime="2026-06-18T11:49:03+08:00">2026-06-18</time>
     </span>
 
   
@@ -270,6 +270,15 @@
 <p>第三层是伪标签仲裁：多模型一致性、置信度、CER&#x2F;WER 估计、人工抽检和 reason code。</p>
 <p>第四层是评测追踪：每次训练记录数据版本、过滤规则、评测集版本和失败样本分布。</p>
 <p>只有这四层都可追溯，才能在指标波动时定位到具体数据决策。</p>
+<h2 id="设计取舍"><a href="#设计取舍" class="headerlink" title="设计取舍"></a>设计取舍</h2><p>噪声标签不能简单等价为忽略。例如在文本里加入 NOISE 这类 token，看起来是在告诉模型这里是背景声，但它仍然是一个 non-blank 目标。模型会被训练成在某些声学区域输出这个 token，而不是保持 CTC blank。</p>
+<p>这会带来两个问题。第一，背景声和非目标语音可能被显式建模成输出类别，影响正常文本边界。第二，如果评测时把这些 token 过滤掉，训练目标和评测目标会不一致，指标看起来稳定，但错误已经进入声学表示。</p>
+<p>更稳的做法是把噪声、非目标语音、不可判定片段和文本标签分层记录。某个片段可以在数据账本里标记为噪声或低可信，但不一定要把这个状态直接塞进 transcript。训练阶段再根据任务决定是丢弃、降权、mask，还是作为单独辅助目标。</p>
+<h2 id="评测矩阵"><a href="#评测矩阵" class="headerlink" title="评测矩阵"></a>评测矩阵</h2><p>质量流水线至少要同时看三张表。第一张是样本表：每个样本的音频质量、文本质量、伪标签来源、保留原因和过滤原因。第二张是指标表：WER&#x2F;CER、插入、删除、替换、关键实体召回、长短音频分桶、噪声分桶。第三张是回流表：训练后变差的样本是否集中在某个来源、某个过滤规则或某个规范化版本。</p>
+<p>这三张表要能互相 join。否则评测只能告诉你变差了，却不能告诉你哪类数据决策让它变差。</p>
+<h2 id="失败归因"><a href="#失败归因" class="headerlink" title="失败归因"></a>失败归因</h2><p>ASR 数据问题最怕混合归因。漏标、错标、低信噪比、非目标人声、热词错误和 ITN 错误会同时出现，如果只看总体 WER，所有问题都会被平均掉。</p>
+<p>建议把失败样本至少归到四类：声学不可辨、文本标签错误、切片边界错误、规范化错误。每一类再保留样本级 reason code。这样训练波动才能回到数据决策，而不是每次都从模型参数重新猜起。</p>
+<h2 id="落地检查"><a href="#落地检查" class="headerlink" title="落地检查"></a>落地检查</h2><p>真正开始治理数据时，可以先抽一百条问题样本做人工复盘，而不是直接全量改规则。每条样本都问四个问题：音频本身是否可辨，切片边界是否合理，文本标签是否可信，规范化是否改变了语义。四个问题里只要有一个答不上来，这条样本就不该作为高置信训练样本进入主集。</p>
+<p>规则更新也要可回滚。新增过滤条件时，保留命中样本列表；修改文本规范化时，保留修改前后的 diff；调整伪标签阈值时，保留被移入和移出的样本。这样下一轮模型波动时，才能把变化定位到具体规则，而不是重新怀疑整条流水线。</p>
 <h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>ASR 数据质量流水线的目标不是一次性清洗干净，而是把样本生命周期变成可审计过程。pseudo-label 可以用，但必须带来源、置信度、过滤原因和评测回流。</p>
 <p>下一步阅读：<a href="/2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/">ASR 噪声下的结构化抽取评测：从文本相似到实体归因</a></p>
 

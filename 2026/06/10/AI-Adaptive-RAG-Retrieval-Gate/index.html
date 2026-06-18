@@ -28,7 +28,7 @@
 <meta property="og:description" content="上一篇把 Adaptive RAG 的问题收束到一个工程动作：先做显式 retrieval gate。它不是为了替代 Self-RAG、FLARE 或 DRAGIN，而是先给系统建立一个可观测的判断层：当前状态到底该不该检索。 这篇继续往下走，讨论 retrieval gate 应该吃什么信号、输出什么结论，以及怎么评测它。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T09:10:00.000Z">
-<meta property="article:modified_time" content="2026-06-18T03:08:50.327Z">
+<meta property="article:modified_time" content="2026-06-18T03:47:34.901Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="AI">
 <meta property="article:tag" content="LLM">
@@ -161,7 +161,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E5%8F%96%E8%88%8D"><span class="nav-number">4.</span> <span class="nav-text">设计取舍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%E7%9F%A9%E9%98%B5"><span class="nav-number">5.</span> <span class="nav-text">评测矩阵</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%B1%E8%B4%A5%E5%BD%92%E5%9B%A0"><span class="nav-number">6.</span> <span class="nav-text">失败归因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">7.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -242,7 +242,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 11:08:50" itemprop="dateModified" datetime="2026-06-18T11:08:50+08:00">2026-06-18</time>
+      <time title="Modified: 2026-06-18 11:47:34" itemprop="dateModified" datetime="2026-06-18T11:47:34+08:00">2026-06-18</time>
     </span>
 
   
@@ -275,6 +275,13 @@
 <h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>Gate 之后通常接 query builder。这里要避免把模型尚未验证的猜测直接写进 query。模型猜出的实体应该标记成 assumption，而不是事实。</p>
 <p>评测 gate 时，需要单独标注 <code>should_retrieve</code>、触发原因、实际决策、检索后证据是否支持答案，以及最终答案是否因检索改善。核心指标包括 trigger precision、trigger recall 和 support gain。</p>
 <p>要警惕一个假阳性：检索发生了，答案也对了，但证据并没有支撑答案。这个样本不能算 retrieval gate 成功，因为系统只是多走了一步碰巧没有坏掉。</p>
+<h2 id="设计取舍"><a href="#设计取舍" class="headerlink" title="设计取舍"></a>设计取舍</h2><p>Retrieval Gate 的训练信号有三种来源。第一种是人工标注，直接标出某一步是否需要检索；它最清晰，但成本高。第二种是弱监督，根据答案是否依赖外部证据、检索后是否改善、无检索是否出错来反推标签。第三种是在线反馈，把引用证据、回退和人工修正变成 gate 的长期信号。</p>
+<p>工程上更常见的是混合策略：先用规则保护高风险场景，再用弱监督扩大样本，最后用人工抽检校准边界。不要一开始就把 gate 完全交给模型，因为 gate 的错误会改变后续上下文，错误样本也会变得难以解释。</p>
+<p>证据预算也要和 retrieval gate 绑定。retrieve&#x3D;true 不代表无限拉文档。gate 应该同时输出预算：查几个 query、每个 query 取几段、是否需要 rerank、是否需要二次检索。这样检索才是有成本意识的动作。</p>
+<h2 id="评测矩阵"><a href="#评测矩阵" class="headerlink" title="评测矩阵"></a>评测矩阵</h2><p>Retrieval Gate 的评测不能只看最终 QA 分数。至少需要 trigger precision、trigger recall、unnecessary retrieval rate、evidence support rate 和 answer attribution rate。</p>
+<p>trigger recall 低说明 gate 太保守；trigger precision 低说明检索噪声多；evidence support rate 低说明 query 或 retriever 有问题；answer attribution rate 低说明生成层没有正确使用证据。把这些指标拆开，才能知道下一步该调 gate、改 query、换证据组织，还是修生成模板。</p>
+<h2 id="失败归因"><a href="#失败归因" class="headerlink" title="失败归因"></a>失败归因</h2><p>最典型的坏 gate 有三种。第一种是焦虑型 gate，一不确定就查，导致系统成本高、上下文噪声多。第二种是自信型 gate，模型语言很流畅，却在缺事实时跳过检索。第三种是追随型 gate，根据已经生成的错误中间结论继续检索，把错误路径越走越深。</p>
+<p>排查时不要只看最终答案。要回放每一次 gate 输入、gate 输出、query、证据和生成片段。只要能定位到该查没查、不该查却查、query 写错还是证据没用上，Adaptive RAG 才具备可迭代性。</p>
 <h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>retrieval gate 的价值不是让 Adaptive RAG 看起来更复杂，而是把检索从隐式 prompt 技巧变成显式责任边界。它负责判断何时查证、为什么查证、查什么、查到什么程度，以及失败时如何降级。</p>
 <p>当 gate、query builder、retriever、reranker、evidence validator 都有日志和指标时，RAG 才能进入真正的工程迭代。否则每次效果波动都只能归因给“模型不稳定”。</p>
 <p>下一步阅读：<a href="/2026/06/10/Agentic-Coding-Governance/">Agentic Coding 工程治理：多模型协作先定义责任边界</a></p>
