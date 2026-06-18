@@ -18,4 +18,4 @@
 - [x] Audit all public posts against the sitewide depth standard.
 - [x] Add thesis and small-sample reasoning to foundation, operational, Radar, and Adaptive RAG posts where missing.
 - [x] Harden generated-site checks so future public posts keep the same readability bar.
-- [ ] Rebuild, run full verification, and publish source plus Pages output.
+- [x] Rebuild, run full verification, and publish source plus Pages output.
