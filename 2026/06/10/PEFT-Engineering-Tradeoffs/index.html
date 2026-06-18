@@ -28,7 +28,7 @@
 <meta property="og:description" content="PEFT 常被理解成“少训练一些参数”。这句话没错，但它只说了训练成本，没有说清楚工程边界。真正的选择不是参数越少越好，而是训练显存、适配能力、推理开销、上下文占用、版本管理和回滚方式之间的取舍。 如果不把这些约束写清楚，LoRA、Prefix-Tuning、P-Tuning、QLoRA 很容易被比较成一张简单榜单，而不是可复用的工程组件。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T09:30:00.000Z">
-<meta property="article:modified_time" content="2026-06-18T03:47:35.005Z">
+<meta property="article:modified_time" content="2026-06-18T06:01:21.958Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="Fine-tuning">
 <meta property="article:tag" content="LLM">
@@ -161,7 +161,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E5%8F%96%E8%88%8D"><span class="nav-number">4.</span> <span class="nav-text">设计取舍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%E7%9F%A9%E9%98%B5"><span class="nav-number">5.</span> <span class="nav-text">评测矩阵</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%B1%E8%B4%A5%E5%BD%92%E5%9B%A0"><span class="nav-number">6.</span> <span class="nav-text">失败归因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">7.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E5%88%A4%E6%96%AD"><span class="nav-number">2.</span> <span class="nav-text">主线判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">3.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">4.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E7%9B%B4%E8%A7%89%E7%82%B9"><span class="nav-number">5.</span> <span class="nav-text">反直觉点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%E8%AE%BE%E8%AE%A1"><span class="nav-number">6.</span> <span class="nav-text">评测设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%92%E9%9A%9C%E8%B7%AF%E5%BE%84"><span class="nav-number">7.</span> <span class="nav-text">排障路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B7%E6%9C%AC%E6%8E%A8%E6%BC%94"><span class="nav-number">8.</span> <span class="nav-text">小样本推演</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">9.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -242,7 +242,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 11:47:35" itemprop="dateModified" datetime="2026-06-18T11:47:35+08:00">2026-06-18</time>
+      <time title="Modified: 2026-06-18 14:01:21" itemprop="dateModified" datetime="2026-06-18T14:01:21+08:00">2026-06-18</time>
     </span>
 
   
@@ -261,6 +261,8 @@
 <h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>全量微调成本高、版本重、回滚慢。PEFT 的目标是让模型在较低训练成本下适配新任务，同时尽量不破坏基础模型能力。</p>
 <p>但“低成本”有不同含义。LoRA 省的是可训练参数和显存；Prefix-Tuning 省的是模型权重改动，但占用上下文或 attention 前缀；QLoRA 降低训练显存，但引入量化配置和稳定性问题。</p>
 <p>所以 PEFT 选择的第一步不是问哪个方法更先进，而是问当前瓶颈在哪里：训练显存、数据规模、推理延迟、多任务切换，还是上线回滚。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>这篇文章的主线不是“哪种 PEFT 方法参数最少”，而是：PEFT 方法本质上是在选择训练图和部署形态。</p>
+<p>LoRA、Prefix-Tuning、P-Tuning、QLoRA 的差异不只在可训练参数量，而在它们如何改变显存、上下文窗口、推理路径、adapter 管理、合并策略和回滚方式。省参数只是入口，部署边界才是决策依据。</p>
 <h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 PEFT 方法按“改哪里”来理解。</p>
 <p>LoRA 在权重矩阵旁边加入低秩更新。它生态成熟、训练稳定、容易合并到基础模型，也适合多 adapter 管理。它的主要变量是 rank、target modules、alpha、dropout、学习率和数据规模。</p>
 <p>Prefix-Tuning 和 P-Tuning 把可训练信息放到输入或注意力前缀里。它们和模型主体解耦更强，但会改变上下文窗口和缓存形态。如果任务本身已经依赖长上下文，前缀成本不能忽略。</p>
@@ -270,13 +272,15 @@
 
 <p>这个 registry 的价值在部署阶段才会显现。多 adapter 是否动态加载，是否共享 batch，是否合并权重，合并后如何版本化，推理框架是否支持对应 dtype，都会影响线上复杂度。</p>
 <p>如果没有 registry，团队很容易把 prompt 改动、数据变更和 adapter 行为混在一起，最后无法复现实验结果。</p>
-<h2 id="设计取舍"><a href="#设计取舍" class="headerlink" title="设计取舍"></a>设计取舍</h2><p>一个实用选择顺序是：默认从 LoRA 或 QLoRA 开始，只有当部署约束明确指向前缀方法时，再考虑 Prefix-Tuning 或 P-Tuning。</p>
-<p>原因很简单。LoRA 的训练、合并、分发、回滚和多 adapter 管理都更成熟，也不会额外消耗文本上下文。长上下文任务尤其要谨慎使用前缀方法，因为前缀占用的是最稀缺的上下文预算。</p>
-<p>但 LoRA 也不是无脑默认。如果线上需要非常频繁地切换大量轻量任务，且服务框架对动态 adapter 支持不稳，前缀方法的解耦性可能有优势。如果训练显存是主要瓶颈，QLoRA 可以先把可行性跑通，再决定是否用更高精度重训。</p>
-<h2 id="评测矩阵"><a href="#评测矩阵" class="headerlink" title="评测矩阵"></a>评测矩阵</h2><p>PEFT 对照实验至少要固定四件事：同一个 base model、同一批训练数据、同一套 eval set、同一套推理模板。否则方法差异会被数据和 prompt 差异掩盖。</p>
-<p>指标也要拆开看：任务效果、训练显存、训练时长、推理延迟、上下文占用、合并后效果、回滚成本。只有任务分数没有成本指标，选型会偏向离线最优；只有成本没有效果指标，又容易得到一个便宜但不可用的 adapter。</p>
-<h2 id="失败归因"><a href="#失败归因" class="headerlink" title="失败归因"></a>失败归因</h2><p>PEFT 失败常见于三个地方。第一，target modules 选错，adapter 没有作用到关键路径。第二，数据太少或太窄，adapter 只记住格式。第三，评测没有区分基础能力保持和目标任务提升，导致模型在目标样本上看似变好，却牺牲了通用能力。</p>
-<p>因此，每次 PEFT 实验都要保留基线模型、目标任务集、通用保持集和失败样本。没有这些对照，方法选择就会变成经验偏好。</p>
+<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>参数更少不一定更简单。Prefix-Tuning 和 P-Tuning 看起来不改模型主体，但会占用上下文或改变 attention 前缀形态。对长上下文任务来说，前缀消耗的是最稀缺的资源。</p>
+<p>LoRA 往往是更稳的默认起点，不是因为它永远最好，而是因为训练、合并、分发、回滚和多 adapter 管理更成熟。QLoRA 能降低显存门槛，但 dtype、量化配置、优化器状态和梯度检查点都会影响稳定性。</p>
+<p>所以选型不要从方法名开始，而要从瓶颈开始：训练显存不足、数据较少、推理延迟敏感、多任务切换频繁、还是上线回滚成本高。</p>
+<h2 id="评测设计"><a href="#评测设计" class="headerlink" title="评测设计"></a>评测设计</h2><p>PEFT 对照实验至少固定四件事：同一个 base model、同一批训练数据、同一套 eval set、同一套推理模板。否则方法差异会被数据和 prompt 差异掩盖。</p>
+<p>指标要拆成两组。训练侧看显存、训练时长、收敛稳定性、目标任务提升和通用能力保持。部署侧看推理延迟、上下文占用、adapter 加载方式、合并后效果、版本化和 rollback path。</p>
+<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>PEFT 失败常见于三个地方。第一，target modules 选错，adapter 没有作用到关键路径。第二，数据太少或太窄，adapter 只记住格式。第三，评测没有区分基础能力保持和目标任务提升，导致模型在目标样本上看似变好，却牺牲了通用能力。</p>
+<p>因此，每次实验都要保留 adapter registry：base model、dataset version、target modules、rank、alpha、dropout、learning rate、quantization config、eval set、merge status、serving runtime 和 rollback path。没有 registry，就无法复现一次看似成功的微调。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>如果任务依赖长上下文，Prefix-Tuning 看起来参数少，实际上可能把上下文预算吃掉，导致有效输入被挤压。如果部署要求频繁切换多个轻量任务，LoRA 的 adapter 管理和动态加载能力就比单次训练分数更重要。如果训练显存是唯一瓶颈，QLoRA 可以先验证方向，但不能跳过精度和稳定性复核。</p>
+<p>所以 PEFT 选型应该像系统设计，而不是像排行榜。先写清楚当前限制：显存、延迟、上下文、切换频率、合并策略、回滚成本。再用小规模实验验证方法，而不是先选一个热门方法再解释它为什么合适。</p>
 <h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>PEFT 是一组工程组件，不是一个统一算法。LoRA、Prefix-Tuning、P-Tuning、QLoRA 的核心差异，不只是训练参数量，而是它们如何改变训练图、上下文窗口、推理路径和版本管理。</p>
 <p>选型时先写清楚瓶颈，再做小规模对照实验；上线前先确认 adapter registry、评测集、合并策略和回滚路径。否则省下的训练成本会在部署和排障阶段还回去。</p>
 <p>下一步阅读：<a href="/2026/06/10/Speech-LLM-Audio-Token-Alignment/">语音大模型工程：音频 token、LLM 主干与对齐契约</a></p>

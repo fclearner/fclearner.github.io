@@ -28,7 +28,7 @@
 <meta property="og:description" content="同一个音频，batch size 不同却输出不同，这是音频模型排障里很典型的问题。它通常不是“模型随机性”一句话能解释的，而是 padding、mask、dtype、subsampling、归一化或缓存边界出了问题。 排查这类问题，关键是把有效输入区间和逐层差异记录下来。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T10:10:00.000Z">
-<meta property="article:modified_time" content="2026-06-18T03:49:03.190Z">
+<meta property="article:modified_time" content="2026-06-18T06:01:21.908Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="ASR">
 <meta property="article:tag" content="Debugging">
@@ -161,7 +161,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E5%8F%96%E8%88%8D"><span class="nav-number">4.</span> <span class="nav-text">设计取舍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%B1%E8%B4%A5%E5%BD%92%E5%9B%A0"><span class="nav-number">5.</span> <span class="nav-text">失败归因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E5%A5%91%E7%BA%A6"><span class="nav-number">6.</span> <span class="nav-text">实现契约</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%90%BD%E5%9C%B0%E6%A3%80%E6%9F%A5"><span class="nav-number">7.</span> <span class="nav-text">落地检查</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">8.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E5%88%A4%E6%96%AD"><span class="nav-number">2.</span> <span class="nav-text">主线判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">3.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">4.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E7%9B%B4%E8%A7%89%E7%82%B9"><span class="nav-number">5.</span> <span class="nav-text">反直觉点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%92%E9%9A%9C%E8%B7%AF%E5%BE%84"><span class="nav-number">6.</span> <span class="nav-text">排障路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E5%A5%91%E7%BA%A6"><span class="nav-number">7.</span> <span class="nav-text">实现契约</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B7%E6%9C%AC%E6%8E%A8%E6%BC%94"><span class="nav-number">8.</span> <span class="nav-text">小样本推演</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">9.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -242,7 +242,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 11:49:03" itemprop="dateModified" datetime="2026-06-18T11:49:03+08:00">2026-06-18</time>
+      <time title="Modified: 2026-06-18 14:01:21" itemprop="dateModified" datetime="2026-06-18T14:01:21+08:00">2026-06-18</time>
     </span>
 
   
@@ -260,6 +260,8 @@
 
 <h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>批量推理会把不同长度音频 pad 到同一形状。理论上，mask 应该保证 padding 不影响有效区域。但实际实现里，卷积、subsampling、attention、归一化和 dtype 转换都可能让 padding 泄漏进有效输出。</p>
 <p>如果只比较最终文本，很难定位问题。需要比较中间层。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>这篇文章的主线不是“batch 输出不一致怎么办”，而是：音频 batch 问题要用第一差异层定位，而不是盯着最终文本猜。</p>
+<p>最终转写已经经过 encoder、subsampling、mask、解码和后处理，任何一处小数值差异都可能被放大。真正有价值的是找到第一个 divergence 出现的位置。</p>
 <h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>排查对象可以写成：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">single_sample_output</span><br><span class="line">batched_output</span><br><span class="line">valid_frame_range</span><br><span class="line">mask</span><br><span class="line">dtype</span><br><span class="line">layer_diffs</span><br></pre></td></tr></table></figure>
 
@@ -275,15 +277,15 @@
 <li>cache 或 streaming state 是否被错误复用。</li>
 </ol>
 <p>最终报告不要只写“batch 不一致”，而要记录最早出现差异的层、差异量级、影响的有效区间和修复后的回归样本。</p>
-<h2 id="设计取舍"><a href="#设计取舍" class="headerlink" title="设计取舍"></a>设计取舍</h2><p>Batch 一致性排查要避免两个误区。第一个误区是先怀疑随机性。推理模式下如果 dropout 已关闭、输入一致、随机种子固定，单样本和批样本仍然不同，优先怀疑边界处理，而不是把问题归因成不可控随机。</p>
-<p>第二个误区是只看 padding。很多模型的有效输入区间在 subsampling 后会变化，如果 length 没有同步更新，后续 attention mask 看起来存在，实际上已经和 hidden states 的时间轴错位。此时 padding 没有直接进入输入，但它通过错误长度间接污染了输出。</p>
-<p>更高效的策略是先做最小复现：同一个样本重复组成 batch，观察结果是否一致；再加入不同长度样本，观察差异是否随 padding 长度变化；最后逐层 hook，找到第一层 divergence。</p>
-<h2 id="失败归因"><a href="#失败归因" class="headerlink" title="失败归因"></a>失败归因</h2><p>一个可靠的排查结论应该能排除候选原因。如果单样本重复 batch 仍然不一致，问题大概率在 batch 维处理、归一化或并行路径。如果只有混合长度 batch 不一致，重点看 padding、mask 和 length 更新。如果前两层差异极小，第三层突然放大，就要进一步 hook 第三层内部模块，看是 attention、卷积、norm 还是残差路径把误差放大。</p>
-<p>这种第一差异层比最终文本更有价值。最终文本可能因为 beam search 或 CTC collapse 放大很小的数值差异，而第一差异层能告诉你错误真正开始的位置。</p>
-<h2 id="实现契约"><a href="#实现契约" class="headerlink" title="实现契约"></a>实现契约</h2><p>建议把 batch 一致性做成回归测试，而不是临时 notebook。测试集至少包含短音频、长音频、相同音频重复 batch、不同长度混合 batch、极短静音和接近最大长度的样本。每个样本保留输入长度、subsampling 后长度、mask 形状、关键层 diff 和最终输出 diff。</p>
-<p>阈值也要分层。浮点 hidden state 可以允许极小误差，离散输出则应该完全一致或有明确豁免。这样修复后才能防止同类问题在后续优化里重新出现。</p>
-<h2 id="落地检查"><a href="#落地检查" class="headerlink" title="落地检查"></a>落地检查</h2><p>排查时可以先固定一个最小样本包：A 单独推理、A+A 组成 batch、A+B 组成混合长度 batch、A+长静音组成极端 padding batch。四组结果一跑，基本能判断问题是 batch 维本身、长度混合、padding 泄漏，还是特殊输入触发。</p>
-<p>hook 层输出时不要只存最终 diff。建议记录每层有效区间内的 max diff、mean diff、是否出现 NaN、mask 形状和 length 张量。若某层之前 diff 接近零，某层之后突然放大，下一步就只需要拆这一层内部路径，而不是继续在全模型里搜索。</p>
+<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>不要先怀疑随机性。推理模式下如果 dropout 关闭、输入一致、随机种子固定，单样本和 batch 输出仍然不同，优先怀疑边界处理。padding、mask、subsampling length、归一化和缓存复用都比“模型随机”更常见。</p>
+<p>也不要只看 padding。很多音频模型在 subsampling 后会改变时间轴长度，如果 length 没有同步更新，attention mask 看起来存在，实际已经错位。此时 padding 并不是直接污染输入，而是通过错误长度污染后续层。</p>
+<p>dtype 也不能一开始背锅。混合精度会放大小误差，但如果第一差异层出现在 mask 或 length 之后，根因通常还是边界契约，而不是浮点精度。</p>
+<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>最小复现包可以固定四组：A 单独推理，A+A 组成 batch，A+B 组成混合长度 batch，A+长静音组成极端 padding batch。四组结果一跑，就能初步判断问题是 batch 维处理、长度混合、padding 泄漏，还是特殊输入触发。</p>
+<p>随后 hook 中间层。每层记录有效区间内 max diff、mean diff、是否出现 NaN、mask 形状和 length 张量。若前两层 diff 接近零，第三层突然放大，就拆第三层内部路径：attention、卷积、norm、残差、缓存。</p>
+<h2 id="实现契约"><a href="#实现契约" class="headerlink" title="实现契约"></a>实现契约</h2><p>Batch 一致性应该进入回归测试，而不是停留在 notebook。测试样本要覆盖短音频、长音频、同音频重复 batch、不同长度混合 batch、极短静音和接近最大长度的样本。</p>
+<p>阈值也要分层。hidden state 允许极小浮点误差，离散输出应该完全一致或有明确豁免。报告里写清楚第一差异层、差异量级、有效区间和修复后的回归样本，后续优化才不会把同类 bug 带回来。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>如果 A 单独推理和 A+A batch 结果不同，优先查 batch 维、归一化和并行路径；如果 A 单独推理和 A+A 一致，但 A+B 不一致，重点转向长度混合、padding 和 mask；如果只有 A+长静音出问题，极端 padding 很可能触发了边界 bug。</p>
+<p>这三个分叉能快速缩小范围。随后逐层 diff：若输入特征一致、前两层一致、第三层开始放大，就不要再盯最终文本或 beam search，而要拆第三层内部。排障的目标不是解释所有现象，而是找到第一处不该出现的差异。</p>
 <h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Batch 一致性问题的核心是边界控制。只要 batch 推理引入 padding，就必须验证 mask、subsampling、dtype 和缓存不会污染有效帧。逐层 diff 比反复猜参数更可靠。</p>
 <p>下一步阅读：<a href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/">LLM 与语音模型推理服务：先把延迟拆成可观测链路</a></p>
 

@@ -28,7 +28,7 @@
 <meta property="og:description" content="推理服务的问题经常被简化成“换更快的框架”。vLLM、SGLang、Triton 都很重要，但如果系统不能解释一次请求的延迟来自排队、预填充、解码、音频前端、网络还是后处理，换框架只是碰运气。 语音和 LLM 结合后，延迟问题更复杂：音频切片、流式 partial、模型队列、token 生成和系统超时会叠在一起。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T09:40:00.000Z">
-<meta property="article:modified_time" content="2026-06-18T03:49:03.210Z">
+<meta property="article:modified_time" content="2026-06-18T06:01:21.933Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="Engineering">
 <meta property="article:tag" content="Inference">
@@ -161,7 +161,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">3.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E5%8F%96%E8%88%8D"><span class="nav-number">4.</span> <span class="nav-text">设计取舍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E8%A7%82%E6%B5%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">5.</span> <span class="nav-text">可观测闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%B1%E8%B4%A5%E5%BD%92%E5%9B%A0"><span class="nav-number">6.</span> <span class="nav-text">失败归因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%90%BD%E5%9C%B0%E6%A3%80%E6%9F%A5"><span class="nav-number">7.</span> <span class="nav-text">落地检查</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">8.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E5%88%A4%E6%96%AD"><span class="nav-number">2.</span> <span class="nav-text">主线判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">3.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">4.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E7%9B%B4%E8%A7%89%E7%82%B9"><span class="nav-number">5.</span> <span class="nav-text">反直觉点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E8%A7%82%E6%B5%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">6.</span> <span class="nav-text">可观测闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%92%E9%9A%9C%E8%B7%AF%E5%BE%84"><span class="nav-number">7.</span> <span class="nav-text">排障路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B7%E6%9C%AC%E6%8E%A8%E6%BC%94"><span class="nav-number">8.</span> <span class="nav-text">小样本推演</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">9.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -242,7 +242,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 11:49:03" itemprop="dateModified" datetime="2026-06-18T11:49:03+08:00">2026-06-18</time>
+      <time title="Modified: 2026-06-18 14:01:21" itemprop="dateModified" datetime="2026-06-18T14:01:21+08:00">2026-06-18</time>
     </span>
 
   
@@ -260,6 +260,8 @@
 
 <h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>线上推理关注的不是平均速度，而是尾延迟和稳定性。一个服务平均很快，但 p99 经常超时，用户体验仍然不可接受。</p>
 <p>语音模型还多了几个阶段：音频读取、重采样、特征提取、chunk 组织、ASR 或 speech encoder 推理、LLM 解码、流式输出。任何一层都可能放大延迟。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>这篇文章的主线不是“该选 vLLM、SGLang 还是 Triton”，而是：推理服务选型之前，必须先把延迟拆成可观测链路。</p>
+<p>框架只能优化它覆盖的那一段。若 p99 来自排队、预处理、音频编码、tokenizer、后处理或下游消费，替换解码框架并不会解决问题。先定位瓶颈，再谈框架。</p>
 <h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把请求生命周期拆成：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ingress</span><br><span class="line">  -&gt; queue</span><br><span class="line">  -&gt; preprocess</span><br><span class="line">  -&gt; prefill / encode</span><br><span class="line">  -&gt; decode / stream</span><br><span class="line">  -&gt; postprocess</span><br><span class="line">  -&gt; response</span><br></pre></td></tr></table></figure>
 
@@ -277,15 +279,15 @@
 </ul>
 <p>对流式语音系统，还要单独看 partial 的稳定性：早出结果是否经常回滚，回滚是否影响下游，semantic end 或 turn-taking 判断是否被延迟拖垮。</p>
 <p>没有这些指标，优化就会变成只看 GPU 利用率。GPU 忙不代表服务健康，GPU 不忙也可能是队列、网络或调度策略出了问题。</p>
-<h2 id="设计取舍"><a href="#设计取舍" class="headerlink" title="设计取舍"></a>设计取舍</h2><p>服务优化要先区分吞吐问题和交互问题。离线批处理希望 GPU 尽可能满，允许更长队列和更大 batch。实时交互更关心首包延迟、partial 稳定性和取消响应速度，不能为了吞吐无限等待合批。两类目标放在同一套队列策略里，通常会互相伤害。</p>
-<p>队列也不能只设置一个全局超时。更好的方式是分阶段设置预算：排队预算、预处理预算、预填充或编码预算、首 token 预算、流式输出预算。这样超时时能知道是哪一段失败，而不是只看到请求慢。</p>
-<p>对于语音系统，还要把 tokenizer、detokenizer、音频前端和后处理纳入观测。很多尾延迟并不在主模型里，而是在同步 CPU 步骤、线程争用或异常重试里。</p>
-<h2 id="可观测闭环"><a href="#可观测闭环" class="headerlink" title="可观测闭环"></a>可观测闭环</h2><p>一条可操作的可观测链路应该把 request id 贯穿到底。同一个 request id 下，日志要能看到进入时间、排队时间、输入长度、音频时长、编码时间、首个 partial 时间、首 token 时间、总输出 token、取消或超时原因。监控面板则按模型、输入长度、batch、时间段和错误原因分桶。</p>
-<p>这样做的价值在于定位。p99 变差时，可以直接判断是长音频集中进入、队列积压、预处理变慢、解码吞吐下降，还是下游消费不及时。没有 request 级链路，所有优化都会回到经验猜测。</p>
-<h2 id="失败归因"><a href="#失败归因" class="headerlink" title="失败归因"></a>失败归因</h2><p>推理服务最常见的误判是把所有慢都归给模型。如果 GPU 利用率低但排队时间高，可能是调度或并发限制。若首 token 慢但后续 token 快，问题可能在 prefill、编码或输入长度。若首包快但总耗时长，问题可能在解码吞吐或下游消费。若只有 p99 变差，重点看长输入、异常重试、锁竞争和资源抖动。</p>
-<p>把这些归因写清楚，框架选型才有依据。否则 vLLM、SGLang、Triton 之间的比较会退化成谁在单次 demo 中看起来快。</p>
-<h2 id="落地检查"><a href="#落地检查" class="headerlink" title="落地检查"></a>落地检查</h2><p>一开始可以只做三张面板。第一张是端到端延迟分解，展示 queue、preprocess、encode、first token、decode、postprocess。第二张是输入分桶，按音频时长、文本长度、batch size 和输出 token 数看 p95&#x2F;p99。第三张是失败原因，区分排队超时、编码超时、解码超时、取消请求和后处理异常。</p>
-<p>这三张面板足够回答大部分初期问题：是请求太长、队列太深、模型慢、后处理慢，还是超时预算不合理。等这些基础链路稳定后，再讨论更细的框架替换和 kernel 优化，结论会可靠得多。</p>
+<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>GPU 利用率高不一定代表服务健康。它可能说明 batch 足够大，也可能说明请求在队列里等太久。GPU 利用率低也不一定代表模型快，可能是 CPU 前处理、线程锁、网络或调度策略把请求挡在模型外。</p>
+<p>吞吐优化和交互优化经常冲突。离线批处理希望合更大的 batch，实时语音更关心 first partial、first token 和取消响应速度。把两类请求放进同一套队列策略，很容易让吞吐变好、体验变差。</p>
+<p>全局 timeout 也不够。一个请求超时，必须知道它死在 queue、preprocess、encode、prefill、decode 还是 postprocess。否则告警只能说“慢了”，不能指导修复。</p>
+<h2 id="可观测闭环"><a href="#可观测闭环" class="headerlink" title="可观测闭环"></a>可观测闭环</h2><p>每个 request id 都要贯穿 ingress、queue、preprocess、encode、first partial、first token、decode、postprocess 和 response。日志至少保留输入长度、音频时长、batch size、输出 token 数、取消原因和 timeout reason。</p>
+<p>面板先做三张就够。第一张是端到端延迟分解；第二张按音频时长、文本长度、batch 和输出 token 分桶看 p95&#x2F;p99；第三张按失败原因分桶。三张面板能回答大部分早期问题：请求太长、队列太深、编码慢、解码慢、后处理慢，还是预算配置不合理。</p>
+<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>若 queue wait 高，先查并发、限流和调度策略。若 first token 慢但后续 token 快，查 prefill、编码和输入长度。若 first token 快但总耗时长，查 decode 吞吐和下游消费。若只有 p99 变差，查长输入、异常重试、锁竞争和资源抖动。</p>
+<p>只有这些归因跑通以后，vLLM、SGLang、Triton 的比较才有意义。否则框架选择会变成单次 demo 的主观印象。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>假设线上 p99 突然变差，但平均延迟几乎不变。若没有链路分解，最容易误判成模型变慢。真正的原因可能是长音频比例上升、某个 CPU 后处理线程阻塞、队列合批策略等待过久，或者下游消费速度下降。</p>
+<p>request id 贯穿全链路后，排查会变成一个很具体的问题：慢请求是否集中在长输入，是否 queue wait 高，是否 first token 高，是否 decode tokens per second 下降，是否 postprocess 异常重试。只有能回答这些问题，框架替换才是有依据的优化，而不是重新抽签。</p>
 <h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>推理框架选型前，先把延迟链路拆开并落日志。vLLM、SGLang、Triton 都可以进入候选，但判断依据应该是分阶段延迟、吞吐、p99、资源利用和失败原因，而不是单次 demo 的响应速度。</p>
 <p>下一步阅读：<a href="/2026/06/10/Speech-Batch-Consistency-Debugging/">音频模型 Batch 一致性排查：从有效输入区间到逐层 diff</a></p>
 
