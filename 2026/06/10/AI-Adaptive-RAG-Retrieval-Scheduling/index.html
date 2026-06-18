@@ -20,15 +20,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="RAG 的第一阶段很直观：把文档切块，向量化，按相似度取回若干段，再交给 LLM 生成答案。这个流程足够实用，但它默认了一个强假设：模型在生成前就知道自己需要什么信息。复杂问题里，这个假设经常不成立。 更值得关注的方向是 Adaptive RAG。它不是单纯换一个向量库，而是把检索变成生成过程中的调度动作：什么时候检索、检索什么、检索几次、是否改写查询、是否把证据图谱化，都由任务状态决定。">
+    <meta name="description" content="RAG 最容易被讲成一个检索增强公式：切块、向量化、取 top-k、拼进 prompt、让模型回答。这个公式很实用，但它默认了一件事：系统在回答之前已经知道自己缺什么信息。 复杂任务里，这个假设经常不成立。问题可能在生成到一半才暴露，证据可能和当前结论冲突，召回内容也可能只是语义相似而不是事实支撑。于是 Adaptive RAG 真正要解决的不是“多检索一些”，而是：系统什么时候应该承认当前上下文">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Adaptive RAG：从相似度检索到信息需求调度">
+<meta property="og:title" content="Adaptive RAG（一）：何时检索比检索多少更重要">
 <meta property="og:url" content="https://alanfangblog.com/2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/index.html">
 <meta property="og:site_name" content="AlanFangBlog">
-<meta property="og:description" content="RAG 的第一阶段很直观：把文档切块，向量化，按相似度取回若干段，再交给 LLM 生成答案。这个流程足够实用，但它默认了一个强假设：模型在生成前就知道自己需要什么信息。复杂问题里，这个假设经常不成立。 更值得关注的方向是 Adaptive RAG。它不是单纯换一个向量库，而是把检索变成生成过程中的调度动作：什么时候检索、检索什么、检索几次、是否改写查询、是否把证据图谱化，都由任务状态决定。">
+<meta property="og:description" content="RAG 最容易被讲成一个检索增强公式：切块、向量化、取 top-k、拼进 prompt、让模型回答。这个公式很实用，但它默认了一件事：系统在回答之前已经知道自己缺什么信息。 复杂任务里，这个假设经常不成立。问题可能在生成到一半才暴露，证据可能和当前结论冲突，召回内容也可能只是语义相似而不是事实支撑。于是 Adaptive RAG 真正要解决的不是“多检索一些”，而是：系统什么时候应该承认当前上下文">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-10T09:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-10T08:26:25.398Z">
+<meta property="article:modified_time" content="2026-06-18T02:29:04.065Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="AI">
 <meta property="article:tag" content="LLM">
@@ -40,10 +40,10 @@
 <link rel="canonical" href="https://alanfangblog.com/2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/","path":"2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/","title":"Adaptive RAG：从相似度检索到信息需求调度"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/","path":"2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/","title":"Adaptive RAG（一）：何时检索比检索多少更重要"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>Adaptive RAG：从相似度检索到信息需求调度 | AlanFangBlog</title>
+<title>Adaptive RAG（一）：何时检索比检索多少更重要 | AlanFangBlog</title>
   
 
 
@@ -161,7 +161,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%BA%E5%AE%9A%E6%A3%80%E7%B4%A2%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">固定检索的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E7%B1%BB%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6"><span class="nav-number">2.</span> <span class="nav-text">四类触发机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GraphRAG-%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="nav-number">3.</span> <span class="nav-text">GraphRAG 的位置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E6%BA%90%E8%90%BD%E5%9C%B0%E6%8E%A5%E5%8F%A3"><span class="nav-number">4.</span> <span class="nav-text">开源落地接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%E4%B8%8D%E8%A6%81%E5%8F%AA%E7%9C%8B%E6%9C%80%E7%BB%88%E7%AD%94%E6%A1%88"><span class="nav-number">5.</span> <span class="nav-text">评测不要只看最终答案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Retrieval-decision-log"><span class="nav-number">7.</span> <span class="nav-text">Retrieval decision log</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E9%97%AE%E9%A2%98%E4%B8%8D%E6%98%AF%E5%8F%AC%E5%9B%9E%E5%99%A8%E4%B8%8D%E5%A4%9F%E5%BC%BA"><span class="nav-number">1.</span> <span class="nav-text">一、问题不是召回器不够强</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%8A%8A%E2%80%9C%E4%BF%A1%E6%81%AF%E9%9C%80%E6%B1%82%E2%80%9D%E7%9C%8B%E6%88%90%E7%8A%B6%E6%80%81"><span class="nav-number">2.</span> <span class="nav-text">二、把“信息需求”看成状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%85%88%E5%81%9A%E6%98%BE%E5%BC%8F-retrieval-gate"><span class="nav-number">3.</span> <span class="nav-text">三、先做显式 retrieval gate</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81GraphRAG-%E4%B8%8D%E6%98%AF%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%BB%98%E8%AE%A4%E7%AD%94%E6%A1%88"><span class="nav-number">4.</span> <span class="nav-text">四、GraphRAG 不是第一步默认答案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E8%AF%84%E6%B5%8B%E8%A6%81%E6%8B%86%E5%88%B0%E8%A7%A6%E5%8F%91%E5%92%8C%E8%AF%81%E6%8D%AE"><span class="nav-number">5.</span> <span class="nav-text">五、评测要拆到触发和证据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93%EF%BC%9A%E5%85%88%E6%8A%8A%E6%A3%80%E7%B4%A2%E5%8F%98%E6%88%90%E5%8F%AF%E9%AA%8C%E8%AF%81%E5%8A%A8%E4%BD%9C"><span class="nav-number">6.</span> <span class="nav-text">小结：先把检索变成可验证动作</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -174,7 +174,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-count">20</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -219,12 +219,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="Adaptive RAG：从相似度检索到信息需求调度 | AlanFangBlog">
+      <meta itemprop="name" content="Adaptive RAG（一）：何时检索比检索多少更重要 | AlanFangBlog">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Adaptive RAG：从相似度检索到信息需求调度
+          Adaptive RAG（一）：何时检索比检索多少更重要
         </h1>
 
         <div class="post-meta-container">
@@ -234,9 +234,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-10 17:00:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:00:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:00:00" itemprop="dateCreated datePublished" datetime="2026-06-10T17:00:00+08:00">2026-06-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 10:29:04" itemprop="dateModified" datetime="2026-06-18T10:29:04+08:00">2026-06-18</time>
     </span>
 
   
@@ -248,42 +254,66 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>RAG 的第一阶段很直观：把文档切块，向量化，按相似度取回若干段，再交给 LLM 生成答案。这个流程足够实用，但它默认了一个强假设：模型在生成前就知道自己需要什么信息。复杂问题里，这个假设经常不成立。</p>
-<p>更值得关注的方向是 Adaptive RAG。它不是单纯换一个向量库，而是把检索变成生成过程中的调度动作：什么时候检索、检索什么、检索几次、是否改写查询、是否把证据图谱化，都由任务状态决定。</p>
+    <div class="post-body" itemprop="articleBody"><p>RAG 最容易被讲成一个检索增强公式：切块、向量化、取 top-k、拼进 prompt、让模型回答。这个公式很实用，但它默认了一件事：系统在回答之前已经知道自己缺什么信息。</p>
+<p>复杂任务里，这个假设经常不成立。问题可能在生成到一半才暴露，证据可能和当前结论冲突，召回内容也可能只是语义相似而不是事实支撑。于是 Adaptive RAG 真正要解决的不是“多检索一些”，而是：<strong>系统什么时候应该承认当前上下文不够，并把检索变成下一步可验证动作</strong>。</p>
 <span id="more"></span>
 
-<h2 id="固定检索的问题"><a href="#固定检索的问题" class="headerlink" title="固定检索的问题"></a>固定检索的问题</h2><p>固定检索通常有三个隐性成本。</p>
-<p>第一，召回时机固定。很多问题只有生成到一半才暴露信息缺口，提前检索会把上下文预算花在弱相关材料上。</p>
-<p>第二，检索粒度固定。一个事实核验问题可能只需要一个段落；一个归因问题可能需要实体、关系和多跳路径。统一取 top-k chunk 会把不同类型的信息需求压成同一个接口。</p>
-<p>第三，失败原因不清晰。答案错了，可能是查询写得差、召回不足、证据冲突、排序失败，也可能是生成阶段没有忠实使用证据。如果系统没有把这些阶段拆开记录，后续只能凭感觉调参数。</p>
-<h2 id="四类触发机制"><a href="#四类触发机制" class="headerlink" title="四类触发机制"></a>四类触发机制</h2><p>Adaptive RAG 可以按触发机制拆开看。</p>
-<p><strong>显式 token 触发</strong>：Self-RAG 这类方法让模型生成控制标记，决定是否检索、是否继续、答案是否被支撑。优点是可解释性强，缺点是需要训练或 prompt 约束来保证控制标记稳定。</p>
-<p><strong>不确定性触发</strong>：当模型分布熵升高、候选答案分歧变大，或关键槽位没有依据时再检索。这类方法适合做轻量工程化，但要防止把语言模型的自信误当成事实可靠性。</p>
-<p><strong>信息需求触发</strong>：DRAGIN 这类思路更强调“当前生成需要什么信息”。它关心的不是泛泛的不确定，而是上下文里缺少哪类证据。</p>
-<p><strong>工作流触发</strong>：Agentic RAG 把检索作为工作流节点，与查询改写、工具调用、证据压缩、反思和答案校验组合。它的上限更高，但状态管理和日志要求也更高。</p>
-<h2 id="GraphRAG-的位置"><a href="#GraphRAG-的位置" class="headerlink" title="GraphRAG 的位置"></a>GraphRAG 的位置</h2><p>GraphRAG 和 KG-RAG 解决的是另一个维度：检索对象不再只是文本块，而是实体、关系、社区摘要和路径。它特别适合需要跨文档归纳的问题，比如“某个技术路线为什么演化成现在这样”。</p>
-<p>不过图结构不是免费午餐。构图质量、实体消歧、关系抽取、更新频率、图检索召回都会影响最终效果。工程上可以先把图当成证据组织层，而不是一开始就替换所有向量检索。</p>
-<h2 id="开源落地接口"><a href="#开源落地接口" class="headerlink" title="开源落地接口"></a>开源落地接口</h2><p>一个可维护的 Adaptive RAG 系统，建议至少把接口拆成五层：</p>
-<ol>
-<li>query planner：决定原问题是否需要拆解；</li>
-<li>retriever router：选择向量检索、关键词检索、图检索或混合检索；</li>
-<li>evidence store：保留证据来源、版本、分数和路径；</li>
-<li>context composer：控制证据压缩、排序和上下文预算；</li>
-<li>answer verifier：检查答案是否被证据支撑。</li>
-</ol>
-<p>这样做的价值是每一层都能单独评测。召回不够就看 retriever，证据过长就看 composer，答案跑偏就看 verifier，而不是把所有错误都归因给 LLM。</p>
-<h2 id="评测不要只看最终答案"><a href="#评测不要只看最终答案" class="headerlink" title="评测不要只看最终答案"></a>评测不要只看最终答案</h2><p>Adaptive RAG 的评测应该拆成阶段指标：</p>
+<h2 id="一、问题不是召回器不够强"><a href="#一、问题不是召回器不够强" class="headerlink" title="一、问题不是召回器不够强"></a>一、问题不是召回器不够强</h2><p>固定检索的失败通常不来自某一个 retriever 太弱，而来自检索时机和信息需求没有被显式建模。</p>
+<p>一个简单 RAG 流程会在用户问题进入后立刻检索。这样做稳定、便宜、容易缓存，但它把不同问题压成同一个接口：不管是事实核验、多跳推理、摘要归纳还是工具调用后的验证，都先取一批相似片段。</p>
+<p>这会带来三个工程问题。</p>
+<p>第一，语义相关不等于证据支持。向量检索很容易取回同主题材料，但同主题材料未必能支持当前结论。模型看到这些材料后，反而可能更自信地说错。</p>
+<p>第二，召回时机固定。很多缺口只有在中间结论出现后才清楚，提前检索会浪费上下文窗口，也会把不稳定材料提前注入 prompt。</p>
+<p>第三，失败原因不可分解。答案错了，到底是没有触发检索、query 写错、召回不足、rerank 失败，还是生成阶段没有忠实使用证据？如果系统没有阶段日志，只能靠感觉调参数。</p>
+<p>所以 Adaptive RAG 的第一性问题不是 top-k，而是 evidence gap detection：当前状态是否真的缺少外部证据。</p>
+<h2 id="二、把“信息需求”看成状态"><a href="#二、把“信息需求”看成状态" class="headerlink" title="二、把“信息需求”看成状态"></a>二、把“信息需求”看成状态</h2><p>一个更稳的抽象不是“某个 token 需要检索”，而是“当前状态暴露了一个证据缺口”。可以把它写成一个最小状态对象：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">information_need = &#123;</span><br><span class="line">  state: 当前子问题、生成阶段或工作流节点,</span><br><span class="line">  uncertainty: 不确定性来自模型分歧、槽位缺失还是证据冲突,</span><br><span class="line">  evidence_gap: 需要什么外部证据才能继续,</span><br><span class="line">  action: 是否检索、查什么、查哪里、如何验证</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个抽象比单纯看 token 置信度更贴近工程。低置信度不一定代表需要检索，高置信度也不代表事实可靠。Self-RAG、FLARE、DRAGIN 这类方法的启发在于把检索放进生成过程，但落地时仍然要回答一个更朴素的问题：这次检索为什么发生。</p>
+<h2 id="三、先做显式-retrieval-gate"><a href="#三、先做显式-retrieval-gate" class="headerlink" title="三、先做显式 retrieval gate"></a>三、先做显式 retrieval gate</h2><p>第一版 Adaptive RAG 不必一开始就把触发权完全交给模型。更可控的做法是先加一个显式 retrieval gate，让它在每个关键状态点判断是否检索。</p>
+<p>一个可落地的流程是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">State Snapshot</span><br><span class="line">  -&gt; Retrieval Gate(reason_code)</span><br><span class="line">  -&gt; Query Builder(query, assumptions)</span><br><span class="line">  -&gt; Hybrid Retriever(candidates)</span><br><span class="line">  -&gt; Reranker(ranked_candidates)</span><br><span class="line">  -&gt; Evidence Validator(supported / unsupported / conflict)</span><br><span class="line">  -&gt; Generate or Rollback</span><br></pre></td></tr></table></figure>
+
+<p>这里的 gate 不能只输出 yes&#x2F;no。它至少要输出 reason code，例如：</p>
 <ul>
-<li>查询拆解是否覆盖必要子问题；</li>
-<li>召回证据是否包含关键事实；</li>
-<li>证据排序是否把关键材料放进上下文窗口；</li>
-<li>生成答案是否引用了正确证据；</li>
-<li>无证据时是否拒答或提示不确定。</li>
+<li><code>missing_fact</code>: 当前结论缺少外部事实；</li>
+<li><code>stale_context</code>: 当前上下文可能过期；</li>
+<li><code>entity_ambiguous</code>: 实体或术语有歧义；</li>
+<li><code>evidence_conflict</code>: 已有证据互相冲突；</li>
+<li><code>cost_guard</code>: 检索收益不足以覆盖延迟和 token 成本。</li>
 </ul>
-<p>如果只看最终答案准确率，很难知道系统是因为检索做对了，还是模型靠参数记忆猜对了。</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Adaptive RAG 的核心不是“多检索几次”，而是让检索成为可观测、可调度、可评测的动作。真正的工程分界线也不在向量库品牌，而在系统是否能回答：这次检索为什么发生，拿到了什么证据，证据如何进入上下文，答案为什么可信。</p>
-<h2 id="Retrieval-decision-log"><a href="#Retrieval-decision-log" class="headerlink" title="Retrieval decision log"></a>Retrieval decision log</h2><p>Adaptive RAG should keep a decision log for every answer. A useful record contains the trigger reason, rewritten query, retriever type, top evidence, discarded evidence, final context window, and fallback path.</p>
-<p>This log turns retrieval from a hidden prompt side effect into an auditable policy. When an answer is wrong, the error can be assigned to trigger timing, query decomposition, recall, reranking, context compression, or generation not following evidence. That split is more actionable than only judging the final answer.</p>
+<p>这样做的价值不是让规则看起来复杂，而是让后续评测能分清错误来源。没有 reason code，检索只是 prompt 里的隐性副作用；有了 reason code，检索才变成可以审计的策略。</p>
+<h2 id="四、GraphRAG-不是第一步默认答案"><a href="#四、GraphRAG-不是第一步默认答案" class="headerlink" title="四、GraphRAG 不是第一步默认答案"></a>四、GraphRAG 不是第一步默认答案</h2><p>GraphRAG 和 KG-RAG 解决的是证据组织问题：把文本块升级为实体、关系、社区摘要和路径。它适合跨文档、多跳、关系密集的场景，也能缓解单段 chunk 无法表达全局结构的问题。</p>
+<p>但图不是免费的。实体抽取、关系归并、增量更新、图召回和摘要压缩都会引入新误差。很多系统在第一阶段更应该先把 retrieval gate、query builder 和 evidence validator 做清楚，再决定是否把某些证据集合图谱化。</p>
+<p>换句话说，图检索不是 Adaptive RAG 的起点，而是证据组织层的一个增强选项。没有可观测的检索触发和证据验证，GraphRAG 也可能只是更昂贵的上下文注入。</p>
+<h2 id="五、评测要拆到触发和证据"><a href="#五、评测要拆到触发和证据" class="headerlink" title="五、评测要拆到触发和证据"></a>五、评测要拆到触发和证据</h2><p>只看最终答案准确率，无法判断 Adaptive RAG 是否真的变好。一个可用的评测面板至少要拆成三组。</p>
+<p>触发质量：</p>
+<ul>
+<li>retrieval trigger precision；</li>
+<li>retrieval trigger recall；</li>
+<li>不必要检索率；</li>
+<li>应检索未检索率；</li>
+<li>平均每轮检索次数。</li>
+</ul>
+<p>证据质量：</p>
+<ul>
+<li>Recall@K；</li>
+<li>MRR &#x2F; nDCG；</li>
+<li>evidence support rate；</li>
+<li>conflict evidence rate；</li>
+<li>rerank 后关键证据进入上下文窗口的比例。</li>
+</ul>
+<p>系统质量：</p>
+<ul>
+<li>答案准确率；</li>
+<li>hallucination rate；</li>
+<li>P95 延迟；</li>
+<li>token 和检索成本；</li>
+<li>无证据时的拒答或降级比例。</li>
+</ul>
+<p>其中最关键的是 evidence support rate。它把“召回到了相似内容”和“召回到了能支撑答案的证据”区分开。没有这个指标，Adaptive RAG 很容易退化成 expensive RAG。</p>
+<h2 id="小结：先把检索变成可验证动作"><a href="#小结：先把检索变成可验证动作" class="headerlink" title="小结：先把检索变成可验证动作"></a>小结：先把检索变成可验证动作</h2><p>Adaptive RAG 的核心不是“多检索几次”，而是让检索成为可记录、可回放、可评估的动作。第一版系统最应该做的是显式 retrieval gate：说明为什么触发，构造了什么 query，召回了哪些候选，证据是否支持当前结论，以及这次检索带来了多少延迟和成本。</p>
+<p>只要这条链路清楚，后面再替换成 Self-RAG、FLARE、DRAGIN 或 GraphRAG，都有比较基线。否则系统只是把更多上下文交给模型碰运气。</p>
+<p>下一篇：<a href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/">Adaptive RAG（二）：Retrieval Gate 怎么判断该不该检索</a></p>
 
     </div>
 

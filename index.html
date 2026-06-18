@@ -165,7 +165,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-count">20</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -897,7 +897,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/06/10/Speech-LLM-Audio-Token-Alignment/">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -915,7 +915,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/06/10/Speech-LLM-Audio-Token-Alignment/" class="post-title-link" itemprop="url">语音大模型工程：音频 token、LLM 主干与对齐契约</a>
+          <a href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/" class="post-title-link" itemprop="url">Adaptive RAG（二）：Retrieval Gate 怎么判断该不该检索</a>
         </h2>
 
         <div class="post-meta-container">
@@ -925,9 +925,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-10 17:10:00 / Modified: 16:26:25" itemprop="dateCreated datePublished" datetime="2026-06-10T17:10:00+08:00">2026-06-10</time>
+      <time title="Created: 2026-06-10 17:10:00" itemprop="dateCreated datePublished" datetime="2026-06-10T17:10:00+08:00">2026-06-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 10:29:04" itemprop="dateModified" datetime="2026-06-18T10:29:04+08:00">2026-06-18</time>
     </span>
 
   
@@ -940,11 +946,11 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>语音大模型正在把 ASR、语音理解和多模态交互拉进 LLM 生态。Qwen3-ASR、Qwen-Omni、WeNet、CTC-AED 等路线背后都有同一个问题：音频表示如何进入语言模型，并且不破坏位置、mask、长度和训练目标的语义。</p>
-<p>这类系统表面上是“接一个 speech encoder 到 LLM”，实际难点在对齐契约。张量 shape 对，不等于语义对。</p>
+          <p>上一篇把 Adaptive RAG 的问题收束到一个工程动作：先做显式 retrieval gate。它不是为了替代 Self-RAG、FLARE 或 DRAGIN，而是先给系统建立一个可观测的判断层：当前状态到底该不该检索。</p>
+<p>这篇继续往下走，讨论 retrieval gate 应该吃什么信号、输出什么结论，以及怎么评测它。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2026/06/10/Speech-LLM-Audio-Token-Alignment/#more" rel="contents">
+              <a class="btn" href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
