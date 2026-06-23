@@ -47,47 +47,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Adaptive RAG（一）：何时检索比检索多少更重要</title>
-    <url>/2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/</url>
-    <content><![CDATA[<p>RAG 最容易被讲成一个检索增强公式：切块、向量化、取 top-k、拼进 prompt、让模型回答。这个公式很实用，但它默认了一件事：系统在回答之前已经知道自己缺什么信息。</p>
-<p>复杂任务里，这个假设经常不成立。问题可能在生成到一半才暴露，证据可能和当前结论冲突，召回内容也可能只是语义相似而不是事实支撑。于是 Adaptive RAG 真正要解决的不是“多检索一些”，而是：系统什么时候应该承认当前上下文不够，并把检索变成下一步可验证动作。</p>
-<span id="more"></span>
-
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>固定检索的失败通常不来自某一个 retriever 太弱，而来自检索时机和信息需求没有被显式建模。</p>
-<p>一个简单 RAG 流程会在用户问题进入后立刻检索。这样做稳定、便宜、容易缓存，但它把不同问题压成同一个接口：不管是事实核验、多跳推理、摘要归纳还是工具调用后的验证，都先取一批相似片段。</p>
-<p>这会带来三个工程问题。语义相关不等于证据支持；召回时机固定会浪费上下文窗口；失败原因不可分解，无法判断错误来自触发、query、召回、rerank 还是生成。</p>
-<p>所以 Adaptive RAG 的第一性问题不是 top-k，而是 evidence gap detection：当前状态是否真的缺少外部证据。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>Adaptive RAG 的主线不是把检索次数调多，而是把“为什么需要外部证据”变成系统状态。</p>
-<p>如果检索只是 top-k 参数，系统只能在召回质量上打转；如果检索是 evidence gap 的响应，系统就能把触发、query、证据支持和最终生成拆开评估。这个区别决定了后续是继续堆上下文，还是能真正进入可调试的工程闭环。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一个更稳的抽象不是“某个 token 需要检索”，而是“当前状态暴露了一个证据缺口”：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">information_need = &#123;</span><br><span class="line">  state: 当前子问题、生成阶段或工作流节点,</span><br><span class="line">  uncertainty: 不确定性来自模型分歧、槽位缺失还是证据冲突,</span><br><span class="line">  evidence_gap: 需要什么外部证据才能继续,</span><br><span class="line">  action: 是否检索、查什么、查哪里、如何验证</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Self-RAG、FLARE、DRAGIN 这类方法的启发在于把检索放进生成过程，但落地时仍然要回答一个更朴素的问题：这次检索为什么发生。</p>
-<p>GraphRAG 和 KG-RAG 则解决证据组织问题，把文本块升级为实体、关系、社区摘要和路径。它们适合跨文档、多跳、关系密集的场景，但不应该替代最基础的触发和验证机制。</p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>第一版 Adaptive RAG 更适合先做显式 Retrieval Gate：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">State Snapshot</span><br><span class="line">  -&gt; Retrieval Gate(reason_code)</span><br><span class="line">  -&gt; Query Builder(query, assumptions)</span><br><span class="line">  -&gt; Hybrid Retriever(candidates)</span><br><span class="line">  -&gt; Reranker(ranked_candidates)</span><br><span class="line">  -&gt; Evidence Validator(supported / unsupported / conflict)</span><br><span class="line">  -&gt; Generate or Rollback</span><br></pre></td></tr></table></figure>
-
-<p>Gate 不能只输出 yes&#x2F;no。它至少要输出 reason code，例如 <code>missing_fact</code>、<code>stale_context</code>、<code>entity_ambiguous</code>、<code>evidence_conflict</code>、<code>cost_guard</code>。这样后续评测才能分清是不该检索却检索了，还是该检索却没检索。</p>
-<p>评测也要拆成触发质量、证据质量和系统质量。尤其要看 evidence support rate，把“召回到了相似内容”和“召回到了能支撑答案的证据”区分开。没有这个指标，Adaptive RAG 很容易退化成 expensive RAG。</p>
-<h2 id="设计取舍"><a href="#设计取舍" class="headerlink" title="设计取舍"></a>设计取舍</h2><p>检索触发可以按强度分成五类。最弱的是固定触发，也就是每个问题都查；它稳定但成本高，且容易把相似但无关的片段带进上下文。第二类是显式控制信号，让模型在需要外部知识时发出 retrieve 请求。第三类是置信度或熵触发，用生成分布的不确定性作为信号。第四类是信息需求分类器，直接判断当前步骤是否需要外部证据。第五类是工作流路由，让不同节点决定是否进入检索分支。</p>
-<p>这些方案没有绝对优劣。固定触发适合高召回冷启动，显式信号适合可解释训练闭环，置信度触发适合弱标注场景，信息需求分类适合离线评测，工作流路由适合复杂系统。真正的取舍，是在触发精度、漏检风险、检索成本和可调试性之间选平衡点。</p>
-<p>query 构造也要谨慎。很多系统会让模型先猜一个中间结论，再拿这个结论去检索。这个策略在简单问题上有效，但在多跳问题里会把未验证假设写进检索条件。更稳的做法是把 query 写成待验证的信息需求，而不是已经相信的事实。</p>
-<h2 id="失败归因"><a href="#失败归因" class="headerlink" title="失败归因"></a>失败归因</h2><p>Adaptive RAG 的常见失败不是没查到，而是系统不知道自己为什么查。如果触发器过敏，系统会在每个推理节点都检索，退化成高成本的固定 RAG。如果触发器保守，模型会在最需要事实校验时跳过检索。如果 query 由早期猜测生成，错误假设会被检索结果强化。如果证据接入没有分层，短证据会被长上下文稀释，模型最后仍然按自身偏好回答。</p>
-<p>因此，调 Adaptive RAG 不应该先换 embedding 或向量库，而应该先看触发日志、query 变形和证据支持关系。retriever 是执行器，信息需求才是调度器。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>假设模型正在回答一个依赖版本差异的问题：前半段推理可以来自已有上下文，但当它要给出具体接口行为时，当前状态暴露出 <code>stale_context</code> 和 <code>missing_fact</code> 两个缺口。</p>
-<p>这时 gate 不应该简单地说“检索 yes”，而要记录：缺的是版本证据，query 应围绕接口行为和版本号构造，召回结果必须能直接支持或推翻当前结论。如果检索后只拿到语义相似的教程，而没有版本证据，这次检索应被标为 unsupported，而不是继续塞进 prompt。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Adaptive RAG 的核心不是“多检索几次”，而是让检索成为可记录、可回放、可评估的动作。第一版系统最应该做的是显式 Retrieval Gate：说明为什么触发，构造了什么 query，召回了哪些候选，证据是否支持当前结论，以及这次检索带来了多少延迟和成本。</p>
-<p>只要这条链路清楚，后面再替换成 Self-RAG、FLARE、DRAGIN 或 GraphRAG，都有比较基线。否则系统只是把更多上下文交给模型碰运气。</p>
-<p>下一步阅读：<a href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/">Adaptive RAG（二）：Retrieval Gate 怎么判断该不该检索</a></p>
-]]></content>
-      <tags>
-        <tag>AI</tag>
-        <tag>RAG</tag>
-        <tag>LLM</tag>
-        <tag>Open Source</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>ASR 特征归一化：CMVN 解决的不是数值美观，而是通道偏移</title>
     <url>/2021/08/24/ASR-CMVN/</url>
     <content><![CDATA[<p>语音识别里的特征归一化很容易被当成预处理细节：把均值拉到 0，把方差压到 1，然后继续训练模型。这个理解没有错，但它没有说清楚 CMVN 真正解决的问题。</p>
@@ -121,47 +80,6 @@
       <tags>
         <tag>ASR</tag>
         <tag>Feature-engineering</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ASR 数据质量流水线：伪标签、切分与可追溯评测</title>
-    <url>/2026/06/10/ASR-Data-Quality-Pipeline-Open-Source/</url>
-    <content><![CDATA[<p>ASR 数据工程最容易被低估。模型指标波动时，很多人先调模型结构，但真正的问题常常在数据：切分不稳、伪标签质量不清、噪声样本混入、热词和实体覆盖不足、评测集不可追溯。</p>
-<p>一条可用的数据质量流水线，核心不是“多收一点音频”，而是让每个样本都能解释来源、标签、置信度和进入训练集的理由。</p>
-<span id="more"></span>
-
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>语音数据的成本高，人工标注慢。pseudo-label 可以快速扩大数据规模，但也会把模型错误重新灌回训练集。切片策略、静音边界、重采样、文本规范化和标签清洗都会影响最终 WER。</p>
-<p>如果没有质量记录，训练效果变差时无法判断是模型退化，还是新数据污染。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>ASR 数据质量首先是标签契约问题，其次才是过滤规则问题。</p>
-<p>音频片段、文本标签、CTC blank 边界、噪声标记、伪标签来源和评测回流必须指向同一个训练目标。只要这些对象没有对齐，数据越多，模型越容易学到互相冲突的监督信号。很多 WER 波动看起来像模型不稳，本质上是数据账本没有把“为什么保留这条样本”说清楚。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 ASR 数据样本看成一个 ledger entry：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">audio_id</span><br><span class="line">segment_range</span><br><span class="line">transcript</span><br><span class="line">pseudo_label_source</span><br><span class="line">confidence</span><br><span class="line">quality_flags</span><br><span class="line">normalization_version</span><br><span class="line">reason code</span><br><span class="line">eval_split</span><br></pre></td></tr></table></figure>
-
-<p>这里的 <code>reason code</code> 很关键。保留样本、丢弃样本、降权样本都应该有原因，例如低置信、重叠语音、噪声过强、文本规范化失败、实体疑似错误。</p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>流水线至少分四层。</p>
-<p>第一层是音频质量画像：采样率、时长、静音、截断、音量、噪声、重复样本。</p>
-<p>第二层是文本规范化：大小写、标点、数字、热词、实体、语言混杂和非法字符。</p>
-<p>第三层是伪标签仲裁：多模型一致性、置信度、CER&#x2F;WER 估计、人工抽检和 reason code。</p>
-<p>第四层是评测追踪：每次训练记录数据版本、过滤规则、评测集版本和失败样本分布。</p>
-<p>只有这四层都可追溯，才能在指标波动时定位到具体数据决策。</p>
-<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>最容易踩坑的是把噪声标签当成“忽略”。例如在 transcript 中加入 NOISE 这类 token，看上去是在告诉模型某段是背景声，但对 CTC 来说它仍然是一个 non-blank 目标。模型会被训练成在某些声学区域输出一个显式 token，而不是在不确定区域保持 blank。</p>
-<p>这会造成两个后果。第一，背景声、非目标人声和转写文本被塞进同一条标签通道，模型不知道哪些是要识别的文字，哪些只是样本状态。第二，评测时如果再把这些 token 过滤掉，就形成了训练目标和评测目标不一致：训练时要求输出，评测时又假装它不存在。</p>
-<p>pseudo-label 也有类似问题。多模型一致只能说明候选文本相近，不能说明切片边界、重叠语音、ITN 和热词都可靠。伪标签要进入主训练集，必须带上来源、置信度、过滤原因和后续评测回流。</p>
-<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>当一轮训练变差时，不要先改模型结构。先把样本按数据来源、过滤规则、规范化版本、音频时长、信噪比分桶，再看 WER&#x2F;CER 的插入、删除、替换分别在哪些桶里变坏。</p>
-<p>如果删除错误增加，优先查切片边界、静音过长、低能量片段和 blank 学习是否被污染。如果插入错误增加，优先查噪声片段、非目标人声、重复音频和文本规范化。若实体或热词召回下降，重点查词表、ITN、伪标签仲裁和人工抽检样本。</p>
-<p>关键是保留被过滤掉的样本列表。很多数据规则看起来提高了总体指标，却可能删掉了难例；短期变好，长期会让模型越来越不认识真实输入。</p>
-<h2 id="评测设计"><a href="#评测设计" class="headerlink" title="评测设计"></a>评测设计</h2><p>一个可复盘的 ASR 数据评测至少需要三张表。样本表记录 audio_id、segment_range、transcript、pseudo_label_source、confidence、quality_flags、normalization_version 和 reason code。指标表记录 WER&#x2F;CER、插入、删除、替换、关键实体召回、长短音频分桶和噪声分桶。回流表记录每次训练后哪些样本变差、哪些规则命中、哪些样本被移入或移出。</p>
-<p>这三张表要能 join 到一起。只有这样，评测才不是“模型掉点了”，而是能说清楚“某一类数据决策导致某一类错误上升”。数据质量流水线的终点不是干净数据集，而是可解释的数据决策。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>假设一次训练后总体 WER 只下降了 0.2，但长音频删除错误上升，短音频插入错误下降。这个结果不能简单判定为“新数据有效”。更可能的解释是：过滤规则删掉了一部分噪声短片段，让插入错误下降；同时长片段切分或 blank 边界被新标签扰动，导致删除错误上升。</p>
-<p>这时下一步不是继续加数据，而是回到样本账本：长音频里哪些样本来自伪标签，哪些命中了噪声标记，哪些经过文本规范化，哪些在上轮被移入训练集。只要能把这些样本拉出来，模型问题就会变成数据决策问题；拉不出来，就说明流水线还没有形成闭环。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>ASR 数据质量流水线的目标不是一次性清洗干净，而是把样本生命周期变成可审计过程。pseudo-label 可以用，但必须带来源、置信度、过滤原因和评测回流。</p>
-<p>下一步阅读：<a href="/2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/">ASR 噪声下的结构化抽取评测：从文本相似到实体归因</a></p>
-]]></content>
-      <tags>
-        <tag>Open Source</tag>
-        <tag>ASR</tag>
-        <tag>Data</tag>
-        <tag>Evaluation</tag>
       </tags>
   </entry>
   <entry>
@@ -211,6 +129,88 @@
         <tag>ASR</tag>
         <tag>ASR-Classic</tag>
         <tag>Loss</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Adaptive RAG（一）：何时检索比检索多少更重要</title>
+    <url>/2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/</url>
+    <content><![CDATA[<p>RAG 最容易被讲成一个检索增强公式：切块、向量化、取 top-k、拼进 prompt、让模型回答。这个公式很实用，但它默认了一件事：系统在回答之前已经知道自己缺什么信息。</p>
+<p>复杂任务里，这个假设经常不成立。问题可能在生成到一半才暴露，证据可能和当前结论冲突，召回内容也可能只是语义相似而不是事实支撑。于是 Adaptive RAG 真正要解决的不是“多检索一些”，而是：系统什么时候应该承认当前上下文不够，并把检索变成下一步可验证动作。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>固定检索的失败通常不来自某一个 retriever 太弱，而来自检索时机和信息需求没有被显式建模。</p>
+<p>一个简单 RAG 流程会在用户问题进入后立刻检索。这样做稳定、便宜、容易缓存，但它把不同问题压成同一个接口：不管是事实核验、多跳推理、摘要归纳还是工具调用后的验证，都先取一批相似片段。</p>
+<p>这会带来三个工程问题。语义相关不等于证据支持；召回时机固定会浪费上下文窗口；失败原因不可分解，无法判断错误来自触发、query、召回、rerank 还是生成。</p>
+<p>所以 Adaptive RAG 的第一性问题不是 top-k，而是 evidence gap detection：当前状态是否真的缺少外部证据。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>Adaptive RAG 的主线不是把检索次数调多，而是把“为什么需要外部证据”变成系统状态。</p>
+<p>如果检索只是 top-k 参数，系统只能在召回质量上打转；如果检索是 evidence gap 的响应，系统就能把触发、query、证据支持和最终生成拆开评估。这个区别决定了后续是继续堆上下文，还是能真正进入可调试的工程闭环。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一个更稳的抽象不是“某个 token 需要检索”，而是“当前状态暴露了一个证据缺口”：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">information_need = &#123;</span><br><span class="line">  state: 当前子问题、生成阶段或工作流节点,</span><br><span class="line">  uncertainty: 不确定性来自模型分歧、槽位缺失还是证据冲突,</span><br><span class="line">  evidence_gap: 需要什么外部证据才能继续,</span><br><span class="line">  action: 是否检索、查什么、查哪里、如何验证</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Self-RAG、FLARE、DRAGIN 这类方法的启发在于把检索放进生成过程，但落地时仍然要回答一个更朴素的问题：这次检索为什么发生。</p>
+<p>GraphRAG 和 KG-RAG 则解决证据组织问题，把文本块升级为实体、关系、社区摘要和路径。它们适合跨文档、多跳、关系密集的场景，但不应该替代最基础的触发和验证机制。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>第一版 Adaptive RAG 更适合先做显式 Retrieval Gate：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">State Snapshot</span><br><span class="line">  -&gt; Retrieval Gate(reason_code)</span><br><span class="line">  -&gt; Query Builder(query, assumptions)</span><br><span class="line">  -&gt; Hybrid Retriever(candidates)</span><br><span class="line">  -&gt; Reranker(ranked_candidates)</span><br><span class="line">  -&gt; Evidence Validator(supported / unsupported / conflict)</span><br><span class="line">  -&gt; Generate or Rollback</span><br></pre></td></tr></table></figure>
+
+<p>Gate 不能只输出 yes&#x2F;no。它至少要输出 reason code，例如 <code>missing_fact</code>、<code>stale_context</code>、<code>entity_ambiguous</code>、<code>evidence_conflict</code>、<code>cost_guard</code>。这样后续评测才能分清是不该检索却检索了，还是该检索却没检索。</p>
+<p>评测也要拆成触发质量、证据质量和系统质量。尤其要看 evidence support rate，把“召回到了相似内容”和“召回到了能支撑答案的证据”区分开。没有这个指标，Adaptive RAG 很容易退化成 expensive RAG。</p>
+<h2 id="设计取舍"><a href="#设计取舍" class="headerlink" title="设计取舍"></a>设计取舍</h2><p>检索触发可以按强度分成五类。最弱的是固定触发，也就是每个问题都查；它稳定但成本高，且容易把相似但无关的片段带进上下文。第二类是显式控制信号，让模型在需要外部知识时发出 retrieve 请求。第三类是置信度或熵触发，用生成分布的不确定性作为信号。第四类是信息需求分类器，直接判断当前步骤是否需要外部证据。第五类是工作流路由，让不同节点决定是否进入检索分支。</p>
+<p>这些方案没有绝对优劣。固定触发适合高召回冷启动，显式信号适合可解释训练闭环，置信度触发适合弱标注场景，信息需求分类适合离线评测，工作流路由适合复杂系统。真正的取舍，是在触发精度、漏检风险、检索成本和可调试性之间选平衡点。</p>
+<p>query 构造也要谨慎。很多系统会让模型先猜一个中间结论，再拿这个结论去检索。这个策略在简单问题上有效，但在多跳问题里会把未验证假设写进检索条件。更稳的做法是把 query 写成待验证的信息需求，而不是已经相信的事实。</p>
+<h2 id="失败归因"><a href="#失败归因" class="headerlink" title="失败归因"></a>失败归因</h2><p>Adaptive RAG 的常见失败不是没查到，而是系统不知道自己为什么查。如果触发器过敏，系统会在每个推理节点都检索，退化成高成本的固定 RAG。如果触发器保守，模型会在最需要事实校验时跳过检索。如果 query 由早期猜测生成，错误假设会被检索结果强化。如果证据接入没有分层，短证据会被长上下文稀释，模型最后仍然按自身偏好回答。</p>
+<p>因此，调 Adaptive RAG 不应该先换 embedding 或向量库，而应该先看触发日志、query 变形和证据支持关系。retriever 是执行器，信息需求才是调度器。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>假设模型正在回答一个依赖版本差异的问题：前半段推理可以来自已有上下文，但当它要给出具体接口行为时，当前状态暴露出 <code>stale_context</code> 和 <code>missing_fact</code> 两个缺口。</p>
+<p>这时 gate 不应该简单地说“检索 yes”，而要记录：缺的是版本证据，query 应围绕接口行为和版本号构造，召回结果必须能直接支持或推翻当前结论。如果检索后只拿到语义相似的教程，而没有版本证据，这次检索应被标为 unsupported，而不是继续塞进 prompt。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Adaptive RAG 的核心不是“多检索几次”，而是让检索成为可记录、可回放、可评估的动作。第一版系统最应该做的是显式 Retrieval Gate：说明为什么触发，构造了什么 query，召回了哪些候选，证据是否支持当前结论，以及这次检索带来了多少延迟和成本。</p>
+<p>只要这条链路清楚，后面再替换成 Self-RAG、FLARE、DRAGIN 或 GraphRAG，都有比较基线。否则系统只是把更多上下文交给模型碰运气。</p>
+<p>下一步阅读：<a href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Gate/">Adaptive RAG（二）：Retrieval Gate 怎么判断该不该检索</a></p>
+]]></content>
+      <tags>
+        <tag>AI</tag>
+        <tag>RAG</tag>
+        <tag>LLM</tag>
+        <tag>Open Source</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ASR 数据质量流水线：伪标签、切分与可追溯评测</title>
+    <url>/2026/06/10/ASR-Data-Quality-Pipeline-Open-Source/</url>
+    <content><![CDATA[<p>ASR 数据工程最容易被低估。模型指标波动时，很多人先调模型结构，但真正的问题常常在数据：切分不稳、伪标签质量不清、噪声样本混入、热词和实体覆盖不足、评测集不可追溯。</p>
+<p>一条可用的数据质量流水线，核心不是“多收一点音频”，而是让每个样本都能解释来源、标签、置信度和进入训练集的理由。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>语音数据的成本高，人工标注慢。pseudo-label 可以快速扩大数据规模，但也会把模型错误重新灌回训练集。切片策略、静音边界、重采样、文本规范化和标签清洗都会影响最终 WER。</p>
+<p>如果没有质量记录，训练效果变差时无法判断是模型退化，还是新数据污染。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>ASR 数据质量首先是标签契约问题，其次才是过滤规则问题。</p>
+<p>音频片段、文本标签、CTC blank 边界、噪声标记、伪标签来源和评测回流必须指向同一个训练目标。只要这些对象没有对齐，数据越多，模型越容易学到互相冲突的监督信号。很多 WER 波动看起来像模型不稳，本质上是数据账本没有把“为什么保留这条样本”说清楚。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 ASR 数据样本看成一个 ledger entry：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">audio_id</span><br><span class="line">segment_range</span><br><span class="line">transcript</span><br><span class="line">pseudo_label_source</span><br><span class="line">confidence</span><br><span class="line">quality_flags</span><br><span class="line">normalization_version</span><br><span class="line">reason code</span><br><span class="line">eval_split</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>reason code</code> 很关键。保留样本、丢弃样本、降权样本都应该有原因，例如低置信、重叠语音、噪声过强、文本规范化失败、实体疑似错误。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>流水线至少分四层。</p>
+<p>第一层是音频质量画像：采样率、时长、静音、截断、音量、噪声、重复样本。</p>
+<p>第二层是文本规范化：大小写、标点、数字、热词、实体、语言混杂和非法字符。</p>
+<p>第三层是伪标签仲裁：多模型一致性、置信度、CER&#x2F;WER 估计、人工抽检和 reason code。</p>
+<p>第四层是评测追踪：每次训练记录数据版本、过滤规则、评测集版本和失败样本分布。</p>
+<p>只有这四层都可追溯，才能在指标波动时定位到具体数据决策。</p>
+<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>最容易踩坑的是把噪声标签当成“忽略”。例如在 transcript 中加入 NOISE 这类 token，看上去是在告诉模型某段是背景声，但对 CTC 来说它仍然是一个 non-blank 目标。模型会被训练成在某些声学区域输出一个显式 token，而不是在不确定区域保持 blank。</p>
+<p>这会造成两个后果。第一，背景声、非目标人声和转写文本被塞进同一条标签通道，模型不知道哪些是要识别的文字，哪些只是样本状态。第二，评测时如果再把这些 token 过滤掉，就形成了训练目标和评测目标不一致：训练时要求输出，评测时又假装它不存在。</p>
+<p>pseudo-label 也有类似问题。多模型一致只能说明候选文本相近，不能说明切片边界、重叠语音、ITN 和热词都可靠。伪标签要进入主训练集，必须带上来源、置信度、过滤原因和后续评测回流。</p>
+<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>当一轮训练变差时，不要先改模型结构。先把样本按数据来源、过滤规则、规范化版本、音频时长、信噪比分桶，再看 WER&#x2F;CER 的插入、删除、替换分别在哪些桶里变坏。</p>
+<p>如果删除错误增加，优先查切片边界、静音过长、低能量片段和 blank 学习是否被污染。如果插入错误增加，优先查噪声片段、非目标人声、重复音频和文本规范化。若实体或热词召回下降，重点查词表、ITN、伪标签仲裁和人工抽检样本。</p>
+<p>关键是保留被过滤掉的样本列表。很多数据规则看起来提高了总体指标，却可能删掉了难例；短期变好，长期会让模型越来越不认识真实输入。</p>
+<h2 id="评测设计"><a href="#评测设计" class="headerlink" title="评测设计"></a>评测设计</h2><p>一个可复盘的 ASR 数据评测至少需要三张表。样本表记录 audio_id、segment_range、transcript、pseudo_label_source、confidence、quality_flags、normalization_version 和 reason code。指标表记录 WER&#x2F;CER、插入、删除、替换、关键实体召回、长短音频分桶和噪声分桶。回流表记录每次训练后哪些样本变差、哪些规则命中、哪些样本被移入或移出。</p>
+<p>这三张表要能 join 到一起。只有这样，评测才不是“模型掉点了”，而是能说清楚“某一类数据决策导致某一类错误上升”。数据质量流水线的终点不是干净数据集，而是可解释的数据决策。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>假设一次训练后总体 WER 只下降了 0.2，但长音频删除错误上升，短音频插入错误下降。这个结果不能简单判定为“新数据有效”。更可能的解释是：过滤规则删掉了一部分噪声短片段，让插入错误下降；同时长片段切分或 blank 边界被新标签扰动，导致删除错误上升。</p>
+<p>这时下一步不是继续加数据，而是回到样本账本：长音频里哪些样本来自伪标签，哪些命中了噪声标记，哪些经过文本规范化，哪些在上轮被移入训练集。只要能把这些样本拉出来，模型问题就会变成数据决策问题；拉不出来，就说明流水线还没有形成闭环。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>ASR 数据质量流水线的目标不是一次性清洗干净，而是把样本生命周期变成可审计过程。pseudo-label 可以用，但必须带来源、置信度、过滤原因和评测回流。</p>
+<p>下一步阅读：<a href="/2026/06/10/ASR-Noise-Structured-Extraction-Evaluation/">ASR 噪声下的结构化抽取评测：从文本相似到实体归因</a></p>
+]]></content>
+      <tags>
+        <tag>Open Source</tag>
+        <tag>ASR</tag>
+        <tag>Data</tag>
+        <tag>Evaluation</tag>
       </tags>
   </entry>
   <entry>
@@ -408,6 +408,161 @@
       </tags>
   </entry>
   <entry>
+    <title>【Agent Engineering Radar】2026-06-23 Agent 工程技术雷达</title>
+    <url>/2026/06/23/Agent-Engineering-Radar-2026-06-23/</url>
+    <content><![CDATA[<p>2026-06-23 周报聚焦于最近一周可公开验证的 Agent 工程信号：运行时更新、浏览器化代理能力、评测与风险治理。</p>
+<h2 id="This-Week’s-Signal"><a href="#This-Week’s-Signal" class="headerlink" title="This Week’s Signal"></a>This Week’s Signal</h2><ul>
+<li>OpenCode 发布了 <code>v1.17.9</code>（2026-06-21），修复了步骤边界、模型检测和流式行为，并补上了高&#x2F;最高思考参数暴露 (<a href="https://github.com/anomalyco/opencode/releases/tag/v1.17.9">GitHub Release</a>)。</li>
+<li>Browser-Use 发布 <code>0.13.2</code>（2026-06-12），核心是 <code>BU3</code> 模型接入、<code>ChatBrowserUse</code> 支持 provider 前缀模型，以及发布流程门控与依赖升级 (<a href="https://github.com/browser-use/browser-use/releases/tag/0.13.2">GitHub Release</a>)。</li>
+<li>WorkBench 基准论文 <code>arXiv:2606.13715</code>（2026-06-10 提交）发布了 2024–2026 两年进展：2026 年最高模型从 43% 提升到 89%，但仍存在错误邮件等高风险行为 (<a href="https://arxiv.org/abs/2606.13715">论文页面</a>)。</li>
+<li>OpenAI 的 ChatGPT 发布日志显示近期（2026-06-18 &#x2F; 06-22）将上下文和会话组织做了更细化优化，且发布中含 Codex 功能与安全&#x2F;权限变更文案（开发者模式、远程控制、速率限制与模型更新）(<a href="https://help.openai.com/en/articles/6825453-chatgpt-release-notes">OpenAI Release Notes</a>)。</li>
+</ul>
+<h2 id="Adopt"><a href="#Adopt" class="headerlink" title="Adopt"></a>Adopt</h2><ul>
+<li><p><strong>在主力开发链路中接入 OpenCode <code>v1.17.9</code></strong></p>
+<ul>
+<li>价值：更稳的终止行为（<code>step limits</code> 触达强制给出最终文本）有利于长任务流控；<code>Devstral</code> 大小写兼容和头信息透传降低跨供应商回归。</li>
+<li>成熟度：发布为正式版，含贡献者列表与签名提交，说明变更过程可追踪，适合直接采用。</li>
+<li>风险：功能点以体验修复为主，真正“生产可验证收益”仍需在个人流程里验证。</li>
+<li>下周动作：把 <code>opencode</code> 升级到该 tag，并补一条 smoke 脚本验证 <code>step limit</code> 场景下是否按预期回收。</li>
+</ul>
+</li>
+<li><p><strong>把 Browser-Use 当作“高复杂度网页交互 + 本地浏览器回归”专用代理</strong></p>
+<ul>
+<li>价值：<code>BU3</code> 与 provider 前缀模型支持增强了模型路由灵活性，适合处理多供应商成本优化。</li>
+<li>成熟度：有明确 release notes，且 <code>python</code> 生态仍保持稳定主线。</li>
+<li>风险：7 天发布窗口仍偏快，仍建议先灰度。</li>
+<li>下周动作：将高并发 UI 验证类任务切到 Browser-Use，并把 <code>release_to_pypi</code> 入口继续放在受控环境执行。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Trial"><a href="#Trial" class="headerlink" title="Trial"></a>Trial</h2><ul>
+<li><p><strong>引入 WorkBench 风格的“进度 + 安全双指标”评估</strong></p>
+<ul>
+<li>价值：论文显示完成率与安全性可共同提升，提示评测不该只看正确率，必须加“意外有害行为”指标。</li>
+<li>成熟度：公开可复用基准与模型分数已发布，适合作为自有代理栈的对照基线。</li>
+<li>风险：基线仍是研究方向，任务集与你现有业务分布可能不完全一致。</li>
+<li>下周动作：在本地评测脚本里新增“意外副作用率（例如错发文件&#x2F;错误通知）”一类红线指标。</li>
+</ul>
+</li>
+<li><p><strong>尝试把 ChatGPT 发布中的“更大上下文附件化”策略借鉴到日志与工单沉淀</strong></p>
+<ul>
+<li>价值：减少超长上下文污染主会话，符合 agent stack 的上下文治理思路。</li>
+<li>成熟度：官方功能已在产品层面上线，成熟度高。</li>
+<li>风险：该项属于前端体验行为，不能直接对应本地代理平台行为。</li>
+<li>下周动作：为长上下文任务链加入“附件化上下文片段 + 外挂摘要”双轨存储。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h2><ul>
+<li><p><strong>MCP 组织层提交噪点与治理流程</strong></p>
+<ul>
+<li>价值：<code>modelcontextprotocol</code> 在近端有安全治理相关提交（例如 charter 与错误码策略），说明生态在标准层面对安全与权限边界重视度增加。</li>
+<li>成熟度：目前主要是仓库治理与依赖更新类提交，未见统一对外 release。</li>
+<li>风险：短期可读性高，实施价值有限，不应误判为可直接落地功能。</li>
+<li>下周动作：把 MCP 监控关注点从“新 release”改为“治理&#x2F;安全相关 PR + 官方文档更新”。</li>
+</ul>
+</li>
+<li><p><strong>OpenAI 模型迭代与能力边界变化</strong></p>
+<ul>
+<li>价值：发布日志出现率限制共享、模型生命周期与远程执行边界的改动，影响依赖其 API 的 agent 运行时。</li>
+<li>成熟度：以产品公告形式同步，变更真实存在，短期波动较高。</li>
+<li>风险：对自动化策略（尤其是长期线程、远程运行）存在行为漂移。</li>
+<li>下周动作：补充一版 <code>provider matrix</code> 的故障转移清单，明确 o3 &#x2F; GPT-4.5 等退场窗口前的替代模型。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Hold-Risks"><a href="#Hold-Risks" class="headerlink" title="Hold&#x2F;Risks"></a>Hold&#x2F;Risks</h2><ul>
+<li><p><strong>把“功能发布速度”当作“可信度”</strong></p>
+<ul>
+<li>风险：OpenCode 与 Browser-Use 均在高频发布阶段，短周期更新有回归风险。</li>
+<li>风险缓解：只在非关键分支先开灰度，所有新特性走 <code>canary task</code> 验证，失败则回退到上一版。</li>
+</ul>
+</li>
+<li><p><strong>把 benchmark 指标当作最终生产标准</strong></p>
+<ul>
+<li>风险：Research benchmark 与企业任务分布偏差，不能直接映射业务成功率。</li>
+<li>风险缓解：保留 70% 任务对齐业务场景，30% 保持公开基准对照。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Practical-Stack-Adjustments"><a href="#Practical-Stack-Adjustments" class="headerlink" title="Practical Stack Adjustments"></a>Practical Stack Adjustments</h2><ol>
+<li>将 <code>opencode</code> 升级到 <code>v1.17.9</code>，并加一条 <code>step_limit</code> 场景回归测试。</li>
+<li>将 <code>browser-use</code> 的 <code>0.13.2</code> 作为 <code>BU3/复杂网页流程</code> 的默认代理，其他场景继续使用现有 CLI 代理。</li>
+<li>在评测脚本新增“功能成功率 + 安全副作用率”双指标视图，并按周跟踪与基准回归。</li>
+<li>在 provider 选择层增加模型退场与速率上限策略（含 ChatGPT 版本退场期的降级路径）。</li>
+<li>把 MCP&#x2F;Agent tooling 的安全治理提交列入月度订阅，而非仅看 release；把 <code>release</code> + <code>issue</code> + <code>commit</code> 作为三类信号打点。</li>
+</ol>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>如何在高频更新的公开项目中，保留功能收益的同时降低回归风险，并让评测不被单一正确率指标误导？</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>将代理栈看成三层：<code>runtime</code>（OpenCode&#x2F;Browser-Use）、<code>eval</code>（WorkBench 类公开基准）与 <code>governance</code>（模型退场、权限边界、MCP 安全更新），分别用统一回归集、双指标（效果+副作用）和 provider 降级策略闭环。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>每周执行：<code>发布监控 -&gt; 灰度升级 -&gt; 双指标回归 -&gt; 风险复盘</code>，并在新信号出现时更新 <code>Practical Stack Adjustments</code> 的工单清单。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>本周足够发布一篇雷达：有 2 个稳定工具链版本更新和 1 个可验证评测更新。先“试点+回归”，再在本地栈内形成默认策略，而不是直接全量替换。</p>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>这周有明确的三类可落地信号，属于“可发布周报”阈值。建议按上面 5 个实践动作在下周完成一次小范围实测，并把结果写回到雷达的 <code>Practical Stack Adjustments</code> 更新点。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>优先级：<code>OpenCode</code> 和 <code>Browser-Use</code> 属于工具替换线，<code>WorkBench</code> 属于评测线，三者都应加入“先灰度后扩展”的统一变更窗口。<br>结论：先在非关键任务流上试验 10%-20%，再扩展到主链路。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>在 5 个非关键任务上同时跑 <code>v1.17.9</code> 与当前版本对照，比较：  </p>
+<ul>
+<li>完成率是否提升  </li>
+<li>错误任务（错发消息&#x2F;误操作）是否下降  </li>
+<li>平均 token &#x2F; token 成本是否可控</li>
+</ul>
+<h2 id="下一步阅读："><a href="#下一步阅读：" class="headerlink" title="下一步阅读："></a>下一步阅读：</h2><ul>
+<li><a href="https://github.com/anomalyco/opencode/releases/tag/v1.17.9">OpenCode 发布页 v1.17.9</a>  </li>
+<li><a href="https://github.com/browser-use/browser-use/releases/tag/0.13.2">Browser-Use 发布页 0.13.2</a>  </li>
+<li><a href="https://arxiv.org/abs/2606.13715">WorkBench Revisited 论文</a>  </li>
+<li><a href="https://help.openai.com/en/articles/6825453-chatgpt-release-notes">OpenAI 发布日志</a></li>
+</ul>
+]]></content>
+      <tags>
+        <tag>AI</tag>
+        <tag>Agent</tag>
+        <tag>Engineering</tag>
+        <tag>MCP</tag>
+        <tag>Benchmark</tag>
+        <tag>Observability</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CCA 与 SSVEP 频率识别：为什么线性相关仍然有效</title>
+    <url>/2019/07/15/CCA-application-in-SSVEP-frequency-detection/</url>
+    <content><![CDATA[<p>脑机接口里的 SSVEP 频率识别有一个很实际的问题：训练数据少、个体差异大、信号噪声高，但系统仍然需要快速判断用户注视的是哪个闪烁频率。</p>
+<p>CCA（Canonical Correlation Analysis）看起来是一个传统线性统计方法，却长期在 SSVEP 中有效。原因不在于它复杂，而在于它抓住了任务里最稳定的结构：刺激频率和脑电响应之间的相关性。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>SSVEP 是由周期性视觉刺激诱发的脑电响应。不同频率的闪烁刺激会在 EEG 中产生对应频率及其谐波成分。系统要做的事情，就是从多通道脑电信号里判断当前响应最接近哪个候选频率。</p>
+<p>采集示意如下：</p>
+<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_collect.jpg"></p>
+<p>频域上可以看到刺激频率及谐波处的能量峰：</p>
+<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_signal.png"></p>
+<p>如果训练数据充足，可以训练复杂模型；但 BCI 场景常常数据有限、校准时间短。CCA 的优势就是不强依赖大量训练数据。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>CCA 在 SSVEP 里的主线不是传统方法对抗深度学习，而是在低数据条件下利用任务结构。</p>
+<p>候选刺激频率已知，参考信号可以直接构造，EEG 多通道响应又和频率及谐波相关。CCA 把这些先验变成一个轻量基线，所以它经常比“直接上深度模型”更适合作为第一版系统。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>CCA 比较的是两组变量的最大线性相关。放到 SSVEP 里，一组变量是多通道 EEG，另一组是候选频率构造出的参考信号：</p>
+<p>$$\sin 2\pi ft,\cos 2\pi ft,\sin 4\pi ft,\cos 4\pi ft,…$$</p>
+<p>对每个候选频率，CCA 都计算 EEG 与参考信号之间的最大相关系数，相关性最高的频率就是预测结果。</p>
+<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCA.png"></p>
+<p>公式展开较长，核心可以理解成一个约束优化问题：寻找 EEG 通道加权和参考信号加权，使两者相关性最大。</p>
+<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCAFormula.png"></p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>CCA 的局限也很清楚。</p>
+<p>第一，相位漂移。不同受试者对同一刺激的响应时滞不同，固定参考信号可能无法对齐所有人。</p>
+<p>第二，线性假设。真实 EEG 包含噪声、伪迹和非线性成分，CCA 默认响应可以由参考频率线性解释。</p>
+<p>第三，短窗性能。长时间窗里频率特征更稳定，短时间窗里信噪比下降，识别更难。</p>
+<p>因此后续方法通常沿着两条路改进：要么增强相关分析本身，要么引入少量训练数据学习个体化空间滤波。DCCA 用深度网络表达非线性相关，但需要更多训练数据：</p>
+<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/DCCA.png"></p>
+<p>TRCA 则从任务相关成分出发，用训练数据学习更适合当前受试者的空间滤波：</p>
+<img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/TRCA.png" width=256 height=256/>
+
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一个小样本实验可以只选 8Hz、10Hz、12Hz 三个候选频率，每个频率采几段短窗 EEG。先用 CCA 计算每段与三个参考信号的相关系数，再画出正确频率和次高频率之间的 margin。</p>
+<p>如果长窗 margin 明显、短窗 margin 接近 0，瓶颈不是分类器不够复杂，而是窗口太短导致频率证据不足；如果某个受试者所有频率 margin 都低，就优先检查相位、导联和个体化空间滤波。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>CCA 在 SSVEP 中有效，是因为它用很低的数据成本抓住了刺激频率和脑电响应之间的稳定相关结构。它不是所有 EEG 问题的通用答案，但在候选频率明确、训练数据有限、需要快速部署的 BCI 任务里仍然是很强的基线。</p>
+<p>后续优化不应只问“能不能换成深度学习”，而要问：短窗、相位漂移、个体差异和校准成本哪个才是当前系统的主要瓶颈。</p>
+<p>下一步阅读：<a href="/2021/08/24/ASR-preprocess/">ASR 特征前端：从原始波形到可训练的声学表示</a></p>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] Frequency Recognition Based on Canonical Correlation Analysis for SSVEP-Based BCIs<br>[2] Deep Canonical Correlation Analysis<br>[3] Enhancing detection of SSVEPs for a high-speed brain speller using task-related component analysis</p>
+]]></content>
+      <tags>
+        <tag>CCA</tag>
+        <tag>EEG</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Agentic Coding 工程治理：多模型协作先定义责任边界</title>
     <url>/2026/06/10/Agentic-Coding-Governance/</url>
     <content><![CDATA[<p>代码生成工具越来越强，多模型协作也越来越常见。但真正的问题已经不是“哪个模型会写代码”，而是多个代理如何共享上下文、谁能写文件、谁负责审查、如何避免互相覆盖，以及如何验证最终结果。</p>
@@ -458,48 +613,6 @@
       </tags>
   </entry>
   <entry>
-    <title>CCA 与 SSVEP 频率识别：为什么线性相关仍然有效</title>
-    <url>/2019/07/15/CCA-application-in-SSVEP-frequency-detection/</url>
-    <content><![CDATA[<p>脑机接口里的 SSVEP 频率识别有一个很实际的问题：训练数据少、个体差异大、信号噪声高，但系统仍然需要快速判断用户注视的是哪个闪烁频率。</p>
-<p>CCA（Canonical Correlation Analysis）看起来是一个传统线性统计方法，却长期在 SSVEP 中有效。原因不在于它复杂，而在于它抓住了任务里最稳定的结构：刺激频率和脑电响应之间的相关性。</p>
-<span id="more"></span>
-
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>SSVEP 是由周期性视觉刺激诱发的脑电响应。不同频率的闪烁刺激会在 EEG 中产生对应频率及其谐波成分。系统要做的事情，就是从多通道脑电信号里判断当前响应最接近哪个候选频率。</p>
-<p>采集示意如下：</p>
-<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_collect.jpg"></p>
-<p>频域上可以看到刺激频率及谐波处的能量峰：</p>
-<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_signal.png"></p>
-<p>如果训练数据充足，可以训练复杂模型；但 BCI 场景常常数据有限、校准时间短。CCA 的优势就是不强依赖大量训练数据。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>CCA 在 SSVEP 里的主线不是传统方法对抗深度学习，而是在低数据条件下利用任务结构。</p>
-<p>候选刺激频率已知，参考信号可以直接构造，EEG 多通道响应又和频率及谐波相关。CCA 把这些先验变成一个轻量基线，所以它经常比“直接上深度模型”更适合作为第一版系统。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>CCA 比较的是两组变量的最大线性相关。放到 SSVEP 里，一组变量是多通道 EEG，另一组是候选频率构造出的参考信号：</p>
-<p>$$\sin 2\pi ft,\cos 2\pi ft,\sin 4\pi ft,\cos 4\pi ft,…$$</p>
-<p>对每个候选频率，CCA 都计算 EEG 与参考信号之间的最大相关系数，相关性最高的频率就是预测结果。</p>
-<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCA.png"></p>
-<p>公式展开较长，核心可以理解成一个约束优化问题：寻找 EEG 通道加权和参考信号加权，使两者相关性最大。</p>
-<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCAFormula.png"></p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>CCA 的局限也很清楚。</p>
-<p>第一，相位漂移。不同受试者对同一刺激的响应时滞不同，固定参考信号可能无法对齐所有人。</p>
-<p>第二，线性假设。真实 EEG 包含噪声、伪迹和非线性成分，CCA 默认响应可以由参考频率线性解释。</p>
-<p>第三，短窗性能。长时间窗里频率特征更稳定，短时间窗里信噪比下降，识别更难。</p>
-<p>因此后续方法通常沿着两条路改进：要么增强相关分析本身，要么引入少量训练数据学习个体化空间滤波。DCCA 用深度网络表达非线性相关，但需要更多训练数据：</p>
-<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/DCCA.png"></p>
-<p>TRCA 则从任务相关成分出发，用训练数据学习更适合当前受试者的空间滤波：</p>
-<img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/TRCA.png" width=256 height=256/>
-
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一个小样本实验可以只选 8Hz、10Hz、12Hz 三个候选频率，每个频率采几段短窗 EEG。先用 CCA 计算每段与三个参考信号的相关系数，再画出正确频率和次高频率之间的 margin。</p>
-<p>如果长窗 margin 明显、短窗 margin 接近 0，瓶颈不是分类器不够复杂，而是窗口太短导致频率证据不足；如果某个受试者所有频率 margin 都低，就优先检查相位、导联和个体化空间滤波。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>CCA 在 SSVEP 中有效，是因为它用很低的数据成本抓住了刺激频率和脑电响应之间的稳定相关结构。它不是所有 EEG 问题的通用答案，但在候选频率明确、训练数据有限、需要快速部署的 BCI 任务里仍然是很强的基线。</p>
-<p>后续优化不应只问“能不能换成深度学习”，而要问：短窗、相位漂移、个体差异和校准成本哪个才是当前系统的主要瓶颈。</p>
-<p>下一步阅读：<a href="/2021/08/24/ASR-preprocess/">ASR 特征前端：从原始波形到可训练的声学表示</a></p>
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] Frequency Recognition Based on Canonical Correlation Analysis for SSVEP-Based BCIs<br>[2] Deep Canonical Correlation Analysis<br>[3] Enhancing detection of SSVEPs for a high-speed brain speller using task-related component analysis</p>
-]]></content>
-      <tags>
-        <tag>CCA</tag>
-        <tag>EEG</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>PEFT 工程取舍：省参数只是入口，部署路径才是边界</title>
     <url>/2026/06/10/PEFT-Engineering-Tradeoffs/</url>
     <content><![CDATA[<p>PEFT 常被理解成“少训练一些参数”。这句话没错，但它只说了训练成本，没有说清楚工程边界。真正的选择不是参数越少越好，而是训练显存、适配能力、推理开销、上下文占用、版本管理和回滚方式之间的取舍。</p>
@@ -538,6 +651,88 @@
         <tag>Open Source</tag>
         <tag>PEFT</tag>
         <tag>Fine-tuning</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Personal VAD 2.0 工程化：把目标说话人判断做成闭环</title>
+    <url>/2026/06/09/PVAD2-engineering-loop/</url>
+    <content><![CDATA[<p>普通 VAD 只回答“这里有没有人声”。Personal VAD 要回答更难的问题：这里有没有目标说话人的声音。这个差异会把任务从声学检测推进到说话人条件建模。</p>
+<p>项目代码可参考：<a href="https://github.com/fclearner/Personal-vad-2.0">Personal-vad-2.0</a></p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>真实语音场景里，经常不只一个人说话。普通 VAD 能检测语音活动，却无法区分当前语音是否来自目标说话人。对于个性化唤醒、会议选择性转写、目标说话人增强和说话人相关过滤，这个能力不够。</p>
+<p>Personal VAD 的核心矛盾是：模型既要保持 VAD 的帧级时序敏感，又要利用 speaker embedding 识别目标说话人。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>PVAD 的难点不在于把 VAD 模型做大，而在于把目标说话人条件落到帧级标注里。</p>
+<p>如果数据里没有清晰区分目标说话人、非目标说话人、静音和噪声，模型很容易退化成普通 VAD。speaker embedding 不是魔法开关，它只有和采样、标签对齐、负样本设计一起闭环，才可能带来目标说话人判断能力。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 PVAD 写成一个条件检测问题：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">audio_features + target_speaker_embedding -&gt; target_speech_activity</span><br></pre></td></tr></table></figure>
+
+<p>这里的目标不是单独做 speaker verification，也不是单独做 VAD，而是把目标说话人的条件信息注入到帧级检测里。</p>
+<p>训练样本至少要覆盖三类情况：目标说话人说话、非目标说话人说话、无人声或噪声。否则模型很容易学成普通 VAD，或者把所有人声都当成目标。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>PVAD 的评测要拆开。</p>
+<ul>
+<li>VAD 层：speech &#x2F; non-speech 的召回和误报；</li>
+<li>说话人层：目标和非目标说话人的区分能力；</li>
+<li>时序层：起止边界、短语音、重叠语音和噪声下的稳定性；</li>
+<li>训练层：embedding 来源、采样策略、正负样本比例和标签对齐。</li>
+</ul>
+<p>如果只看总体准确率，很难发现模型到底是在做目标说话人判断，还是只是在检测有没有声音。</p>
+<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>第一阶段不一定要端到端训练 speaker encoder。更稳的路径是先用外部 speaker embedding，把“说话人表征是否有用”和“帧级检测是否可学”拆开。若外部 embedding 都没有收益，问题大概率在数据定义、目标映射或标签边界，而不是模型容量。</p>
+<p>随机 embedding 是一个很有价值的对照。若随机 embedding 也能提升，说明模型可能只是学到了额外参数或采样偏差，而不是目标说话人信息。若固定外部 embedding 有收益，再考虑轻量投影层、条件归一化或注意力注入。</p>
+<p>重叠语音不能只当噪声。它是检验 PVAD 是否真正理解目标条件的关键分桶：非目标人声存在时，模型是否还能只激活目标说话人帧。</p>
+<h2 id="实验设计"><a href="#实验设计" class="headerlink" title="实验设计"></a>实验设计</h2><p>最小实验矩阵可以是四组：普通 VAD baseline、随机 speaker embedding、固定外部 speaker embedding、外部 embedding 加轻量投影层。每组都看目标说话人召回、非目标误报、静音误报、重叠语音表现和边界偏移。</p>
+<p>如果目标召回高但非目标误报也高，模型仍像普通 VAD。若非目标压住了但目标漏检高，embedding 或正样本采样不足。若重叠语音失败，说明条件信息没有在帧级竞争中起作用。</p>
+<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>错误样本要按说话人关系拆开，而不是只看总体 F1。目标单人、非目标单人、目标与非目标重叠、噪声静音分别对应不同问题。每类样本都保留音频片段、目标 embedding 来源、帧级标签、预测概率和边界偏移。</p>
+<p>PVAD 的进展不应该靠换更大模型来证明，而应该靠这些分桶错误逐步减少来证明。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>如果普通 VAD baseline 已经能把大部分人声找出来，但目标和非目标分不开，说明瓶颈不在声学活动检测。如果加入随机 embedding 后指标也提升，说明模型可能只是吃到了额外参数或采样偏差；只有固定外部 speaker embedding 带来稳定收益，才能说明条件信息真正起作用。</p>
+<p>重叠语音样本尤其重要。目标说话人和非目标说话人同时存在时，模型是否只激活目标帧，决定了它是不是 PVAD。若这类样本没有单独分桶，总体 F1 很容易被大量简单静音和单人语音掩盖。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Personal VAD 的工程重点不是把普通 VAD 模型换大，而是把目标说话人条件、帧级标签和负样本设计做成闭环。speaker embedding 只有和训练采样、标签对齐、错误归因一起设计，才会真正改善目标说话人检测。</p>
+<p>下一步阅读：<a href="/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/">实时语音 Turn-taking 评测：从端点检测到可接话判断</a></p>
+]]></content>
+      <tags>
+        <tag>Open Source</tag>
+        <tag>ASR</tag>
+        <tag>VAD</tag>
+        <tag>PVAD</tag>
+        <tag>Speaker Embedding</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>实时语音 Turn-taking 评测：从端点检测到可接话判断</title>
+    <url>/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/</url>
+    <content><![CDATA[<p>实时语音系统里，判断用户“说完了”比看起来更难。静音不一定代表结束，短停顿可能只是思考；语义已经完整，也可能还会补充条件。Turn-taking 要解决的不是单纯端点检测，而是系统什么时候可以安全接话。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>传统 VAD 或 endpointing 主要看声学静音。实时助手需要更复杂的判断：当前 partial 结果是否语义完整，用户是否可能继续说，系统现在接话是否会打断。</p>
+<p>如果判断过早，系统会抢话；判断过晚，交互 latency 会变差。这个 tradeoff 不能只靠经验阈值。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>Turn-taking 不是“检测用户说完”，而是在不确定输入下选择系统行动时机。</p>
+<p>静音、semantic end、partial 稳定性和 latency 都只是信号，真正的输出不是一个客观标签，而是“现在接话是否值得”。这个判断必须同时考虑抢话成本和等待成本。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一个 turn-taking 决策至少包含：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">audio_state</span><br><span class="line">partial_transcript</span><br><span class="line">semantic end score</span><br><span class="line">silence_duration</span><br><span class="line">rollback_risk</span><br><span class="line">latency_budget</span><br><span class="line">decision</span><br></pre></td></tr></table></figure>
+
+<p><code>semantic end</code> 表示语义是否完成；<code>partial</code> 表示当前流式识别结果仍可能变化；<code>latency_budget</code> 控制系统为了更准愿意等多久。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>评测要同时看三类指标。</p>
+<p>第一类是交互延迟：用户停顿后多久系统响应，p95&#x2F;p99 是否可接受。</p>
+<p>第二类是打断率：系统是否在用户还没说完时抢答。</p>
+<p>第三类是漏接或慢接：用户已经说完但系统迟迟不响应。</p>
+<p>离线评测可以用标注的 turn boundary；在线评测还要记录 partial 变化、ASR 回滚、semantic end 分数和最终用户体验。</p>
+<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>静音不等于结束，语义完整也不等于可以接话。用户可能短暂停顿后继续补充，或者语义已经完整但还在列举条件。反过来，语义没有完全闭合时，系统也可能需要轻量反馈，以免交互显得停滞。</p>
+<p>所以 Turn-taking 不能脱离系统动作讨论。如果系统接话后可以取消或轻量回滚，策略可以激进一点；如果一旦开口就会明显打断，就必须保守。模型输出的不是“结束事实”，而是“行动风险”。</p>
+<p>低首包延迟和语义稳定也天然冲突。ASR partial 越早，越容易回滚；决策越稳，越可能慢。工程上应把识别层和决策层拆开：识别层尽早给候选，决策层用 partial 历史、回滚风险和 semantic end 分数决定是否接话。</p>
+<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>第一版评测应该从 timeline 回放做起。把音频能量、partial 文本、semantic end 分数、静音时长、候选边界、决策点和用户后续语音放在一条时间线上。只要能看到系统在什么信号组合下接话，阈值调整就不会变成盲调。</p>
+<p>错误样本按四类分桶：正确接话、过早接话、过晚接话、正确等待。过早和过晚不能合并，因为修复方向相反。过早需要提高语义完成阈值或回滚风险权重；过晚需要放松等待策略或降低模型延迟。</p>
+<h2 id="评测设计"><a href="#评测设计" class="headerlink" title="评测设计"></a>评测设计</h2><p>指标要同时包含动作质量和时间质量。动作质量看打断率、慢接率、漏接率、正确等待率。时间质量看 decision latency、first response latency、p95&#x2F;p99 和取消后的恢复时间。</p>
+<p>最终报告要能回答一个具体问题：当前策略是偏向“少打断但慢”，还是“快响应但抢话多”。没有这个取舍曲线，Turn-taking 指标就只是一堆阈值实验。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>同一个候选边界，600ms 接话和 900ms 接话可能都是“对”的，但代价不同。600ms 可能让交互更快，也可能在用户补充条件时抢话；900ms 更稳，却可能让用户重复或以为系统没听懂。Turn-taking 评测要比较的不是单点准确率，而是这条代价曲线。</p>
+<p>因此，每个错误样本都应该回放到时间线：系统在哪个 partial 上做了 decision，semantic end 当时多少，后续 partial 是否回滚，用户后面是否继续说。只看最终边界标签，会丢掉最关键的策略信息。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Turn-taking 不是 VAD 的别名，而是声学、语义和延迟预算共同决定的接话策略。先把 partial、semantic end、silence 和 latency 分开记录，再调阈值或训练模型。</p>
+<p>下一步阅读：<a href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/">LLM 与语音模型推理服务：先把延迟拆成可观测链路</a></p>
+]]></content>
+      <tags>
+        <tag>Open Source</tag>
+        <tag>ASR</tag>
+        <tag>Evaluation</tag>
+        <tag>Speech</tag>
       </tags>
   </entry>
   <entry>
@@ -588,47 +783,47 @@
       </tags>
   </entry>
   <entry>
-    <title>Personal VAD 2.0 工程化：把目标说话人判断做成闭环</title>
-    <url>/2026/06/09/PVAD2-engineering-loop/</url>
-    <content><![CDATA[<p>普通 VAD 只回答“这里有没有人声”。Personal VAD 要回答更难的问题：这里有没有目标说话人的声音。这个差异会把任务从声学检测推进到说话人条件建模。</p>
-<p>项目代码可参考：<a href="https://github.com/fclearner/Personal-vad-2.0">Personal-vad-2.0</a></p>
+    <title>语音大模型工程：音频 token、LLM 主干与对齐契约</title>
+    <url>/2026/06/10/Speech-LLM-Audio-Token-Alignment/</url>
+    <content><![CDATA[<p>语音大模型不是把 ASR encoder 接到 LLM 上就结束了。真正困难的是接口契约：音频如何被压成 token，token 如何进入 LLM，文本监督如何约束语音表示，流式场景又如何保证延迟和上下文一致。</p>
+<p>如果这个契约不清楚，Qwen3-ASR、Qwen-Omni、WeNet、CTC、AED、speech encoder 和 LLM 主干会变成一堆名词，而不是可排障的系统。</p>
 <span id="more"></span>
 
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>真实语音场景里，经常不只一个人说话。普通 VAD 能检测语音活动，却无法区分当前语音是否来自目标说话人。对于个性化唤醒、会议选择性转写、目标说话人增强和说话人相关过滤，这个能力不够。</p>
-<p>Personal VAD 的核心矛盾是：模型既要保持 VAD 的帧级时序敏感，又要利用 speaker embedding 识别目标说话人。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>PVAD 的难点不在于把 VAD 模型做大，而在于把目标说话人条件落到帧级标注里。</p>
-<p>如果数据里没有清晰区分目标说话人、非目标说话人、静音和噪声，模型很容易退化成普通 VAD。speaker embedding 不是魔法开关，它只有和采样、标签对齐、负样本设计一起闭环，才可能带来目标说话人判断能力。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 PVAD 写成一个条件检测问题：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">audio_features + target_speaker_embedding -&gt; target_speech_activity</span><br></pre></td></tr></table></figure>
-
-<p>这里的目标不是单独做 speaker verification，也不是单独做 VAD，而是把目标说话人的条件信息注入到帧级检测里。</p>
-<p>训练样本至少要覆盖三类情况：目标说话人说话、非目标说话人说话、无人声或噪声。否则模型很容易学成普通 VAD，或者把所有人声都当成目标。</p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>PVAD 的评测要拆开。</p>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>传统 ASR 输出文本，LLM 处理文本。Speech-LLM 想把语音直接纳入语言模型能力，但语音和文本的粒度差异很大：音频帧密集、长度长、噪声多；文本 token 稀疏、语义压缩强。</p>
+<p>工程上的关键问题是：语音侧的信息压缩到什么粒度，才能既保留识别所需细节，又不把 LLM 上下文窗口耗尽。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>语音大模型首先要定义清楚音频 token 契约，然后才谈架构强弱。</p>
+<p>Qwen3-ASR、Qwen-Omni、WeNet、CTC、AED、projector 和 LLM 主干只是组件名。真正决定系统是否可训练、可推理、可排障的是：音频如何变成 token，token 如何进入文本序列，mask 如何定义，训练模板和推理模板是否一致。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 Speech-LLM 拆成四层。</p>
+<p>第一层是音频前端和 speech encoder。WeNet、Qwen3-ASR 这类系统会把声学特征压成更高层的语音表示，常见监督包括 CTC、AED 或混合目标。</p>
+<p>第二层是 projector 或 adapter。它负责把 speech encoder 输出映射到 LLM 可消费的向量空间。这里不是简单维度对齐，还包括时间下采样、位置编码和模态边界。</p>
+<p>第三层是 LLM 主干。Qwen-Omni 这类多模态系统需要同时处理语音、文本甚至其他模态，因此输入序列必须标记清楚模态、时间和角色。</p>
+<p>第四层是输出协议。系统到底输出转写、语义回答、结构化字段，还是边听边生成，会决定训练样本和解码策略。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>对齐问题必须可观测。至少要记录：</p>
 <ul>
-<li>VAD 层：speech &#x2F; non-speech 的召回和误报；</li>
-<li>说话人层：目标和非目标说话人的区分能力；</li>
-<li>时序层：起止边界、短语音、重叠语音和噪声下的稳定性；</li>
-<li>训练层：embedding 来源、采样策略、正负样本比例和标签对齐。</li>
+<li>音频时长到 speech token 数量的压缩比；</li>
+<li>CTC 或 ASR 辅助目标是否稳定；</li>
+<li>projector 输出是否导致 LLM 上下文过长；</li>
+<li>流式场景下 partial 结果是否可回滚；</li>
+<li>错误来自声学识别、模态对齐还是语言生成。</li>
 </ul>
-<p>如果只看总体准确率，很难发现模型到底是在做目标说话人判断，还是只是在检测有没有声音。</p>
-<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>第一阶段不一定要端到端训练 speaker encoder。更稳的路径是先用外部 speaker embedding，把“说话人表征是否有用”和“帧级检测是否可学”拆开。若外部 embedding 都没有收益，问题大概率在数据定义、目标映射或标签边界，而不是模型容量。</p>
-<p>随机 embedding 是一个很有价值的对照。若随机 embedding 也能提升，说明模型可能只是学到了额外参数或采样偏差，而不是目标说话人信息。若固定外部 embedding 有收益，再考虑轻量投影层、条件归一化或注意力注入。</p>
-<p>重叠语音不能只当噪声。它是检验 PVAD 是否真正理解目标条件的关键分桶：非目标人声存在时，模型是否还能只激活目标说话人帧。</p>
-<h2 id="实验设计"><a href="#实验设计" class="headerlink" title="实验设计"></a>实验设计</h2><p>最小实验矩阵可以是四组：普通 VAD baseline、随机 speaker embedding、固定外部 speaker embedding、外部 embedding 加轻量投影层。每组都看目标说话人召回、非目标误报、静音误报、重叠语音表现和边界偏移。</p>
-<p>如果目标召回高但非目标误报也高，模型仍像普通 VAD。若非目标压住了但目标漏检高，embedding 或正样本采样不足。若重叠语音失败，说明条件信息没有在帧级竞争中起作用。</p>
-<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>错误样本要按说话人关系拆开，而不是只看总体 F1。目标单人、非目标单人、目标与非目标重叠、噪声静音分别对应不同问题。每类样本都保留音频片段、目标 embedding 来源、帧级标签、预测概率和边界偏移。</p>
-<p>PVAD 的进展不应该靠换更大模型来证明，而应该靠这些分桶错误逐步减少来证明。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>如果普通 VAD baseline 已经能把大部分人声找出来，但目标和非目标分不开，说明瓶颈不在声学活动检测。如果加入随机 embedding 后指标也提升，说明模型可能只是吃到了额外参数或采样偏差；只有固定外部 speaker embedding 带来稳定收益，才能说明条件信息真正起作用。</p>
-<p>重叠语音样本尤其重要。目标说话人和非目标说话人同时存在时，模型是否只激活目标帧，决定了它是不是 PVAD。若这类样本没有单独分桶，总体 F1 很容易被大量简单静音和单人语音掩盖。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Personal VAD 的工程重点不是把普通 VAD 模型换大，而是把目标说话人条件、帧级标签和负样本设计做成闭环。speaker embedding 只有和训练采样、标签对齐、错误归因一起设计，才会真正改善目标说话人检测。</p>
-<p>下一步阅读：<a href="/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/">实时语音 Turn-taking 评测：从端点检测到可接话判断</a></p>
+<p>一个实用排查顺序是先看 ASR 能力，再看对齐层，再看 LLM 生成。如果基础转写已经不稳定，直接调 prompt 或扩大 LLM 很难解决问题。</p>
+<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>强 LLM 可能会掩盖音频对齐错误。模型输出看起来流畅，不代表它真的使用了音频信息；它可能只是依赖文本 prompt 和语言先验补全答案。因此，Speech-LLM 不能只看最终回答，要看音频秒数、encoder 帧数、speech token 数、text token 数、special token 数和 label mask 比例。</p>
+<p>CTC&#x2F;AED 辅助目标也不是越多越好。CTC 给帧级约束，AED 给序列生成约束，但如果某个分支在小数据 overfit 测试里都不下降，接到更大的 LLM 上也不会自然变好。辅助 loss 不稳定时，先查 mask、目标权重和梯度路径，而不是继续堆数据。</p>
+<p>流式场景还多一层矛盾：低延迟需要早出 partial，稳定语义需要更多上下文。若 partial 和最终生成共用不稳定上下文，系统会频繁回滚。</p>
+<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>最小验证集至少包含短音频、长音频、静音、带噪音频、纯转写任务和语义回答任务。每个样本都记录 token 账本：audio_seconds、encoder_frames、speech_tokens、text_tokens、special_tokens、label_mask_ratio、CTC loss、AED loss、generation loss。</p>
+<p>如果 speech token 数异常，查前端长度、下采样和 projector。若 label mask 比例异常，查训练模板。若 CTC loss 降而生成 loss 不动，问题可能在 projector 或 LLM 监督；若生成 loss 降而 CTC 不动，声学侧约束没有起作用；两个都不动，先查数据读取、特殊 token 和 mask。</p>
+<h2 id="实现契约"><a href="#实现契约" class="headerlink" title="实现契约"></a>实现契约</h2><p>音频 token 契约至少写清四件事。第一，音频压缩比如何计算。第二，音频 token 插入到文本序列的哪个位置。第三，LLM attention 是否允许跨模态自由看。第四，训练和推理使用的特殊 token、模板和长度规则是否完全一致。</p>
+<p>只要这份契约缺失，模型名再先进也很难排障。Speech-LLM 的工程成熟度，不在于接了多少组件，而在于每个样本都能解释“音频信息以什么形态进入了语言模型”。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一个很实用的 sanity check 是静音样本。如果静音经过 encoder 和 projector 后仍然产生大量 speech token，并让 LLM 输出正常文本，说明模型很可能在依赖语言先验，而不是音频证据。另一个检查是长音频样本：speech token 数是否随时长线性膨胀，是否把上下文窗口迅速吃满。</p>
+<p>纯转写样本和语义回答样本也要分开看。转写失败通常指向声学或对齐；转写正确但回答错误，才更像 LLM 侧整合问题。两者混在一起评测，会让系统误以为是“综合能力不足”，实际只是接口契约不清。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Speech-LLM 的工程边界在音频 token 契约，而不是模型名字。先定义清楚音频如何压缩、如何接入 LLM、如何监督、如何流式输出，再比较 Qwen3-ASR、Qwen-Omni、WeNet 或其他方案。</p>
+<p>下一步阅读：<a href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/">LLM 与语音模型推理服务：队列、流式与可观测性</a></p>
 ]]></content>
       <tags>
+        <tag>LLM</tag>
         <tag>Open Source</tag>
         <tag>ASR</tag>
-        <tag>VAD</tag>
-        <tag>PVAD</tag>
-        <tag>Speaker Embedding</tag>
+        <tag>Speech</tag>
       </tags>
   </entry>
   <entry>
@@ -677,41 +872,42 @@
       </tags>
   </entry>
   <entry>
-    <title>实时语音 Turn-taking 评测：从端点检测到可接话判断</title>
-    <url>/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/</url>
-    <content><![CDATA[<p>实时语音系统里，判断用户“说完了”比看起来更难。静音不一定代表结束，短停顿可能只是思考；语义已经完整，也可能还会补充条件。Turn-taking 要解决的不是单纯端点检测，而是系统什么时候可以安全接话。</p>
+    <title>语音对话合成数据工程：Schema、口语化与质量闸门</title>
+    <url>/2026/06/11/Speech-Dialog-Data-Synthesis-Quality-Gates/</url>
+    <content><![CDATA[<p>合成对话数据的风险不是“生成得不够多”，而是生成得太像模板、太干净、太不符合语音输入的真实噪声。数量扩大很容易，难的是让样本既覆盖任务，又不把模型训练成只会回答标准文本。</p>
+<p>所以语音对话合成数据要先设计质量闸门，再谈规模。</p>
 <span id="more"></span>
 
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>传统 VAD 或 endpointing 主要看声学静音。实时助手需要更复杂的判断：当前 partial 结果是否语义完整，用户是否可能继续说，系统现在接话是否会打断。</p>
-<p>如果判断过早，系统会抢话；判断过晚，交互 latency 会变差。这个 tradeoff 不能只靠经验阈值。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>Turn-taking 不是“检测用户说完”，而是在不确定输入下选择系统行动时机。</p>
-<p>静音、semantic end、partial 稳定性和 latency 都只是信号，真正的输出不是一个客观标签，而是“现在接话是否值得”。这个判断必须同时考虑抢话成本和等待成本。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一个 turn-taking 决策至少包含：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">audio_state</span><br><span class="line">partial_transcript</span><br><span class="line">semantic end score</span><br><span class="line">silence_duration</span><br><span class="line">rollback_risk</span><br><span class="line">latency_budget</span><br><span class="line">decision</span><br></pre></td></tr></table></figure>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>对话数据要服务下游训练和评测。它既要有结构化 schema，保证字段、意图、实体和状态可控；又要有口语化表达，覆盖停顿、重复、自我修正、n-best 候选和 ASR 错误。</p>
+<p>如果只生成标准书面语，模型上线后会被真实口语击穿。如果只追求随机扰动，样本又会失去任务结构。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>合成语音对话数据真正要模拟的是不确定性，而不是生产更整齐的文本。</p>
+<p>对话数据越干净，越可能远离真实语音输入。真正有价值的合成样本，要同时保留 schema 约束、口语化扰动、n-best 不确定性、状态变化和失败原因。它不是文本扩增，而是一个可控的交互模拟器。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一条合成样本至少要包含：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">dialogue_id</span><br><span class="line">turns</span><br><span class="line">intent</span><br><span class="line">entities</span><br><span class="line">state</span><br><span class="line">n-best</span><br><span class="line">quality_flags</span><br><span class="line">reason code</span><br></pre></td></tr></table></figure>
 
-<p><code>semantic end</code> 表示语义是否完成；<code>partial</code> 表示当前流式识别结果仍可能变化；<code>latency_budget</code> 控制系统为了更准愿意等多久。</p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>评测要同时看三类指标。</p>
-<p>第一类是交互延迟：用户停顿后多久系统响应，p95&#x2F;p99 是否可接受。</p>
-<p>第二类是打断率：系统是否在用户还没说完时抢答。</p>
-<p>第三类是漏接或慢接：用户已经说完但系统迟迟不响应。</p>
-<p>离线评测可以用标注的 turn boundary；在线评测还要记录 partial 变化、ASR 回滚、semantic end 分数和最终用户体验。</p>
-<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>静音不等于结束，语义完整也不等于可以接话。用户可能短暂停顿后继续补充，或者语义已经完整但还在列举条件。反过来，语义没有完全闭合时，系统也可能需要轻量反馈，以免交互显得停滞。</p>
-<p>所以 Turn-taking 不能脱离系统动作讨论。如果系统接话后可以取消或轻量回滚，策略可以激进一点；如果一旦开口就会明显打断，就必须保守。模型输出的不是“结束事实”，而是“行动风险”。</p>
-<p>低首包延迟和语义稳定也天然冲突。ASR partial 越早，越容易回滚；决策越稳，越可能慢。工程上应把识别层和决策层拆开：识别层尽早给候选，决策层用 partial 历史、回滚风险和 semantic end 分数决定是否接话。</p>
-<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>第一版评测应该从 timeline 回放做起。把音频能量、partial 文本、semantic end 分数、静音时长、候选边界、决策点和用户后续语音放在一条时间线上。只要能看到系统在什么信号组合下接话，阈值调整就不会变成盲调。</p>
-<p>错误样本按四类分桶：正确接话、过早接话、过晚接话、正确等待。过早和过晚不能合并，因为修复方向相反。过早需要提高语义完成阈值或回滚风险权重；过晚需要放松等待策略或降低模型延迟。</p>
-<h2 id="评测设计"><a href="#评测设计" class="headerlink" title="评测设计"></a>评测设计</h2><p>指标要同时包含动作质量和时间质量。动作质量看打断率、慢接率、漏接率、正确等待率。时间质量看 decision latency、first response latency、p95&#x2F;p99 和取消后的恢复时间。</p>
-<p>最终报告要能回答一个具体问题：当前策略是偏向“少打断但慢”，还是“快响应但抢话多”。没有这个取舍曲线，Turn-taking 指标就只是一堆阈值实验。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>同一个候选边界，600ms 接话和 900ms 接话可能都是“对”的，但代价不同。600ms 可能让交互更快，也可能在用户补充条件时抢话；900ms 更稳，却可能让用户重复或以为系统没听懂。Turn-taking 评测要比较的不是单点准确率，而是这条代价曲线。</p>
-<p>因此，每个错误样本都应该回放到时间线：系统在哪个 partial 上做了 decision，semantic end 当时多少，后续 partial 是否回滚，用户后面是否继续说。只看最终边界标签，会丢掉最关键的策略信息。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Turn-taking 不是 VAD 的别名，而是声学、语义和延迟预算共同决定的接话策略。先把 partial、semantic end、silence 和 latency 分开记录，再调阈值或训练模型。</p>
-<p>下一步阅读：<a href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/">LLM 与语音模型推理服务：先把延迟拆成可观测链路</a></p>
+<p><code>quality_flags</code> 记录口语化、实体覆盖、逻辑一致性、敏感词、重复和异常格式。<code>reason code</code> 说明样本为什么保留、丢弃或需要人工复核。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>质量闸门可以分三层。</p>
+<p>第一层是 schema 校验：字段是否完整、实体是否在合法范围、状态转移是否合理。</p>
+<p>第二层是语言质量：是否过于模板化、是否包含自然口语、是否有重复和自我修正。</p>
+<p>第三层是训练影响：加入这批数据后，目标任务指标是否提升，错误类型是否减少，是否引入系统性偏差。</p>
+<p>每一批合成数据都应该能回溯到生成配置、过滤规则和评测结果。否则数据越多，问题越难定位。</p>
+<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>schema 越严格，不代表数据越好。schema 能保证字段合法，但也容易把样本变成模板填空。模型会学到固定字段顺序，却学不到真实输入里的停顿、重复、修正和候选歧义。</p>
+<p>口语化也不是随机加噪。随机插入口头词、重复句子或错别字，可能让文本看起来更像口语，却破坏实体、状态和轮次关系。好的生成流程应该是先生成结构化计划，再生成口语化表达，最后把表达回填到 schema 校验。如果回填失败，这条样本就应该带着 reason code 进入复核，而不是被静默丢弃。</p>
+<p>n-best 的价值也常被低估。语音输入里很多错误来自候选不确定性，而不是唯一 transcript 的文字错误。训练样本保留 n-best，可以让模型学会在模糊表达下维持状态。</p>
+<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>第一批数据不要追求数量，先跑一个小闭环：固定少量 schema，生成样本，做 schema 回填校验，抽查失败样本，再做一次增量训练。每条失败样本都标明原因：字段缺失、状态冲突、实体漂移、轮次不一致、表达模板化，或者过滤规则过严。</p>
+<p>如果加入合成数据后指标没有提升，先不要扩大规模。要看错误分布是否变化：是不是边界样本变好了但常规样本变差了，是不是状态跟踪改善但实体抽取下降了，是不是模型学到了模板口吻。</p>
+<h2 id="评测设计"><a href="#评测设计" class="headerlink" title="评测设计"></a>评测设计</h2><p>离线质量看 schema 通过率、字段覆盖率、实体合法率、轮次一致性、口语化比例、重复率和 quality_flags 分布。训练收益看目标任务指标、状态跟踪错误、实体抽取错误、异常输入恢复能力和真实口语样本泛化。</p>
+<p>最重要的是增量评测。一次只加入一批合成策略，记录它改善了哪类错误、引入了哪类新偏差。合成数据的目标不是让训练集变大，而是让错误类型变得可控。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一条合成样本可以先有结构化计划：这一轮要表达哪个 intent，哪些 entities 必须出现，状态从哪里转到哪里。随后再生成口语化表达，比如重复、停顿、自我修正和候选歧义。最后把生成表达重新解析回 schema：如果字段回填失败，这不是小瑕疵，而是训练目标已经漂移。</p>
+<p>这样的闭环能避免两类坏数据。第一类是漂亮但无效的文本，看起来像自然对话，实际状态对不上。第二类是合法但僵硬的模板，schema 全过，模型却学不到真实语音输入的不确定性。质量闸门要同时拦住这两类样本。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>语音对话合成数据的核心不是生成，而是质量治理。先把 schema、quality_flags、n-best、reason code 和评测回流建起来，再扩大规模。没有这些闸门，合成数据会把训练目标污染成系统性偏差。</p>
+<p>下一步阅读：<a href="/2026/06/10/ASR-Data-Quality-Pipeline-Open-Source/">ASR 数据质量流水线：伪标签、切分与可追溯评测</a></p>
 ]]></content>
       <tags>
         <tag>Open Source</tag>
         <tag>ASR</tag>
+        <tag>Data</tag>
         <tag>Evaluation</tag>
-        <tag>Speech</tag>
       </tags>
   </entry>
   <entry>
@@ -766,89 +962,6 @@
       <tags>
         <tag>Blog</tag>
         <tag>Github</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>语音大模型工程：音频 token、LLM 主干与对齐契约</title>
-    <url>/2026/06/10/Speech-LLM-Audio-Token-Alignment/</url>
-    <content><![CDATA[<p>语音大模型不是把 ASR encoder 接到 LLM 上就结束了。真正困难的是接口契约：音频如何被压成 token，token 如何进入 LLM，文本监督如何约束语音表示，流式场景又如何保证延迟和上下文一致。</p>
-<p>如果这个契约不清楚，Qwen3-ASR、Qwen-Omni、WeNet、CTC、AED、speech encoder 和 LLM 主干会变成一堆名词，而不是可排障的系统。</p>
-<span id="more"></span>
-
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>传统 ASR 输出文本，LLM 处理文本。Speech-LLM 想把语音直接纳入语言模型能力，但语音和文本的粒度差异很大：音频帧密集、长度长、噪声多；文本 token 稀疏、语义压缩强。</p>
-<p>工程上的关键问题是：语音侧的信息压缩到什么粒度，才能既保留识别所需细节，又不把 LLM 上下文窗口耗尽。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>语音大模型首先要定义清楚音频 token 契约，然后才谈架构强弱。</p>
-<p>Qwen3-ASR、Qwen-Omni、WeNet、CTC、AED、projector 和 LLM 主干只是组件名。真正决定系统是否可训练、可推理、可排障的是：音频如何变成 token，token 如何进入文本序列，mask 如何定义，训练模板和推理模板是否一致。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 Speech-LLM 拆成四层。</p>
-<p>第一层是音频前端和 speech encoder。WeNet、Qwen3-ASR 这类系统会把声学特征压成更高层的语音表示，常见监督包括 CTC、AED 或混合目标。</p>
-<p>第二层是 projector 或 adapter。它负责把 speech encoder 输出映射到 LLM 可消费的向量空间。这里不是简单维度对齐，还包括时间下采样、位置编码和模态边界。</p>
-<p>第三层是 LLM 主干。Qwen-Omni 这类多模态系统需要同时处理语音、文本甚至其他模态，因此输入序列必须标记清楚模态、时间和角色。</p>
-<p>第四层是输出协议。系统到底输出转写、语义回答、结构化字段，还是边听边生成，会决定训练样本和解码策略。</p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>对齐问题必须可观测。至少要记录：</p>
-<ul>
-<li>音频时长到 speech token 数量的压缩比；</li>
-<li>CTC 或 ASR 辅助目标是否稳定；</li>
-<li>projector 输出是否导致 LLM 上下文过长；</li>
-<li>流式场景下 partial 结果是否可回滚；</li>
-<li>错误来自声学识别、模态对齐还是语言生成。</li>
-</ul>
-<p>一个实用排查顺序是先看 ASR 能力，再看对齐层，再看 LLM 生成。如果基础转写已经不稳定，直接调 prompt 或扩大 LLM 很难解决问题。</p>
-<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>强 LLM 可能会掩盖音频对齐错误。模型输出看起来流畅，不代表它真的使用了音频信息；它可能只是依赖文本 prompt 和语言先验补全答案。因此，Speech-LLM 不能只看最终回答，要看音频秒数、encoder 帧数、speech token 数、text token 数、special token 数和 label mask 比例。</p>
-<p>CTC&#x2F;AED 辅助目标也不是越多越好。CTC 给帧级约束，AED 给序列生成约束，但如果某个分支在小数据 overfit 测试里都不下降，接到更大的 LLM 上也不会自然变好。辅助 loss 不稳定时，先查 mask、目标权重和梯度路径，而不是继续堆数据。</p>
-<p>流式场景还多一层矛盾：低延迟需要早出 partial，稳定语义需要更多上下文。若 partial 和最终生成共用不稳定上下文，系统会频繁回滚。</p>
-<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>最小验证集至少包含短音频、长音频、静音、带噪音频、纯转写任务和语义回答任务。每个样本都记录 token 账本：audio_seconds、encoder_frames、speech_tokens、text_tokens、special_tokens、label_mask_ratio、CTC loss、AED loss、generation loss。</p>
-<p>如果 speech token 数异常，查前端长度、下采样和 projector。若 label mask 比例异常，查训练模板。若 CTC loss 降而生成 loss 不动，问题可能在 projector 或 LLM 监督；若生成 loss 降而 CTC 不动，声学侧约束没有起作用；两个都不动，先查数据读取、特殊 token 和 mask。</p>
-<h2 id="实现契约"><a href="#实现契约" class="headerlink" title="实现契约"></a>实现契约</h2><p>音频 token 契约至少写清四件事。第一，音频压缩比如何计算。第二，音频 token 插入到文本序列的哪个位置。第三，LLM attention 是否允许跨模态自由看。第四，训练和推理使用的特殊 token、模板和长度规则是否完全一致。</p>
-<p>只要这份契约缺失，模型名再先进也很难排障。Speech-LLM 的工程成熟度，不在于接了多少组件，而在于每个样本都能解释“音频信息以什么形态进入了语言模型”。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一个很实用的 sanity check 是静音样本。如果静音经过 encoder 和 projector 后仍然产生大量 speech token，并让 LLM 输出正常文本，说明模型很可能在依赖语言先验，而不是音频证据。另一个检查是长音频样本：speech token 数是否随时长线性膨胀，是否把上下文窗口迅速吃满。</p>
-<p>纯转写样本和语义回答样本也要分开看。转写失败通常指向声学或对齐；转写正确但回答错误，才更像 LLM 侧整合问题。两者混在一起评测，会让系统误以为是“综合能力不足”，实际只是接口契约不清。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Speech-LLM 的工程边界在音频 token 契约，而不是模型名字。先定义清楚音频如何压缩、如何接入 LLM、如何监督、如何流式输出，再比较 Qwen3-ASR、Qwen-Omni、WeNet 或其他方案。</p>
-<p>下一步阅读：<a href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/">LLM 与语音模型推理服务：队列、流式与可观测性</a></p>
-]]></content>
-      <tags>
-        <tag>LLM</tag>
-        <tag>Open Source</tag>
-        <tag>ASR</tag>
-        <tag>Speech</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>语音对话合成数据工程：Schema、口语化与质量闸门</title>
-    <url>/2026/06/11/Speech-Dialog-Data-Synthesis-Quality-Gates/</url>
-    <content><![CDATA[<p>合成对话数据的风险不是“生成得不够多”，而是生成得太像模板、太干净、太不符合语音输入的真实噪声。数量扩大很容易，难的是让样本既覆盖任务，又不把模型训练成只会回答标准文本。</p>
-<p>所以语音对话合成数据要先设计质量闸门，再谈规模。</p>
-<span id="more"></span>
-
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>对话数据要服务下游训练和评测。它既要有结构化 schema，保证字段、意图、实体和状态可控；又要有口语化表达，覆盖停顿、重复、自我修正、n-best 候选和 ASR 错误。</p>
-<p>如果只生成标准书面语，模型上线后会被真实口语击穿。如果只追求随机扰动，样本又会失去任务结构。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>合成语音对话数据真正要模拟的是不确定性，而不是生产更整齐的文本。</p>
-<p>对话数据越干净，越可能远离真实语音输入。真正有价值的合成样本，要同时保留 schema 约束、口语化扰动、n-best 不确定性、状态变化和失败原因。它不是文本扩增，而是一个可控的交互模拟器。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一条合成样本至少要包含：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">dialogue_id</span><br><span class="line">turns</span><br><span class="line">intent</span><br><span class="line">entities</span><br><span class="line">state</span><br><span class="line">n-best</span><br><span class="line">quality_flags</span><br><span class="line">reason code</span><br></pre></td></tr></table></figure>
-
-<p><code>quality_flags</code> 记录口语化、实体覆盖、逻辑一致性、敏感词、重复和异常格式。<code>reason code</code> 说明样本为什么保留、丢弃或需要人工复核。</p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>质量闸门可以分三层。</p>
-<p>第一层是 schema 校验：字段是否完整、实体是否在合法范围、状态转移是否合理。</p>
-<p>第二层是语言质量：是否过于模板化、是否包含自然口语、是否有重复和自我修正。</p>
-<p>第三层是训练影响：加入这批数据后，目标任务指标是否提升，错误类型是否减少，是否引入系统性偏差。</p>
-<p>每一批合成数据都应该能回溯到生成配置、过滤规则和评测结果。否则数据越多，问题越难定位。</p>
-<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>schema 越严格，不代表数据越好。schema 能保证字段合法，但也容易把样本变成模板填空。模型会学到固定字段顺序，却学不到真实输入里的停顿、重复、修正和候选歧义。</p>
-<p>口语化也不是随机加噪。随机插入口头词、重复句子或错别字，可能让文本看起来更像口语，却破坏实体、状态和轮次关系。好的生成流程应该是先生成结构化计划，再生成口语化表达，最后把表达回填到 schema 校验。如果回填失败，这条样本就应该带着 reason code 进入复核，而不是被静默丢弃。</p>
-<p>n-best 的价值也常被低估。语音输入里很多错误来自候选不确定性，而不是唯一 transcript 的文字错误。训练样本保留 n-best，可以让模型学会在模糊表达下维持状态。</p>
-<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>第一批数据不要追求数量，先跑一个小闭环：固定少量 schema，生成样本，做 schema 回填校验，抽查失败样本，再做一次增量训练。每条失败样本都标明原因：字段缺失、状态冲突、实体漂移、轮次不一致、表达模板化，或者过滤规则过严。</p>
-<p>如果加入合成数据后指标没有提升，先不要扩大规模。要看错误分布是否变化：是不是边界样本变好了但常规样本变差了，是不是状态跟踪改善但实体抽取下降了，是不是模型学到了模板口吻。</p>
-<h2 id="评测设计"><a href="#评测设计" class="headerlink" title="评测设计"></a>评测设计</h2><p>离线质量看 schema 通过率、字段覆盖率、实体合法率、轮次一致性、口语化比例、重复率和 quality_flags 分布。训练收益看目标任务指标、状态跟踪错误、实体抽取错误、异常输入恢复能力和真实口语样本泛化。</p>
-<p>最重要的是增量评测。一次只加入一批合成策略，记录它改善了哪类错误、引入了哪类新偏差。合成数据的目标不是让训练集变大，而是让错误类型变得可控。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一条合成样本可以先有结构化计划：这一轮要表达哪个 intent，哪些 entities 必须出现，状态从哪里转到哪里。随后再生成口语化表达，比如重复、停顿、自我修正和候选歧义。最后把生成表达重新解析回 schema：如果字段回填失败，这不是小瑕疵，而是训练目标已经漂移。</p>
-<p>这样的闭环能避免两类坏数据。第一类是漂亮但无效的文本，看起来像自然对话，实际状态对不上。第二类是合法但僵硬的模板，schema 全过，模型却学不到真实语音输入的不确定性。质量闸门要同时拦住这两类样本。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>语音对话合成数据的核心不是生成，而是质量治理。先把 schema、quality_flags、n-best、reason code 和评测回流建起来，再扩大规模。没有这些闸门，合成数据会把训练目标污染成系统性偏差。</p>
-<p>下一步阅读：<a href="/2026/06/10/ASR-Data-Quality-Pipeline-Open-Source/">ASR 数据质量流水线：伪标签、切分与可追溯评测</a></p>
-]]></content>
-      <tags>
-        <tag>Open Source</tag>
-        <tag>ASR</tag>
-        <tag>Data</tag>
-        <tag>Evaluation</tag>
       </tags>
   </entry>
 </search>

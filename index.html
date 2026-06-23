@@ -165,12 +165,12 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-count">21</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-count">34</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>
@@ -187,6 +187,175 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/06/23/Agent-Engineering-Radar-2026-06-23/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Alan Fang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/06/23/Agent-Engineering-Radar-2026-06-23/" class="post-title-link" itemprop="url">【Agent Engineering Radar】2026-06-23 Agent 工程技术雷达</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2026-06-23 09:00:00 / Modified: 09:04:32" itemprop="dateCreated datePublished" datetime="2026-06-23T09:00:00+08:00">2026-06-23</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>2026-06-23 周报聚焦于最近一周可公开验证的 Agent 工程信号：运行时更新、浏览器化代理能力、评测与风险治理。</p>
+<h2 id="This-Week’s-Signal"><a href="#This-Week’s-Signal" class="headerlink" title="This Week’s Signal"></a>This Week’s Signal</h2><ul>
+<li>OpenCode 发布了 <code>v1.17.9</code>（2026-06-21），修复了步骤边界、模型检测和流式行为，并补上了高&#x2F;最高思考参数暴露 (<a target="_blank" rel="noopener" href="https://github.com/anomalyco/opencode/releases/tag/v1.17.9">GitHub Release</a>)。</li>
+<li>Browser-Use 发布 <code>0.13.2</code>（2026-06-12），核心是 <code>BU3</code> 模型接入、<code>ChatBrowserUse</code> 支持 provider 前缀模型，以及发布流程门控与依赖升级 (<a target="_blank" rel="noopener" href="https://github.com/browser-use/browser-use/releases/tag/0.13.2">GitHub Release</a>)。</li>
+<li>WorkBench 基准论文 <code>arXiv:2606.13715</code>（2026-06-10 提交）发布了 2024–2026 两年进展：2026 年最高模型从 43% 提升到 89%，但仍存在错误邮件等高风险行为 (<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2606.13715">论文页面</a>)。</li>
+<li>OpenAI 的 ChatGPT 发布日志显示近期（2026-06-18 &#x2F; 06-22）将上下文和会话组织做了更细化优化，且发布中含 Codex 功能与安全&#x2F;权限变更文案（开发者模式、远程控制、速率限制与模型更新）(<a target="_blank" rel="noopener" href="https://help.openai.com/en/articles/6825453-chatgpt-release-notes">OpenAI Release Notes</a>)。</li>
+</ul>
+<h2 id="Adopt"><a href="#Adopt" class="headerlink" title="Adopt"></a>Adopt</h2><ul>
+<li><p><strong>在主力开发链路中接入 OpenCode <code>v1.17.9</code></strong></p>
+<ul>
+<li>价值：更稳的终止行为（<code>step limits</code> 触达强制给出最终文本）有利于长任务流控；<code>Devstral</code> 大小写兼容和头信息透传降低跨供应商回归。</li>
+<li>成熟度：发布为正式版，含贡献者列表与签名提交，说明变更过程可追踪，适合直接采用。</li>
+<li>风险：功能点以体验修复为主，真正“生产可验证收益”仍需在个人流程里验证。</li>
+<li>下周动作：把 <code>opencode</code> 升级到该 tag，并补一条 smoke 脚本验证 <code>step limit</code> 场景下是否按预期回收。</li>
+</ul>
+</li>
+<li><p><strong>把 Browser-Use 当作“高复杂度网页交互 + 本地浏览器回归”专用代理</strong></p>
+<ul>
+<li>价值：<code>BU3</code> 与 provider 前缀模型支持增强了模型路由灵活性，适合处理多供应商成本优化。</li>
+<li>成熟度：有明确 release notes，且 <code>python</code> 生态仍保持稳定主线。</li>
+<li>风险：7 天发布窗口仍偏快，仍建议先灰度。</li>
+<li>下周动作：将高并发 UI 验证类任务切到 Browser-Use，并把 <code>release_to_pypi</code> 入口继续放在受控环境执行。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Trial"><a href="#Trial" class="headerlink" title="Trial"></a>Trial</h2><ul>
+<li><p><strong>引入 WorkBench 风格的“进度 + 安全双指标”评估</strong></p>
+<ul>
+<li>价值：论文显示完成率与安全性可共同提升，提示评测不该只看正确率，必须加“意外有害行为”指标。</li>
+<li>成熟度：公开可复用基准与模型分数已发布，适合作为自有代理栈的对照基线。</li>
+<li>风险：基线仍是研究方向，任务集与你现有业务分布可能不完全一致。</li>
+<li>下周动作：在本地评测脚本里新增“意外副作用率（例如错发文件&#x2F;错误通知）”一类红线指标。</li>
+</ul>
+</li>
+<li><p><strong>尝试把 ChatGPT 发布中的“更大上下文附件化”策略借鉴到日志与工单沉淀</strong></p>
+<ul>
+<li>价值：减少超长上下文污染主会话，符合 agent stack 的上下文治理思路。</li>
+<li>成熟度：官方功能已在产品层面上线，成熟度高。</li>
+<li>风险：该项属于前端体验行为，不能直接对应本地代理平台行为。</li>
+<li>下周动作：为长上下文任务链加入“附件化上下文片段 + 外挂摘要”双轨存储。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h2><ul>
+<li><p><strong>MCP 组织层提交噪点与治理流程</strong></p>
+<ul>
+<li>价值：<code>modelcontextprotocol</code> 在近端有安全治理相关提交（例如 charter 与错误码策略），说明生态在标准层面对安全与权限边界重视度增加。</li>
+<li>成熟度：目前主要是仓库治理与依赖更新类提交，未见统一对外 release。</li>
+<li>风险：短期可读性高，实施价值有限，不应误判为可直接落地功能。</li>
+<li>下周动作：把 MCP 监控关注点从“新 release”改为“治理&#x2F;安全相关 PR + 官方文档更新”。</li>
+</ul>
+</li>
+<li><p><strong>OpenAI 模型迭代与能力边界变化</strong></p>
+<ul>
+<li>价值：发布日志出现率限制共享、模型生命周期与远程执行边界的改动，影响依赖其 API 的 agent 运行时。</li>
+<li>成熟度：以产品公告形式同步，变更真实存在，短期波动较高。</li>
+<li>风险：对自动化策略（尤其是长期线程、远程运行）存在行为漂移。</li>
+<li>下周动作：补充一版 <code>provider matrix</code> 的故障转移清单，明确 o3 &#x2F; GPT-4.5 等退场窗口前的替代模型。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Hold-Risks"><a href="#Hold-Risks" class="headerlink" title="Hold&#x2F;Risks"></a>Hold&#x2F;Risks</h2><ul>
+<li><p><strong>把“功能发布速度”当作“可信度”</strong></p>
+<ul>
+<li>风险：OpenCode 与 Browser-Use 均在高频发布阶段，短周期更新有回归风险。</li>
+<li>风险缓解：只在非关键分支先开灰度，所有新特性走 <code>canary task</code> 验证，失败则回退到上一版。</li>
+</ul>
+</li>
+<li><p><strong>把 benchmark 指标当作最终生产标准</strong></p>
+<ul>
+<li>风险：Research benchmark 与企业任务分布偏差，不能直接映射业务成功率。</li>
+<li>风险缓解：保留 70% 任务对齐业务场景，30% 保持公开基准对照。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Practical-Stack-Adjustments"><a href="#Practical-Stack-Adjustments" class="headerlink" title="Practical Stack Adjustments"></a>Practical Stack Adjustments</h2><ol>
+<li>将 <code>opencode</code> 升级到 <code>v1.17.9</code>，并加一条 <code>step_limit</code> 场景回归测试。</li>
+<li>将 <code>browser-use</code> 的 <code>0.13.2</code> 作为 <code>BU3/复杂网页流程</code> 的默认代理，其他场景继续使用现有 CLI 代理。</li>
+<li>在评测脚本新增“功能成功率 + 安全副作用率”双指标视图，并按周跟踪与基准回归。</li>
+<li>在 provider 选择层增加模型退场与速率上限策略（含 ChatGPT 版本退场期的降级路径）。</li>
+<li>把 MCP&#x2F;Agent tooling 的安全治理提交列入月度订阅，而非仅看 release；把 <code>release</code> + <code>issue</code> + <code>commit</code> 作为三类信号打点。</li>
+</ol>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>如何在高频更新的公开项目中，保留功能收益的同时降低回归风险，并让评测不被单一正确率指标误导？</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>将代理栈看成三层：<code>runtime</code>（OpenCode&#x2F;Browser-Use）、<code>eval</code>（WorkBench 类公开基准）与 <code>governance</code>（模型退场、权限边界、MCP 安全更新），分别用统一回归集、双指标（效果+副作用）和 provider 降级策略闭环。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>每周执行：<code>发布监控 -&gt; 灰度升级 -&gt; 双指标回归 -&gt; 风险复盘</code>，并在新信号出现时更新 <code>Practical Stack Adjustments</code> 的工单清单。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>本周足够发布一篇雷达：有 2 个稳定工具链版本更新和 1 个可验证评测更新。先“试点+回归”，再在本地栈内形成默认策略，而不是直接全量替换。</p>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>这周有明确的三类可落地信号，属于“可发布周报”阈值。建议按上面 5 个实践动作在下周完成一次小范围实测，并把结果写回到雷达的 <code>Practical Stack Adjustments</code> 更新点。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>优先级：<code>OpenCode</code> 和 <code>Browser-Use</code> 属于工具替换线，<code>WorkBench</code> 属于评测线，三者都应加入“先灰度后扩展”的统一变更窗口。<br>结论：先在非关键任务流上试验 10%-20%，再扩展到主链路。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>在 5 个非关键任务上同时跑 <code>v1.17.9</code> 与当前版本对照，比较：  </p>
+<ul>
+<li>完成率是否提升  </li>
+<li>错误任务（错发消息&#x2F;误操作）是否下降  </li>
+<li>平均 token &#x2F; token 成本是否可控</li>
+</ul>
+<h2 id="下一步阅读："><a href="#下一步阅读：" class="headerlink" title="下一步阅读："></a>下一步阅读：</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/anomalyco/opencode/releases/tag/v1.17.9">OpenCode 发布页 v1.17.9</a>  </li>
+<li><a target="_blank" rel="noopener" href="https://github.com/browser-use/browser-use/releases/tag/0.13.2">Browser-Use 发布页 0.13.2</a>  </li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2606.13715">WorkBench Revisited 论文</a>  </li>
+<li><a target="_blank" rel="noopener" href="https://help.openai.com/en/articles/6825453-chatgpt-release-notes">OpenAI 发布日志</a></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -942,92 +1111,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/06/10/Speech-LLM-Audio-Token-Alignment/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Alan Fang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/06/10/Speech-LLM-Audio-Token-Alignment/" class="post-title-link" itemprop="url">语音大模型工程：音频 token、LLM 主干与对齐契约</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2026-06-10 17:20:00" itemprop="dateCreated datePublished" datetime="2026-06-10T17:20:00+08:00">2026-06-10</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 19:17:15" itemprop="dateModified" datetime="2026-06-18T19:17:15+08:00">2026-06-18</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>语音大模型不是把 ASR encoder 接到 LLM 上就结束了。真正困难的是接口契约：音频如何被压成 token，token 如何进入 LLM，文本监督如何约束语音表示，流式场景又如何保证延迟和上下文一致。</p>
-<p>如果这个契约不清楚，Qwen3-ASR、Qwen-Omni、WeNet、CTC、AED、speech encoder 和 LLM 主干会变成一堆名词，而不是可排障的系统。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2026/06/10/Speech-LLM-Audio-Token-Alignment/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" title="Next page" aria-label="Next page" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" title="Next page" aria-label="Next page" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
