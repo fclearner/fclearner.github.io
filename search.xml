@@ -47,6 +47,42 @@
       </tags>
   </entry>
   <entry>
+    <title>ASR 特征归一化：CMVN 解决的不是数值美观，而是通道偏移</title>
+    <url>/2021/08/24/ASR-CMVN/</url>
+    <content><![CDATA[<p>语音识别里的特征归一化很容易被当成预处理细节：把均值拉到 0，把方差压到 1，然后继续训练模型。这个理解没有错，但它没有说清楚 CMVN 真正解决的问题。</p>
+<p>CMVN 要处理的是录音设备、信道、说话环境和能量尺度带来的系统性偏移。它不是为了让特征“好看”，而是为了让声学模型少花容量去适配无关的通道差异。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>ASR 特征通常来自频谱或倒谱空间。同一句话在不同麦克风、不同音量、不同环境下，语义内容没有变，但特征分布会整体漂移。如果模型直接学习这种漂移，就会把说话内容和采集条件混在一起。</p>
+<p>这会带来两个后果。第一，训练集和线上环境不一致时，识别效果容易波动。第二，模型会浪费参数容量去拟合信道差异，而不是发音和词序本身。</p>
+<p>CMN（Cepstral Mean Normalisation）只减均值，CMVN（Cepstral Mean Variance Normalisation）同时处理均值和方差。它们的核心都是把每段语音或每个窗口内的统计尺度拉回到相对稳定的空间。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>CMVN 的主线不是把特征标准化成固定形状，而是把无关的信道偏移从声学建模里剥离出去。</p>
+<p>它的收益取决于环境差异、统计窗口和实时约束。离线任务里可以追求更稳定的全局统计，在线任务里则必须面对窗口延迟和冷启动边界。把 CMVN 当成默认开关，会掩盖真正需要评估的取舍。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 CMVN 看成一个局部滤波器：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">feature_t -&gt; feature_t - mean(window)</span><br><span class="line">feature_t -&gt; (feature_t - mean(window)) / std(window)</span><br></pre></td></tr></table></figure>
+
+<p>这个抽象有两个关键点。第一，它处理的是特征统计分布，而不是语音内容。第二，它需要一个统计窗口，窗口越长越稳定，延迟越高；窗口越短越实时，统计越不稳。</p>
+<p>离线训练时，可以基于整段语音或全训练集统计。在线识别时，只能用滑动窗口或历史缓存，这就引入了响应时间和边界效应。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>CMVN 是否值得保留，不能只看单条样本效果，应该看三个维度。</p>
+<ul>
+<li>准确率：字错率、词错率或关键实体召回是否改善；</li>
+<li>延迟：在线滑动窗口是否增加首包或尾包时间；</li>
+<li>鲁棒性：不同设备、不同音量、不同噪声条件下是否更稳定。</li>
+</ul>
+<p>在传统 GMM-HMM、DNN-HMM 或较浅的声学模型里，CMVN 往往很有价值。端到端模型和大规模预训练模型吸收了更多数据分布，特征归一化的重要性会下降，但并不代表它永远无用。只要输入分布漂移明显，CMVN 仍然是一个低成本诊断点。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>可以构造一个四组对照：同一批语音分别来自近讲麦、远场麦、高音量和低音量。模型不变，只比较不开 CMVN、全局 CMVN、说话人级 CMVN、滑动窗口 CMVN。</p>
+<p>如果全局 CMVN 提升离线 WER，但滑动窗口版本首包明显变慢或开头几个字变差，结论就不是“CMVN 有用或无用”，而是统计窗口和实时性没有同时满足。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>CMVN 的工程定位是“消除无关通道偏移”，不是固定必须打开的预处理模板。离线任务可以优先验证全局或说话人级统计；实时任务要额外评估滑动窗口带来的延迟和边界误差。</p>
+<p>如果模型已经足够强、训练覆盖足够广，CMVN 可能收益很小；如果线上设备、音量或环境差异明显，它仍然值得作为第一批鲁棒性实验。</p>
+<p>下一步阅读：<a href="/2021/08/29/ASR-CTC/">ASR CTC：没有帧级标注时，如何把音频和文本对齐</a></p>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a href="http://www.apsipa.org/proceedings/2020/pdfs/0000532.pdf">Significance of CMVN for Replay Spoof Detection</a></p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>Feature-engineering</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Adaptive RAG（一）：何时检索比检索多少更重要</title>
     <url>/2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/</url>
     <content><![CDATA[<p>RAG 最容易被讲成一个检索增强公式：切块、向量化、取 top-k、拼进 prompt、让模型回答。这个公式很实用，但它默认了一件事：系统在回答之前已经知道自己缺什么信息。</p>
@@ -85,91 +121,6 @@
         <tag>RAG</tag>
         <tag>LLM</tag>
         <tag>Open Source</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ASR CTC：没有帧级标注时，如何把音频和文本对齐</title>
-    <url>/2021/08/29/ASR-CTC/</url>
-    <content><![CDATA[<p>ASR 训练里有一个基础矛盾：音频是长帧序列，文本是短标签序列，但训练数据通常只有整句转写，没有每个字对应哪几帧的强制对齐。CTC（Connectionist Temporal Classification）解决的就是这个问题。</p>
-<p>它的核心不是一个普通 loss，而是一套弱对齐建模方式：允许模型在不知道帧级标签的情况下，对所有可能对齐路径求和，再优化目标文本的总概率。</p>
-<span id="more"></span>
-
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>给定语音输入 $X&#x3D;[x_1,x_2,…,x_T]$ 和文本输出 $Y&#x3D;[y_1,y_2,…,y_U]$，ASR 需要学习 $X$ 到 $Y$ 的映射。困难在于：</p>
-<ul>
-<li>$T$ 和 $U$ 长度不同，比例不固定；</li>
-<li>哪些帧对应哪个字符事先不知道；</li>
-<li>静音、拖音、重复字符都会让对齐路径不唯一。</li>
-</ul>
-<p>如果必须先做精确帧级标注，训练成本会非常高。CTC 的价值就是把这个强标注需求去掉。</p>
-<p><img src="/2021/08/29/ASR-CTC/CTC.png"></p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>CTC 的主线不是一个 loss 公式，而是在没有帧级标注时管理对齐不确定性。</p>
-<p>blank、重复折叠和路径求和让训练变得可行，但也引入了新的诊断问题：模型到底是声学分不清，还是 blank 过强、输入过短、解码约束太弱。CTC 工程调试要围绕这些对齐信号展开。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>CTC 引入 blank 符号，把一个标签序列扩展成多条可折叠路径。折叠规则很简单：先合并连续重复，再删除 blank。</p>
-<p>以 <code>hello</code> 为例，路径可以包含重复字符和 blank：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">h h e _ _ l l l _ l l o -&gt; h e _ l _ l o -&gt; hello</span><br></pre></td></tr></table></figure>
-
-<p>这样，同一个文本可以对应很多帧级路径。CTC loss 计算的是这些合法路径概率之和：</p>
-<p>$$p(Y|X)&#x3D;\sum_{A \in A_{X,Y}}\prod_{t&#x3D;1}^{T}p_t(a_t|X)$$</p>
-<p>直接枚举路径不可行，所以 CTC 用动态规划做前向后向求和。</p>
-<p><img src="/2021/08/29/ASR-CTC/CTC_dp.png"></p>
-<p><img src="/2021/08/29/ASR-CTC/CTC_compute.png"></p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>CTC 的工程判断要分训练和解码两部分。</p>
-<p>训练阶段关注 loss 是否稳定下降、blank 概率是否长期过高、短句和长句是否都能收敛。CTC 对输入长度和标签长度很敏感，过短输入或过长标签会直接导致不可对齐。</p>
-<p>解码阶段通常从 greedy search 或 beam search 开始：</p>
-<ul>
-<li>greedy search 每帧取最大概率，速度快但容易局部错误；</li>
-<li>beam search 保留多个候选路径，可以接语言模型，但成本更高。</li>
-</ul>
-<p><img src="/2021/08/29/ASR-CTC/CTC_loss.png"></p>
-<p><img src="/2021/08/29/ASR-CTC/CTC_loss_def.png"></p>
-<p>CTC 的主要缺陷是条件独立假设。每个时间步输出相对独立，语言层面的长程依赖较弱，因此常见做法是在 CTC 后接语言模型、与 AED 联合训练，或用 Transducer 类结构改进流式建模。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一个小样本可以包含三类句子：单字短句、重复音节句、长句。训练后分别看每类样本的 frame-level posterior。</p>
-<p>如果短句几乎全是 blank，可能是 blank bias 或输入长度设置问题；如果重复音节被折叠丢失，要检查 blank 是否足以分隔重复标签；如果长句尾部删除严重，要看 encoder 下采样后长度是否仍满足 CTC 对齐约束。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>CTC 最适合作为“无帧级对齐训练”的基础工具。它让 ASR 可以从整句转写直接学习，但也把语言建模能力留给了解码器、外部语言模型或联合模型。</p>
-<p>工程上不要只把 CTC 当 loss 名称看。真正要观察的是：输入和标签是否可对齐、blank 是否正常、beam search 是否带来稳定收益、错误主要来自声学混淆还是语言约束不足。</p>
-<p>下一步阅读：<a href="/2021/08/24/ASR-LAS-model/">LAS 模型：把语音识别改写成听、对齐、拼写</a></p>
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a href="https://distill.pub/2017/ctc/">Sequence Modeling With CTC</a><br>[2] <a href="https://xiaodu.io/ctc-explained/">CTC Explained</a><br>[3] <a href="https://zhuanlan.zhihu.com/p/42719047">CTC 解读</a></p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>ASR-Classic</tag>
-        <tag>Loss</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ASR 特征归一化：CMVN 解决的不是数值美观，而是通道偏移</title>
-    <url>/2021/08/24/ASR-CMVN/</url>
-    <content><![CDATA[<p>语音识别里的特征归一化很容易被当成预处理细节：把均值拉到 0，把方差压到 1，然后继续训练模型。这个理解没有错，但它没有说清楚 CMVN 真正解决的问题。</p>
-<p>CMVN 要处理的是录音设备、信道、说话环境和能量尺度带来的系统性偏移。它不是为了让特征“好看”，而是为了让声学模型少花容量去适配无关的通道差异。</p>
-<span id="more"></span>
-
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>ASR 特征通常来自频谱或倒谱空间。同一句话在不同麦克风、不同音量、不同环境下，语义内容没有变，但特征分布会整体漂移。如果模型直接学习这种漂移，就会把说话内容和采集条件混在一起。</p>
-<p>这会带来两个后果。第一，训练集和线上环境不一致时，识别效果容易波动。第二，模型会浪费参数容量去拟合信道差异，而不是发音和词序本身。</p>
-<p>CMN（Cepstral Mean Normalisation）只减均值，CMVN（Cepstral Mean Variance Normalisation）同时处理均值和方差。它们的核心都是把每段语音或每个窗口内的统计尺度拉回到相对稳定的空间。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>CMVN 的主线不是把特征标准化成固定形状，而是把无关的信道偏移从声学建模里剥离出去。</p>
-<p>它的收益取决于环境差异、统计窗口和实时约束。离线任务里可以追求更稳定的全局统计，在线任务里则必须面对窗口延迟和冷启动边界。把 CMVN 当成默认开关，会掩盖真正需要评估的取舍。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 CMVN 看成一个局部滤波器：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">feature_t -&gt; feature_t - mean(window)</span><br><span class="line">feature_t -&gt; (feature_t - mean(window)) / std(window)</span><br></pre></td></tr></table></figure>
-
-<p>这个抽象有两个关键点。第一，它处理的是特征统计分布，而不是语音内容。第二，它需要一个统计窗口，窗口越长越稳定，延迟越高；窗口越短越实时，统计越不稳。</p>
-<p>离线训练时，可以基于整段语音或全训练集统计。在线识别时，只能用滑动窗口或历史缓存，这就引入了响应时间和边界效应。</p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>CMVN 是否值得保留，不能只看单条样本效果，应该看三个维度。</p>
-<ul>
-<li>准确率：字错率、词错率或关键实体召回是否改善；</li>
-<li>延迟：在线滑动窗口是否增加首包或尾包时间；</li>
-<li>鲁棒性：不同设备、不同音量、不同噪声条件下是否更稳定。</li>
-</ul>
-<p>在传统 GMM-HMM、DNN-HMM 或较浅的声学模型里，CMVN 往往很有价值。端到端模型和大规模预训练模型吸收了更多数据分布，特征归一化的重要性会下降，但并不代表它永远无用。只要输入分布漂移明显，CMVN 仍然是一个低成本诊断点。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>可以构造一个四组对照：同一批语音分别来自近讲麦、远场麦、高音量和低音量。模型不变，只比较不开 CMVN、全局 CMVN、说话人级 CMVN、滑动窗口 CMVN。</p>
-<p>如果全局 CMVN 提升离线 WER，但滑动窗口版本首包明显变慢或开头几个字变差，结论就不是“CMVN 有用或无用”，而是统计窗口和实时性没有同时满足。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>CMVN 的工程定位是“消除无关通道偏移”，不是固定必须打开的预处理模板。离线任务可以优先验证全局或说话人级统计；实时任务要额外评估滑动窗口带来的延迟和边界误差。</p>
-<p>如果模型已经足够强、训练覆盖足够广，CMVN 可能收益很小；如果线上设备、音量或环境差异明显，它仍然值得作为第一批鲁棒性实验。</p>
-<p>下一步阅读：<a href="/2021/08/29/ASR-CTC/">ASR CTC：没有帧级标注时，如何把音频和文本对齐</a></p>
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a href="http://www.apsipa.org/proceedings/2020/pdfs/0000532.pdf">Significance of CMVN for Replay Spoof Detection</a></p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>Feature-engineering</tag>
       </tags>
   </entry>
   <entry>
@@ -254,6 +205,55 @@
       </tags>
   </entry>
   <entry>
+    <title>ASR CTC：没有帧级标注时，如何把音频和文本对齐</title>
+    <url>/2021/08/29/ASR-CTC/</url>
+    <content><![CDATA[<p>ASR 训练里有一个基础矛盾：音频是长帧序列，文本是短标签序列，但训练数据通常只有整句转写，没有每个字对应哪几帧的强制对齐。CTC（Connectionist Temporal Classification）解决的就是这个问题。</p>
+<p>它的核心不是一个普通 loss，而是一套弱对齐建模方式：允许模型在不知道帧级标签的情况下，对所有可能对齐路径求和，再优化目标文本的总概率。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>给定语音输入 $X&#x3D;[x_1,x_2,…,x_T]$ 和文本输出 $Y&#x3D;[y_1,y_2,…,y_U]$，ASR 需要学习 $X$ 到 $Y$ 的映射。困难在于：</p>
+<ul>
+<li>$T$ 和 $U$ 长度不同，比例不固定；</li>
+<li>哪些帧对应哪个字符事先不知道；</li>
+<li>静音、拖音、重复字符都会让对齐路径不唯一。</li>
+</ul>
+<p>如果必须先做精确帧级标注，训练成本会非常高。CTC 的价值就是把这个强标注需求去掉。</p>
+<p><img src="/2021/08/29/ASR-CTC/CTC.png"></p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>CTC 的主线不是一个 loss 公式，而是在没有帧级标注时管理对齐不确定性。</p>
+<p>blank、重复折叠和路径求和让训练变得可行，但也引入了新的诊断问题：模型到底是声学分不清，还是 blank 过强、输入过短、解码约束太弱。CTC 工程调试要围绕这些对齐信号展开。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>CTC 引入 blank 符号，把一个标签序列扩展成多条可折叠路径。折叠规则很简单：先合并连续重复，再删除 blank。</p>
+<p>以 <code>hello</code> 为例，路径可以包含重复字符和 blank：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">h h e _ _ l l l _ l l o -&gt; h e _ l _ l o -&gt; hello</span><br></pre></td></tr></table></figure>
+
+<p>这样，同一个文本可以对应很多帧级路径。CTC loss 计算的是这些合法路径概率之和：</p>
+<p>$$p(Y|X)&#x3D;\sum_{A \in A_{X,Y}}\prod_{t&#x3D;1}^{T}p_t(a_t|X)$$</p>
+<p>直接枚举路径不可行，所以 CTC 用动态规划做前向后向求和。</p>
+<p><img src="/2021/08/29/ASR-CTC/CTC_dp.png"></p>
+<p><img src="/2021/08/29/ASR-CTC/CTC_compute.png"></p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>CTC 的工程判断要分训练和解码两部分。</p>
+<p>训练阶段关注 loss 是否稳定下降、blank 概率是否长期过高、短句和长句是否都能收敛。CTC 对输入长度和标签长度很敏感，过短输入或过长标签会直接导致不可对齐。</p>
+<p>解码阶段通常从 greedy search 或 beam search 开始：</p>
+<ul>
+<li>greedy search 每帧取最大概率，速度快但容易局部错误；</li>
+<li>beam search 保留多个候选路径，可以接语言模型，但成本更高。</li>
+</ul>
+<p><img src="/2021/08/29/ASR-CTC/CTC_loss.png"></p>
+<p><img src="/2021/08/29/ASR-CTC/CTC_loss_def.png"></p>
+<p>CTC 的主要缺陷是条件独立假设。每个时间步输出相对独立，语言层面的长程依赖较弱，因此常见做法是在 CTC 后接语言模型、与 AED 联合训练，或用 Transducer 类结构改进流式建模。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一个小样本可以包含三类句子：单字短句、重复音节句、长句。训练后分别看每类样本的 frame-level posterior。</p>
+<p>如果短句几乎全是 blank，可能是 blank bias 或输入长度设置问题；如果重复音节被折叠丢失，要检查 blank 是否足以分隔重复标签；如果长句尾部删除严重，要看 encoder 下采样后长度是否仍满足 CTC 对齐约束。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>CTC 最适合作为“无帧级对齐训练”的基础工具。它让 ASR 可以从整句转写直接学习，但也把语言建模能力留给了解码器、外部语言模型或联合模型。</p>
+<p>工程上不要只把 CTC 当 loss 名称看。真正要观察的是：输入和标签是否可对齐、blank 是否正常、beam search 是否带来稳定收益、错误主要来自声学混淆还是语言约束不足。</p>
+<p>下一步阅读：<a href="/2021/08/24/ASR-LAS-model/">LAS 模型：把语音识别改写成听、对齐、拼写</a></p>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a href="https://distill.pub/2017/ctc/">Sequence Modeling With CTC</a><br>[2] <a href="https://xiaodu.io/ctc-explained/">CTC Explained</a><br>[3] <a href="https://zhuanlan.zhihu.com/p/42719047">CTC 解读</a></p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>ASR-Classic</tag>
+        <tag>Loss</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>多语种 ASR：低资源、口音和统一部署之间的取舍</title>
     <url>/2022/04/22/ASR-Multilingual/</url>
     <content><![CDATA[<p>多语种 ASR 不是把多个单语模型简单合并。它真正要解决的是三个工程问题：低资源语种数据不足，口音和方言带来分布偏移，多语种部署让模型数量和维护成本快速上升。</p>
@@ -330,44 +330,6 @@
       </tags>
   </entry>
   <entry>
-    <title>【Agent Engineering Radar】2026-06-16 Agent 工程技术雷达</title>
-    <url>/2026/06/16/Agent-Engineering-Radar-2026-06-16/</url>
-    <content><![CDATA[<p>本期信号很明确：agent 技术栈的竞争正在从“哪个框架更会跑 demo”，转向“哪个框架更容易被实现、验证、观测和约束”。公开评测、trace 规范、MCP 工具连接和 skills 基准都指向同一个结论：先建设吸收机制，再选择框架。</p>
-<span id="more"></span>
-
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>Agent 框架和工具更新很快，但直接追新会带来三个风险。</p>
-<p>第一，文档 demo 成功不代表真实任务成功。ADK Arena 把 51 个 Python Agent Development Kit 放到同一套自动化流程里比较，框架生成成功率只有 57%，生成成本相差 5.6 倍，单一 benchmark 上的最佳框架可以很强，但中位框架只有 32% 左右任务解决率。<a href="https://arxiv.org/abs/2606.05548">来源：arXiv:2606.05548</a></p>
-<p>第二，连接标准不等于可信执行。MCP 解决 AI 应用和外部系统的连接问题，但身份、权限、预算、审计和禁用开关仍然要自己做。<a href="https://modelcontextprotocol.io/docs/getting-started/intro">来源：MCP 官方文档</a></p>
-<p>第三，skills 不一定带来收益。SWE-Skills-Bench 测了 49 个公开 SWE skills，很多 skill 没有提升 pass-rate，版本不匹配还会伤害结果。<a href="https://arxiv.org/abs/2603.15401">来源：arXiv:2603.15401</a></p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>Agent Engineering Radar 的主线不是收集新闻，而是把外部技术信号压缩成可验证的工程吸收机制。</p>
-<p>框架、协议、benchmark、skills 每周都会出现新材料。真正有价值的雷达不是列链接，而是判断哪些变化会影响本地工程决策：是否要试验、如何设安全边界、用什么指标进入或退出主栈。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 agent 技术栈拆成四层。</p>
-<p>框架层负责 agent loop、状态和工具调用。</p>
-<p>连接层负责 MCP、API、文件系统、浏览器和终端。</p>
-<p>观测层负责 trace、span、成本、错误和 artifact 记录。OpenInference 已经覆盖 LLM 调用、检索、工具调用等上下文，OpenTelemetry 也在推进 GenAI 和 Agent spans 语义约定。<a href="https://arize-ai.github.io/openinference/">来源：OpenInference</a> <a href="https://opentelemetry.io/docs/specs/semconv/gen-ai/">来源：OpenTelemetry GenAI semantic conventions</a></p>
-<p>评测层负责 smoke、benchmark、dialogue task 和安全门槛。Dialogue SWE-Bench 提醒我们，交互式 coding agent 的澄清和对话能力与一次性解题不是同一维度。<a href="https://arxiv.org/abs/2606.13995">来源：arXiv:2606.13995</a></p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>本周真正该做的是小闭环，而不是迁移主栈。</p>
-<ol>
-<li>建一个最小 agent smoke suite，覆盖工具调用、文件修改、测试、恢复和 trace。</li>
-<li>给每次 agent 实验记录成功率、成本、步数和失败类型。</li>
-<li>MCP server 默认进入 Trial 清单，必须通过权限和日志检查后再进入常用工具集。</li>
-<li>Skills 做 paired eval，同一任务有 skill &#x2F; 无 skill 各跑一组，比较成功率、token 和错误类型。</li>
-</ol>
-<p>Terminal-Bench 2.0 和 TerminalWorld 也说明，终端任务需要单独评估命令规划、环境感知、文件副作用和恢复能力，不能只用 coding benchmark 替代。<a href="https://www.tbench.ai/">来源：Terminal-Bench</a> <a href="https://arxiv.org/abs/2605.22535">来源：arXiv:2605.22535</a></p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>看到一个新的 agent framework 时，不应该先迁移项目，而是先放进 Trial 清单。最小验证可以是三类任务：只读检索、受限文件修改、失败恢复。每类记录成功率、工具调用次数、成本、trace 完整度和越权风险。</p>
-<p>如果 demo 很强但 trace 不完整、权限不可控或失败后无法恢复，它就只能保留在观察区。雷达的作用是避免被单点亮点牵着走。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Agent Engineering 的技术视野要保持开放，但吸收机制要收紧。框架、协议、skills、benchmark 都可以跟进；真正进入主技术栈的，只应该是能被验证、能被观测、能被回滚的部分。</p>
-<p>下一步阅读：<a href="/2026/06/10/Agentic-Coding-Governance/">Agentic Coding 工程治理：多模型协作先定义责任边界</a></p>
-]]></content>
-      <tags>
-        <tag>AI</tag>
-        <tag>Open Source</tag>
-        <tag>Evaluation</tag>
-        <tag>Agent</tag>
-        <tag>Engineering</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>ASR 特征前端：从原始波形到可训练的声学表示</title>
     <url>/2021/08/24/ASR-preprocess/</url>
     <content><![CDATA[<p>ASR 模型看到的通常不是原始波形，而是一组经过短时分析和频率压缩的声学特征。预加重、分帧、加窗、傅里叶变换、Mel 滤波这些步骤看起来像传统信号处理清单，但它们共同解决一个问题：<strong>把连续、非平稳的语音波形变成模型可以稳定学习的局部谱表示</strong>。</p>
@@ -405,6 +367,44 @@
       <tags>
         <tag>ASR</tag>
         <tag>Preprocess</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>【Agent Engineering Radar】2026-06-16 Agent 工程技术雷达</title>
+    <url>/2026/06/16/Agent-Engineering-Radar-2026-06-16/</url>
+    <content><![CDATA[<p>本期信号很明确：agent 技术栈的竞争正在从“哪个框架更会跑 demo”，转向“哪个框架更容易被实现、验证、观测和约束”。公开评测、trace 规范、MCP 工具连接和 skills 基准都指向同一个结论：先建设吸收机制，再选择框架。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>Agent 框架和工具更新很快，但直接追新会带来三个风险。</p>
+<p>第一，文档 demo 成功不代表真实任务成功。ADK Arena 把 51 个 Python Agent Development Kit 放到同一套自动化流程里比较，框架生成成功率只有 57%，生成成本相差 5.6 倍，单一 benchmark 上的最佳框架可以很强，但中位框架只有 32% 左右任务解决率。<a href="https://arxiv.org/abs/2606.05548">来源：arXiv:2606.05548</a></p>
+<p>第二，连接标准不等于可信执行。MCP 解决 AI 应用和外部系统的连接问题，但身份、权限、预算、审计和禁用开关仍然要自己做。<a href="https://modelcontextprotocol.io/docs/getting-started/intro">来源：MCP 官方文档</a></p>
+<p>第三，skills 不一定带来收益。SWE-Skills-Bench 测了 49 个公开 SWE skills，很多 skill 没有提升 pass-rate，版本不匹配还会伤害结果。<a href="https://arxiv.org/abs/2603.15401">来源：arXiv:2603.15401</a></p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>Agent Engineering Radar 的主线不是收集新闻，而是把外部技术信号压缩成可验证的工程吸收机制。</p>
+<p>框架、协议、benchmark、skills 每周都会出现新材料。真正有价值的雷达不是列链接，而是判断哪些变化会影响本地工程决策：是否要试验、如何设安全边界、用什么指标进入或退出主栈。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 agent 技术栈拆成四层。</p>
+<p>框架层负责 agent loop、状态和工具调用。</p>
+<p>连接层负责 MCP、API、文件系统、浏览器和终端。</p>
+<p>观测层负责 trace、span、成本、错误和 artifact 记录。OpenInference 已经覆盖 LLM 调用、检索、工具调用等上下文，OpenTelemetry 也在推进 GenAI 和 Agent spans 语义约定。<a href="https://arize-ai.github.io/openinference/">来源：OpenInference</a> <a href="https://opentelemetry.io/docs/specs/semconv/gen-ai/">来源：OpenTelemetry GenAI semantic conventions</a></p>
+<p>评测层负责 smoke、benchmark、dialogue task 和安全门槛。Dialogue SWE-Bench 提醒我们，交互式 coding agent 的澄清和对话能力与一次性解题不是同一维度。<a href="https://arxiv.org/abs/2606.13995">来源：arXiv:2606.13995</a></p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>本周真正该做的是小闭环，而不是迁移主栈。</p>
+<ol>
+<li>建一个最小 agent smoke suite，覆盖工具调用、文件修改、测试、恢复和 trace。</li>
+<li>给每次 agent 实验记录成功率、成本、步数和失败类型。</li>
+<li>MCP server 默认进入 Trial 清单，必须通过权限和日志检查后再进入常用工具集。</li>
+<li>Skills 做 paired eval，同一任务有 skill &#x2F; 无 skill 各跑一组，比较成功率、token 和错误类型。</li>
+</ol>
+<p>Terminal-Bench 2.0 和 TerminalWorld 也说明，终端任务需要单独评估命令规划、环境感知、文件副作用和恢复能力，不能只用 coding benchmark 替代。<a href="https://www.tbench.ai/">来源：Terminal-Bench</a> <a href="https://arxiv.org/abs/2605.22535">来源：arXiv:2605.22535</a></p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>看到一个新的 agent framework 时，不应该先迁移项目，而是先放进 Trial 清单。最小验证可以是三类任务：只读检索、受限文件修改、失败恢复。每类记录成功率、工具调用次数、成本、trace 完整度和越权风险。</p>
+<p>如果 demo 很强但 trace 不完整、权限不可控或失败后无法恢复，它就只能保留在观察区。雷达的作用是避免被单点亮点牵着走。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Agent Engineering 的技术视野要保持开放，但吸收机制要收紧。框架、协议、skills、benchmark 都可以跟进；真正进入主技术栈的，只应该是能被验证、能被观测、能被回滚的部分。</p>
+<p>下一步阅读：<a href="/2026/06/10/Agentic-Coding-Governance/">Agentic Coding 工程治理：多模型协作先定义责任边界</a></p>
+]]></content>
+      <tags>
+        <tag>AI</tag>
+        <tag>Open Source</tag>
+        <tag>Evaluation</tag>
+        <tag>Agent</tag>
+        <tag>Engineering</tag>
       </tags>
   </entry>
   <entry>
@@ -518,6 +518,137 @@
         <tag>MCP</tag>
         <tag>Benchmark</tag>
         <tag>Observability</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>【Agent Engineering Radar】2026-08-12 Agent 工程技术雷达</title>
+    <url>/2026/08/12/Agent-Engineering-Radar-2026-08-12/</url>
+    <content><![CDATA[<p>上周是 OpenAI 和 Cloudflare 的工程化更新高发窗口：同一周内出现了 Agent SDK 的默认模型与状态模型、MCP v2 协商，以及 Cloudflare 的可观测与沙箱执行栈新增。今天这版雷达强调两个方向：</p>
+<ul>
+<li>是否把“会话化 + 协调编排”逐步迁移到可回放、可审计的运行时栈；</li>
+<li>是否先在可回滚边界内试点新 Runtime 与 RAG 能力，避免把未充分验证能力直接推到生产。</li>
+</ul>
+<h2 id="This-Week’s-Signal"><a href="#This-Week’s-Signal" class="headerlink" title="This Week’s Signal"></a>This Week’s Signal</h2><ul>
+<li>OpenAI Agents SDK for JavaScript&#x2F;TypeScript 发布 <code>v0.15.0</code>（2026-08-11）。该版本要求 <code>openai &gt;= 7.2</code>，默认模型改为 <code>gpt-5.6-luna</code>，并新增 MCP v2 协商能力，同时保留 v1 兼容；<code>RunState.addInput()</code>、<code>pendingInput</code> 与可重放安全控制被明确加入，沙箱凭证暴露确认机制也加强。(<a href="https://github.com/openai/openai-agents-js/releases/tag/v0.15.0">OpenAI Agents SDK JS Release Notes</a>)</li>
+<li>OpenAI Agents SDK for Python 发布 <code>v0.20.0</code>（2026-08-11）。该版本在本地 MCP 连接层同时支持 SDK v1&#x2F;v2 并增强 Streamable HTTP &#x2F; MCP 传输兼容；<code>RunState.add_input</code> 用于暂停后安全追加输入；默认模型切换为 <code>gpt-5.6-luna</code>；沙箱挂载权限与重放行为收紧。(<a href="https://github.com/openai/openai-agents-python/releases/tag/v0.20.0">OpenAI Agents SDK Python Release Notes</a>)</li>
+<li>Cloudflare AI Changelog 发布 <code>Sandbox SDK 1.0 preview on @next</code>（2026-08-07），同时给出 <code>sandbox.exec()</code> 重构接口：单命令与长作业共享执行语义、去除旧会话状态模型，建议新项目优先迁移。(<a href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog</a>)</li>
+<li>Cloudflare AI Changelog 发布 Agent traces（2026-08-04），覆盖 Agents SDK、Think、AI SDK 的 Agent run 全链路追踪（turn、tool、审批、token、运行时操作），用于故障复现与治理。(<a href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog</a>)</li>
+<li>Cloudflare AI Changelog 在 2026-07-30 宣布 AI Search 与 Agents SDK、AI SDK、LangChain 的官方整合，带来更一致的 grounded retrieval 工具调用路径。(<a href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog</a>)</li>
+</ul>
+<h2 id="Adopt"><a href="#Adopt" class="headerlink" title="Adopt"></a>Adopt</h2><ul>
+<li><p><strong>对齐 OpenAI Agents SDK 的模型与会话默认行为</strong></p>
+<ul>
+<li><strong>为何重要</strong>：两个官方 SDK 同步采用 <code>gpt-5.6-luna</code> 作为默认模型，并新增 <code>RunState.addInput</code>&#x2F;<code>add_input</code> 机制，说明“默认可用性 + 可恢复状态”的设计开始收敛，适合降低长任务波动。</li>
+<li><strong>成熟度</strong>：高。两个主语言 SDK 均有 Release Notes 与明确迁移点，说明生态可同步调整。</li>
+<li><strong>风险</strong>：默认模型切换可能影响成本与输出风格；若未显式固定模型会引入不一致。</li>
+<li><strong>下一步</strong>：给核心流程显式设置模型与 <code>OPENAI_DEFAULT_MODEL</code> 覆盖策略，并对关键链路做 A&#x2F;B 与回滚测试。</li>
+</ul>
+</li>
+<li><p><strong>升级 MCP 客户端为 v2 优先并保留 v1 兼容</strong></p>
+<ul>
+<li><strong>为何重要</strong>：JS 与 Python 均已支持 MCP v2 协商与 legacy v1 回退，减少“为新规范重写全部服务端”的迁移压力。</li>
+<li><strong>成熟度</strong>：中高。官方 release 明确给出兼容入口。</li>
+<li><strong>风险</strong>：自定义 MCP 本地传输和认证代码可能受 API 版本差异影响。</li>
+<li><strong>下一步</strong>：把 <code>MCPServerSSE</code>、<code>MCPServerStreamableHttp</code>、<code>stdio</code> 客户端统一升级到“先尝试 v2，不行 fallback v1”的策略，并补充兼容回归用例。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Trial"><a href="#Trial" class="headerlink" title="Trial"></a>Trial</h2><ul>
+<li><p><strong>Cloudflare Agent traces 试点接入</strong></p>
+<ul>
+<li><strong>为何重要</strong>：trace 能把 turn、tool、审批与运行时事件统一拉通，显著提升失败复盘效率。</li>
+<li><strong>成熟度</strong>：中。文档已提供可配置开关。</li>
+<li><strong>风险</strong>：采集过密可能带来隐私与成本压力。</li>
+<li><strong>下一步</strong>：选 1 个非生产服务先只开 <code>model/agent_turn</code> 采样，再按需扩展。</li>
+</ul>
+</li>
+<li><p><strong>Cloudflare Sandbox SDK 1.0 preview 试点（<code>@next</code>）</strong></p>
+<ul>
+<li><strong>为何重要</strong>：<code>sandbox.exec()</code> 统一执行语义有利于简化长服务与短命令混合场景。</li>
+<li><strong>成熟度</strong>：预览阶段，仍需验证迁移边界。</li>
+<li><strong>风险</strong>：版本与桥接组件不完全兼容可能引入回归。</li>
+<li><strong>下一步</strong>：仅在 dev tooling 或 CI sandbox 场景做 PoC，保留稳定版本回退路径。</li>
+</ul>
+</li>
+<li><p><strong>AI Search 在 RAG 工具链中的试接入</strong></p>
+<ul>
+<li><strong>为何重要</strong>：官方整合减少检索 glue code，适合先在少量场景验证 retrieval+tooling 收敛。</li>
+<li><strong>成熟度</strong>：中高，官方指南已覆盖 Agents SDK &#x2F; AI SDK &#x2F; LangChain。</li>
+<li><strong>风险</strong>：检索权限和 query 域控制处理不当会放大数据外泄风险。</li>
+<li><strong>下一步</strong>：先替换一个现有检索实现，并补齐域白名单、查询预算和日志规范。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h2><ul>
+<li><p><strong>预览级运行时的上线节奏</strong></p>
+<ul>
+<li><strong>为何重要</strong>：Cloudflare 沙箱进入 <code>@next</code> 表明底层执行层在快速重构，值得关注正式稳定时间与 bridge 兼容情况。</li>
+<li><strong>成熟度</strong>：预览中，需持续跟踪。</li>
+<li><strong>风险</strong>：稳定版与预览版兼容间隙可能影响生产迁移。</li>
+<li><strong>下一步</strong>：关注 <code>sandbox-migrate-to-next</code> 更新，确认与现网 CI&#x2F;部署链路的兼容窗口。</li>
+</ul>
+</li>
+<li><p><strong>MCP 兼容与治理边界</strong></p>
+<ul>
+<li><strong>为何重要</strong>：v0.20 体系下的弃用列表在持续扩大，长期治理必须同步。</li>
+<li><strong>成熟度</strong>：供应商文档可跟踪。</li>
+<li><strong>风险</strong>：未跟进弃用计划会导致隐性中断。</li>
+<li><strong>下一步</strong>：每周盘点 Cloudflare changelog 与 MCP release notes 的 API 弃用项。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Hold-Risks"><a href="#Hold-Risks" class="headerlink" title="Hold&#x2F;Risks"></a>Hold&#x2F;Risks</h2><ul>
+<li>暂缓全面切到 <code>@cloudflare/sandbox@next</code>，将其限制在可回滚测试环境。</li>
+<li>暂缓默认开启 <code>approveUnsafeReplay</code>，该能力应结合人工审批策略与告警。</li>
+<li>暂缓立即移除 legacy MCP 回退路径，除非所有关键 server 已通过 v2 兼容验证。</li>
+</ul>
+<h2 id="Practical-Stack-Adjustments"><a href="#Practical-Stack-Adjustments" class="headerlink" title="Practical Stack Adjustments"></a>Practical Stack Adjustments</h2><ol>
+<li>同步更新 OpenAI Agent SDK 适配器：明确默认模型策略与覆盖规则。</li>
+<li>在 MCP 客户端加入“v2 优先 + v1 回退”能力，补充传输与认证兼容测试。</li>
+<li>为关键服务先开 trace sampling：优先采集 agent turn 与工具元数据。</li>
+<li>用 AI Search 替换一个内部检索工具链（非生产）并补齐权限、日志与速率控制。</li>
+<li>用 <code>sandbox.exec()</code> 做最小沙箱 PoC，验证 exec 生命周期与超时策略。</li>
+</ol>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><ul>
+<li>默认模型变更与默认行为是否会影响成本和一致性？</li>
+<li>MCP v2 与 v1 混用时，哪些 server&#x2F;client 组合会出现不可见失败？</li>
+<li>trace 与 RAG 上线后，哪些数据项需要脱敏才可放到可共享日志？</li>
+</ul>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><ul>
+<li>运行时层：<code>v0.15</code> 与 <code>v0.20</code> 同步接入，统一 <code>Model 选择 + MCP 协商 + 可恢复输入</code>。</li>
+<li>工具层：AI Search&#x2F;RAG 先在一个服务内打通检索与工具调用。</li>
+<li>观测层：先采样 <code>agent_turn</code> 与 <code>tool</code> 元数据，再逐步扩到 payload。</li>
+</ul>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><ol>
+<li>先在 staging 对两套 OpenAI SDK 跑同一批长任务，验证默认模型与 v2 fallback 结果可比性。</li>
+<li>再引入 MCP v2 协商开关的金丝雀（10% 流量）并保留 v1 回退。</li>
+<li>最后接入 trace 和 AI Search 组合，确保“可追踪 + 可回放 + 可检索”。</li>
+</ol>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>本周信号建议采取“低风险先试点”节奏：在非生产范围完成 MCP v2 升级、trace 打点和 RAG 整合的最小闭环后，再扩展到生产关键流量。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>目前周更最优策略是：优先在可回放的执行路径上收敛 OpenAI 与 Cloudflare 的运行时能力；MCP 与工具编排可在兼容回退下推进，观测与 RAG 应先试点后放量。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><ul>
+<li>预期：单服务试点 1 周后，长任务 <code>trace+resume</code> 的定位时间显著下降，且 v2 协商失败率可控。</li>
+<li>风险：若自定义 MCP 认证链路未完成迁移，可能出现少量回退抖动或审批卡死。</li>
+</ul>
+<h2 id="下一步阅读："><a href="#下一步阅读：" class="headerlink" title="下一步阅读："></a>下一步阅读：</h2><ul>
+<li><a href="https://openai.github.io/openai-agents-js/">OpenAI Agents SDK JS 文档</a></li>
+<li><a href="https://developers.cloudflare.com/ai/">Cloudflare AI SDK 与 Agents 指南</a></li>
+</ul>
+<h2 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h2><ul>
+<li><a href="https://github.com/openai/openai-agents-js/releases/tag/v0.15.0">OpenAI Agents SDK JS v0.15.0</a></li>
+<li><a href="https://github.com/openai/openai-agents-python/releases/tag/v0.20.0">OpenAI Agents SDK Python v0.20.0</a></li>
+<li><a href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog（AI Product Group）</a></li>
+</ul>
+]]></content>
+      <tags>
+        <tag>AI</tag>
+        <tag>RAG</tag>
+        <tag>Agent</tag>
+        <tag>Engineering</tag>
+        <tag>MCP</tag>
+        <tag>Benchmark</tag>
+        <tag>Observability</tag>
+        <tag>Governance</tag>
       </tags>
   </entry>
   <entry>
@@ -650,45 +781,53 @@
       </tags>
   </entry>
   <entry>
-    <title>CCA 与 SSVEP 频率识别：为什么线性相关仍然有效</title>
-    <url>/2019/07/15/CCA-application-in-SSVEP-frequency-detection/</url>
-    <content><![CDATA[<p>脑机接口里的 SSVEP 频率识别有一个很实际的问题：训练数据少、个体差异大、信号噪声高，但系统仍然需要快速判断用户注视的是哪个闪烁频率。</p>
-<p>CCA（Canonical Correlation Analysis）看起来是一个传统线性统计方法，却长期在 SSVEP 中有效。原因不在于它复杂，而在于它抓住了任务里最稳定的结构：刺激频率和脑电响应之间的相关性。</p>
+    <title>Agentic Coding 工程治理：多模型协作先定义责任边界</title>
+    <url>/2026/06/10/Agentic-Coding-Governance/</url>
+    <content><![CDATA[<p>代码生成工具越来越强，多模型协作也越来越常见。但真正的问题已经不是“哪个模型会写代码”，而是多个代理如何共享上下文、谁能写文件、谁负责审查、如何避免互相覆盖，以及如何验证最终结果。</p>
+<p>Agentic Coding 的难点更像工程治理，而不是单纯模型能力。</p>
 <span id="more"></span>
 
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>SSVEP 是由周期性视觉刺激诱发的脑电响应。不同频率的闪烁刺激会在 EEG 中产生对应频率及其谐波成分。系统要做的事情，就是从多通道脑电信号里判断当前响应最接近哪个候选频率。</p>
-<p>采集示意如下：</p>
-<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_collect.jpg"></p>
-<p>频域上可以看到刺激频率及谐波处的能量峰：</p>
-<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_signal.png"></p>
-<p>如果训练数据充足，可以训练复杂模型；但 BCI 场景常常数据有限、校准时间短。CCA 的优势就是不强依赖大量训练数据。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>CCA 在 SSVEP 里的主线不是传统方法对抗深度学习，而是在低数据条件下利用任务结构。</p>
-<p>候选刺激频率已知，参考信号可以直接构造，EEG 多通道响应又和频率及谐波相关。CCA 把这些先验变成一个轻量基线，所以它经常比“直接上深度模型”更适合作为第一版系统。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>CCA 比较的是两组变量的最大线性相关。放到 SSVEP 里，一组变量是多通道 EEG，另一组是候选频率构造出的参考信号：</p>
-<p>$$\sin 2\pi ft,\cos 2\pi ft,\sin 4\pi ft,\cos 4\pi ft,…$$</p>
-<p>对每个候选频率，CCA 都计算 EEG 与参考信号之间的最大相关系数，相关性最高的频率就是预测结果。</p>
-<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCA.png"></p>
-<p>公式展开较长，核心可以理解成一个约束优化问题：寻找 EEG 通道加权和参考信号加权，使两者相关性最大。</p>
-<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCAFormula.png"></p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>CCA 的局限也很清楚。</p>
-<p>第一，相位漂移。不同受试者对同一刺激的响应时滞不同，固定参考信号可能无法对齐所有人。</p>
-<p>第二，线性假设。真实 EEG 包含噪声、伪迹和非线性成分，CCA 默认响应可以由参考频率线性解释。</p>
-<p>第三，短窗性能。长时间窗里频率特征更稳定，短时间窗里信噪比下降，识别更难。</p>
-<p>因此后续方法通常沿着两条路改进：要么增强相关分析本身，要么引入少量训练数据学习个体化空间滤波。DCCA 用深度网络表达非线性相关，但需要更多训练数据：</p>
-<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/DCCA.png"></p>
-<p>TRCA 则从任务相关成分出发，用训练数据学习更适合当前受试者的空间滤波：</p>
-<img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/TRCA.png" width=256 height=256/>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>如果所有 agent 都能同时读、写、运行命令和发布，系统很快会失控。一个 agent 做探索，一个 agent 改代码，另一个 agent 又根据旧上下文审查，最后 integrator 不知道该相信谁。</p>
+<p>多代理系统最危险的不是某个模型犯错，而是错误被协作流程放大。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>Agentic Coding 更像一个权限和证据控制系统，而不是多个模型的群聊。</p>
+<p>多模型协作真正危险的地方，不是某个模型写错一段代码，而是错误在上下文传递、并行写入、审查缺证据和发布动作里被放大。治理重点不是让 agent 更多，而是让每个 agent 的职责、权限、证据和退出条件可审计。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一个稳定流程至少区分四类角色：</p>
+<ul>
+<li>explorer：只读探索代码，回答具体问题；</li>
+<li>worker：负责明确文件范围内的实现；</li>
+<li>reviewer：检查风险、回归和测试缺口；</li>
+<li>integrator：合并结果、运行验证、决定是否发布。</li>
+</ul>
+<p>同一文件或同一行为边界，在同一阶段只应该有一个写入者。其他角色可以读、审、提建议，但不要并发修改同一处。</p>
+<p>MCP、浏览器控制、终端和 GitHub 连接器都应该按权限分层：read-only、scoped-write、privileged。默认读，需要写入或发布时再提升权限。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>Agentic Coding 的状态机可以压成：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">explore -&gt; propose -&gt; apply -&gt; review -&gt; verify -&gt; publish</span><br></pre></td></tr></table></figure>
 
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一个小样本实验可以只选 8Hz、10Hz、12Hz 三个候选频率，每个频率采几段短窗 EEG。先用 CCA 计算每段与三个参考信号的相关系数，再画出正确频率和次高频率之间的 margin。</p>
-<p>如果长窗 margin 明显、短窗 margin 接近 0，瓶颈不是分类器不够复杂，而是窗口太短导致频率证据不足；如果某个受试者所有频率 margin 都低，就优先检查相位、导联和个体化空间滤波。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>CCA 在 SSVEP 中有效，是因为它用很低的数据成本抓住了刺激频率和脑电响应之间的稳定相关结构。它不是所有 EEG 问题的通用答案，但在候选频率明确、训练数据有限、需要快速部署的 BCI 任务里仍然是很强的基线。</p>
-<p>后续优化不应只问“能不能换成深度学习”，而要问：短窗、相位漂移、个体差异和校准成本哪个才是当前系统的主要瓶颈。</p>
-<p>下一步阅读：<a href="/2021/08/24/ASR-preprocess/">ASR 特征前端：从原始波形到可训练的声学表示</a></p>
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] Frequency Recognition Based on Canonical Correlation Analysis for SSVEP-Based BCIs<br>[2] Deep Canonical Correlation Analysis<br>[3] Enhancing detection of SSVEPs for a high-speed brain speller using task-related component analysis</p>
+<p>每个状态都要定义允许工具、写入边界、交付物和 handoff 内容。handoff 里保留已验证事实、拒绝过的假设、触碰文件、测试证据、剩余风险和下一步动作。</p>
+<p>验证也要分三类：</p>
+<ul>
+<li>静态验证：格式、lint、类型、配置检查；</li>
+<li>行为验证：测试、构建、端到端 smoke；</li>
+<li>变更验证：diff 审阅、敏感信息扫描、发布前检查。</li>
+</ul>
+<p>如果 agent 修改了验证脚本本身，还要确认验证规则没有被放松。</p>
+<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>更多 agent 不一定更强。每增加一个 agent，就增加一次上下文压缩、意图解释和结果合并的成本。适合分出去的是边界清楚、只读可完成、输出能被验证的任务；不适合分出去的是最终写入、发布、敏感操作、删除和范围含糊的任务。</p>
+<p>并行探索通常有价值，并行写入通常危险。同一文件、同一行为边界、同一阶段只应该有一个写入者。其他角色可以读、审、提建议，但不要同时修改同一处。</p>
+<p>reviewer 也不能只给主观意见。reviewer 输出必须带证据位置、风险等级、复现方式和建议验证命令，否则 integrator 无法判断是否采纳。</p>
+<h2 id="实现契约"><a href="#实现契约" class="headerlink" title="实现契约"></a>实现契约</h2><p>一个稳定状态机可以压成 explore、propose、apply、review、verify、publish。每个状态都定义允许工具、写入边界、交付物和 handoff 内容。</p>
+<p>五条不变量值得硬编码：最终写入者唯一；发布动作只由 integrator 执行；subagent 输出必须带证据和不确定性；自动修复必须能被测试或静态检查验证；handoff 不只写结论，还要写被排除的路径。</p>
+<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>Agentic Coding 出问题时，要归到状态和角色。reviewer 找不到证据，是 explorer 输出不够结构化。worker 改错范围，是任务边界没有锁定。integrator 合并后测试失败，是 handoff 没有保留验证条件。发布后发现敏感内容，是发布前检查不在状态机里。</p>
+<p>每次协作最好留一份 evidence ledger：读过哪些文件、修改了哪些文件、运行了哪些命令、哪些假设被证伪、哪些风险还没覆盖。它应该是事实账本，不是聊天摘要。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一个合理的协作例子是：explorer 只读代码并产出证据位置，worker 只改限定文件，reviewer 只检查风险和测试缺口，integrator 负责最终合并、验证和发布。这个流程看起来慢，但每个状态都有清楚的责任归属。</p>
+<p>反过来，如果两个 agent 同时改同一文件，reviewer 只能看到聊天摘要，integrator 不知道哪些命令真实跑过，发布前也没有权限回放，那么多模型协作只是在扩大不确定性。Agentic Coding 的效率，来自证据复用和边界清楚，而不是并发修改更多文件。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Agentic Coding 的关键不是把多个模型接到一起，而是明确角色、权限、状态和验证。没有边界的多代理系统，只会把单模型的不确定性放大成协作层面的不确定性。</p>
+<p>下一步阅读：<a href="/2026/06/16/Agent-Engineering-Radar-2026-06-16/">【Agent Engineering Radar】2026-06-16 Agent 工程技术雷达</a></p>
 ]]></content>
       <tags>
-        <tag>CCA</tag>
-        <tag>EEG</tag>
+        <tag>AI</tag>
+        <tag>Open Source</tag>
+        <tag>Agent</tag>
+        <tag>Coding</tag>
       </tags>
   </entry>
   <entry>
@@ -739,53 +878,45 @@
       </tags>
   </entry>
   <entry>
-    <title>Agentic Coding 工程治理：多模型协作先定义责任边界</title>
-    <url>/2026/06/10/Agentic-Coding-Governance/</url>
-    <content><![CDATA[<p>代码生成工具越来越强，多模型协作也越来越常见。但真正的问题已经不是“哪个模型会写代码”，而是多个代理如何共享上下文、谁能写文件、谁负责审查、如何避免互相覆盖，以及如何验证最终结果。</p>
-<p>Agentic Coding 的难点更像工程治理，而不是单纯模型能力。</p>
+    <title>CCA 与 SSVEP 频率识别：为什么线性相关仍然有效</title>
+    <url>/2019/07/15/CCA-application-in-SSVEP-frequency-detection/</url>
+    <content><![CDATA[<p>脑机接口里的 SSVEP 频率识别有一个很实际的问题：训练数据少、个体差异大、信号噪声高，但系统仍然需要快速判断用户注视的是哪个闪烁频率。</p>
+<p>CCA（Canonical Correlation Analysis）看起来是一个传统线性统计方法，却长期在 SSVEP 中有效。原因不在于它复杂，而在于它抓住了任务里最稳定的结构：刺激频率和脑电响应之间的相关性。</p>
 <span id="more"></span>
 
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>如果所有 agent 都能同时读、写、运行命令和发布，系统很快会失控。一个 agent 做探索，一个 agent 改代码，另一个 agent 又根据旧上下文审查，最后 integrator 不知道该相信谁。</p>
-<p>多代理系统最危险的不是某个模型犯错，而是错误被协作流程放大。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>Agentic Coding 更像一个权限和证据控制系统，而不是多个模型的群聊。</p>
-<p>多模型协作真正危险的地方，不是某个模型写错一段代码，而是错误在上下文传递、并行写入、审查缺证据和发布动作里被放大。治理重点不是让 agent 更多，而是让每个 agent 的职责、权限、证据和退出条件可审计。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一个稳定流程至少区分四类角色：</p>
-<ul>
-<li>explorer：只读探索代码，回答具体问题；</li>
-<li>worker：负责明确文件范围内的实现；</li>
-<li>reviewer：检查风险、回归和测试缺口；</li>
-<li>integrator：合并结果、运行验证、决定是否发布。</li>
-</ul>
-<p>同一文件或同一行为边界，在同一阶段只应该有一个写入者。其他角色可以读、审、提建议，但不要并发修改同一处。</p>
-<p>MCP、浏览器控制、终端和 GitHub 连接器都应该按权限分层：read-only、scoped-write、privileged。默认读，需要写入或发布时再提升权限。</p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>Agentic Coding 的状态机可以压成：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">explore -&gt; propose -&gt; apply -&gt; review -&gt; verify -&gt; publish</span><br></pre></td></tr></table></figure>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>SSVEP 是由周期性视觉刺激诱发的脑电响应。不同频率的闪烁刺激会在 EEG 中产生对应频率及其谐波成分。系统要做的事情，就是从多通道脑电信号里判断当前响应最接近哪个候选频率。</p>
+<p>采集示意如下：</p>
+<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_collect.jpg"></p>
+<p>频域上可以看到刺激频率及谐波处的能量峰：</p>
+<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/SSVEP_signal.png"></p>
+<p>如果训练数据充足，可以训练复杂模型；但 BCI 场景常常数据有限、校准时间短。CCA 的优势就是不强依赖大量训练数据。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>CCA 在 SSVEP 里的主线不是传统方法对抗深度学习，而是在低数据条件下利用任务结构。</p>
+<p>候选刺激频率已知，参考信号可以直接构造，EEG 多通道响应又和频率及谐波相关。CCA 把这些先验变成一个轻量基线，所以它经常比“直接上深度模型”更适合作为第一版系统。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>CCA 比较的是两组变量的最大线性相关。放到 SSVEP 里，一组变量是多通道 EEG，另一组是候选频率构造出的参考信号：</p>
+<p>$$\sin 2\pi ft,\cos 2\pi ft,\sin 4\pi ft,\cos 4\pi ft,…$$</p>
+<p>对每个候选频率，CCA 都计算 EEG 与参考信号之间的最大相关系数，相关性最高的频率就是预测结果。</p>
+<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCA.png"></p>
+<p>公式展开较长，核心可以理解成一个约束优化问题：寻找 EEG 通道加权和参考信号加权，使两者相关性最大。</p>
+<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/CCAFormula.png"></p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>CCA 的局限也很清楚。</p>
+<p>第一，相位漂移。不同受试者对同一刺激的响应时滞不同，固定参考信号可能无法对齐所有人。</p>
+<p>第二，线性假设。真实 EEG 包含噪声、伪迹和非线性成分，CCA 默认响应可以由参考频率线性解释。</p>
+<p>第三，短窗性能。长时间窗里频率特征更稳定，短时间窗里信噪比下降，识别更难。</p>
+<p>因此后续方法通常沿着两条路改进：要么增强相关分析本身，要么引入少量训练数据学习个体化空间滤波。DCCA 用深度网络表达非线性相关，但需要更多训练数据：</p>
+<p><img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/DCCA.png"></p>
+<p>TRCA 则从任务相关成分出发，用训练数据学习更适合当前受试者的空间滤波：</p>
+<img src="/2019/07/15/CCA-application-in-SSVEP-frequency-detection/TRCA.png" width=256 height=256/>
 
-<p>每个状态都要定义允许工具、写入边界、交付物和 handoff 内容。handoff 里保留已验证事实、拒绝过的假设、触碰文件、测试证据、剩余风险和下一步动作。</p>
-<p>验证也要分三类：</p>
-<ul>
-<li>静态验证：格式、lint、类型、配置检查；</li>
-<li>行为验证：测试、构建、端到端 smoke；</li>
-<li>变更验证：diff 审阅、敏感信息扫描、发布前检查。</li>
-</ul>
-<p>如果 agent 修改了验证脚本本身，还要确认验证规则没有被放松。</p>
-<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>更多 agent 不一定更强。每增加一个 agent，就增加一次上下文压缩、意图解释和结果合并的成本。适合分出去的是边界清楚、只读可完成、输出能被验证的任务；不适合分出去的是最终写入、发布、敏感操作、删除和范围含糊的任务。</p>
-<p>并行探索通常有价值，并行写入通常危险。同一文件、同一行为边界、同一阶段只应该有一个写入者。其他角色可以读、审、提建议，但不要同时修改同一处。</p>
-<p>reviewer 也不能只给主观意见。reviewer 输出必须带证据位置、风险等级、复现方式和建议验证命令，否则 integrator 无法判断是否采纳。</p>
-<h2 id="实现契约"><a href="#实现契约" class="headerlink" title="实现契约"></a>实现契约</h2><p>一个稳定状态机可以压成 explore、propose、apply、review、verify、publish。每个状态都定义允许工具、写入边界、交付物和 handoff 内容。</p>
-<p>五条不变量值得硬编码：最终写入者唯一；发布动作只由 integrator 执行；subagent 输出必须带证据和不确定性；自动修复必须能被测试或静态检查验证；handoff 不只写结论，还要写被排除的路径。</p>
-<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>Agentic Coding 出问题时，要归到状态和角色。reviewer 找不到证据，是 explorer 输出不够结构化。worker 改错范围，是任务边界没有锁定。integrator 合并后测试失败，是 handoff 没有保留验证条件。发布后发现敏感内容，是发布前检查不在状态机里。</p>
-<p>每次协作最好留一份 evidence ledger：读过哪些文件、修改了哪些文件、运行了哪些命令、哪些假设被证伪、哪些风险还没覆盖。它应该是事实账本，不是聊天摘要。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一个合理的协作例子是：explorer 只读代码并产出证据位置，worker 只改限定文件，reviewer 只检查风险和测试缺口，integrator 负责最终合并、验证和发布。这个流程看起来慢，但每个状态都有清楚的责任归属。</p>
-<p>反过来，如果两个 agent 同时改同一文件，reviewer 只能看到聊天摘要，integrator 不知道哪些命令真实跑过，发布前也没有权限回放，那么多模型协作只是在扩大不确定性。Agentic Coding 的效率，来自证据复用和边界清楚，而不是并发修改更多文件。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Agentic Coding 的关键不是把多个模型接到一起，而是明确角色、权限、状态和验证。没有边界的多代理系统，只会把单模型的不确定性放大成协作层面的不确定性。</p>
-<p>下一步阅读：<a href="/2026/06/16/Agent-Engineering-Radar-2026-06-16/">【Agent Engineering Radar】2026-06-16 Agent 工程技术雷达</a></p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一个小样本实验可以只选 8Hz、10Hz、12Hz 三个候选频率，每个频率采几段短窗 EEG。先用 CCA 计算每段与三个参考信号的相关系数，再画出正确频率和次高频率之间的 margin。</p>
+<p>如果长窗 margin 明显、短窗 margin 接近 0，瓶颈不是分类器不够复杂，而是窗口太短导致频率证据不足；如果某个受试者所有频率 margin 都低，就优先检查相位、导联和个体化空间滤波。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>CCA 在 SSVEP 中有效，是因为它用很低的数据成本抓住了刺激频率和脑电响应之间的稳定相关结构。它不是所有 EEG 问题的通用答案，但在候选频率明确、训练数据有限、需要快速部署的 BCI 任务里仍然是很强的基线。</p>
+<p>后续优化不应只问“能不能换成深度学习”，而要问：短窗、相位漂移、个体差异和校准成本哪个才是当前系统的主要瓶颈。</p>
+<p>下一步阅读：<a href="/2021/08/24/ASR-preprocess/">ASR 特征前端：从原始波形到可训练的声学表示</a></p>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] Frequency Recognition Based on Canonical Correlation Analysis for SSVEP-Based BCIs<br>[2] Deep Canonical Correlation Analysis<br>[3] Enhancing detection of SSVEPs for a high-speed brain speller using task-related component analysis</p>
 ]]></content>
       <tags>
-        <tag>AI</tag>
-        <tag>Open Source</tag>
-        <tag>Agent</tag>
-        <tag>Coding</tag>
+        <tag>CCA</tag>
+        <tag>EEG</tag>
       </tags>
   </entry>
   <entry>
@@ -874,83 +1005,6 @@
       </tags>
   </entry>
   <entry>
-    <title>实时语音 Turn-taking 评测：从端点检测到可接话判断</title>
-    <url>/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/</url>
-    <content><![CDATA[<p>实时语音系统里，判断用户“说完了”比看起来更难。静音不一定代表结束，短停顿可能只是思考；语义已经完整，也可能还会补充条件。Turn-taking 要解决的不是单纯端点检测，而是系统什么时候可以安全接话。</p>
-<span id="more"></span>
-
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>传统 VAD 或 endpointing 主要看声学静音。实时助手需要更复杂的判断：当前 partial 结果是否语义完整，用户是否可能继续说，系统现在接话是否会打断。</p>
-<p>如果判断过早，系统会抢话；判断过晚，交互 latency 会变差。这个 tradeoff 不能只靠经验阈值。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>Turn-taking 不是“检测用户说完”，而是在不确定输入下选择系统行动时机。</p>
-<p>静音、semantic end、partial 稳定性和 latency 都只是信号，真正的输出不是一个客观标签，而是“现在接话是否值得”。这个判断必须同时考虑抢话成本和等待成本。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一个 turn-taking 决策至少包含：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">audio_state</span><br><span class="line">partial_transcript</span><br><span class="line">semantic end score</span><br><span class="line">silence_duration</span><br><span class="line">rollback_risk</span><br><span class="line">latency_budget</span><br><span class="line">decision</span><br></pre></td></tr></table></figure>
-
-<p><code>semantic end</code> 表示语义是否完成；<code>partial</code> 表示当前流式识别结果仍可能变化；<code>latency_budget</code> 控制系统为了更准愿意等多久。</p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>评测要同时看三类指标。</p>
-<p>第一类是交互延迟：用户停顿后多久系统响应，p95&#x2F;p99 是否可接受。</p>
-<p>第二类是打断率：系统是否在用户还没说完时抢答。</p>
-<p>第三类是漏接或慢接：用户已经说完但系统迟迟不响应。</p>
-<p>离线评测可以用标注的 turn boundary；在线评测还要记录 partial 变化、ASR 回滚、semantic end 分数和最终用户体验。</p>
-<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>静音不等于结束，语义完整也不等于可以接话。用户可能短暂停顿后继续补充，或者语义已经完整但还在列举条件。反过来，语义没有完全闭合时，系统也可能需要轻量反馈，以免交互显得停滞。</p>
-<p>所以 Turn-taking 不能脱离系统动作讨论。如果系统接话后可以取消或轻量回滚，策略可以激进一点；如果一旦开口就会明显打断，就必须保守。模型输出的不是“结束事实”，而是“行动风险”。</p>
-<p>低首包延迟和语义稳定也天然冲突。ASR partial 越早，越容易回滚；决策越稳，越可能慢。工程上应把识别层和决策层拆开：识别层尽早给候选，决策层用 partial 历史、回滚风险和 semantic end 分数决定是否接话。</p>
-<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>第一版评测应该从 timeline 回放做起。把音频能量、partial 文本、semantic end 分数、静音时长、候选边界、决策点和用户后续语音放在一条时间线上。只要能看到系统在什么信号组合下接话，阈值调整就不会变成盲调。</p>
-<p>错误样本按四类分桶：正确接话、过早接话、过晚接话、正确等待。过早和过晚不能合并，因为修复方向相反。过早需要提高语义完成阈值或回滚风险权重；过晚需要放松等待策略或降低模型延迟。</p>
-<h2 id="评测设计"><a href="#评测设计" class="headerlink" title="评测设计"></a>评测设计</h2><p>指标要同时包含动作质量和时间质量。动作质量看打断率、慢接率、漏接率、正确等待率。时间质量看 decision latency、first response latency、p95&#x2F;p99 和取消后的恢复时间。</p>
-<p>最终报告要能回答一个具体问题：当前策略是偏向“少打断但慢”，还是“快响应但抢话多”。没有这个取舍曲线，Turn-taking 指标就只是一堆阈值实验。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>同一个候选边界，600ms 接话和 900ms 接话可能都是“对”的，但代价不同。600ms 可能让交互更快，也可能在用户补充条件时抢话；900ms 更稳，却可能让用户重复或以为系统没听懂。Turn-taking 评测要比较的不是单点准确率，而是这条代价曲线。</p>
-<p>因此，每个错误样本都应该回放到时间线：系统在哪个 partial 上做了 decision，semantic end 当时多少，后续 partial 是否回滚，用户后面是否继续说。只看最终边界标签，会丢掉最关键的策略信息。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Turn-taking 不是 VAD 的别名，而是声学、语义和延迟预算共同决定的接话策略。先把 partial、semantic end、silence 和 latency 分开记录，再调阈值或训练模型。</p>
-<p>下一步阅读：<a href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/">LLM 与语音模型推理服务：先把延迟拆成可观测链路</a></p>
-]]></content>
-      <tags>
-        <tag>Open Source</tag>
-        <tag>ASR</tag>
-        <tag>Evaluation</tag>
-        <tag>Speech</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>语音对话合成数据工程：Schema、口语化与质量闸门</title>
-    <url>/2026/06/11/Speech-Dialog-Data-Synthesis-Quality-Gates/</url>
-    <content><![CDATA[<p>合成对话数据的风险不是“生成得不够多”，而是生成得太像模板、太干净、太不符合语音输入的真实噪声。数量扩大很容易，难的是让样本既覆盖任务，又不把模型训练成只会回答标准文本。</p>
-<p>所以语音对话合成数据要先设计质量闸门，再谈规模。</p>
-<span id="more"></span>
-
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>对话数据要服务下游训练和评测。它既要有结构化 schema，保证字段、意图、实体和状态可控；又要有口语化表达，覆盖停顿、重复、自我修正、n-best 候选和 ASR 错误。</p>
-<p>如果只生成标准书面语，模型上线后会被真实口语击穿。如果只追求随机扰动，样本又会失去任务结构。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>合成语音对话数据真正要模拟的是不确定性，而不是生产更整齐的文本。</p>
-<p>对话数据越干净，越可能远离真实语音输入。真正有价值的合成样本，要同时保留 schema 约束、口语化扰动、n-best 不确定性、状态变化和失败原因。它不是文本扩增，而是一个可控的交互模拟器。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一条合成样本至少要包含：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">dialogue_id</span><br><span class="line">turns</span><br><span class="line">intent</span><br><span class="line">entities</span><br><span class="line">state</span><br><span class="line">n-best</span><br><span class="line">quality_flags</span><br><span class="line">reason code</span><br></pre></td></tr></table></figure>
-
-<p><code>quality_flags</code> 记录口语化、实体覆盖、逻辑一致性、敏感词、重复和异常格式。<code>reason code</code> 说明样本为什么保留、丢弃或需要人工复核。</p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>质量闸门可以分三层。</p>
-<p>第一层是 schema 校验：字段是否完整、实体是否在合法范围、状态转移是否合理。</p>
-<p>第二层是语言质量：是否过于模板化、是否包含自然口语、是否有重复和自我修正。</p>
-<p>第三层是训练影响：加入这批数据后，目标任务指标是否提升，错误类型是否减少，是否引入系统性偏差。</p>
-<p>每一批合成数据都应该能回溯到生成配置、过滤规则和评测结果。否则数据越多，问题越难定位。</p>
-<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>schema 越严格，不代表数据越好。schema 能保证字段合法，但也容易把样本变成模板填空。模型会学到固定字段顺序，却学不到真实输入里的停顿、重复、修正和候选歧义。</p>
-<p>口语化也不是随机加噪。随机插入口头词、重复句子或错别字，可能让文本看起来更像口语，却破坏实体、状态和轮次关系。好的生成流程应该是先生成结构化计划，再生成口语化表达，最后把表达回填到 schema 校验。如果回填失败，这条样本就应该带着 reason code 进入复核，而不是被静默丢弃。</p>
-<p>n-best 的价值也常被低估。语音输入里很多错误来自候选不确定性，而不是唯一 transcript 的文字错误。训练样本保留 n-best，可以让模型学会在模糊表达下维持状态。</p>
-<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>第一批数据不要追求数量，先跑一个小闭环：固定少量 schema，生成样本，做 schema 回填校验，抽查失败样本，再做一次增量训练。每条失败样本都标明原因：字段缺失、状态冲突、实体漂移、轮次不一致、表达模板化，或者过滤规则过严。</p>
-<p>如果加入合成数据后指标没有提升，先不要扩大规模。要看错误分布是否变化：是不是边界样本变好了但常规样本变差了，是不是状态跟踪改善但实体抽取下降了，是不是模型学到了模板口吻。</p>
-<h2 id="评测设计"><a href="#评测设计" class="headerlink" title="评测设计"></a>评测设计</h2><p>离线质量看 schema 通过率、字段覆盖率、实体合法率、轮次一致性、口语化比例、重复率和 quality_flags 分布。训练收益看目标任务指标、状态跟踪错误、实体抽取错误、异常输入恢复能力和真实口语样本泛化。</p>
-<p>最重要的是增量评测。一次只加入一批合成策略，记录它改善了哪类错误、引入了哪类新偏差。合成数据的目标不是让训练集变大，而是让错误类型变得可控。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一条合成样本可以先有结构化计划：这一轮要表达哪个 intent，哪些 entities 必须出现，状态从哪里转到哪里。随后再生成口语化表达，比如重复、停顿、自我修正和候选歧义。最后把生成表达重新解析回 schema：如果字段回填失败，这不是小瑕疵，而是训练目标已经漂移。</p>
-<p>这样的闭环能避免两类坏数据。第一类是漂亮但无效的文本，看起来像自然对话，实际状态对不上。第二类是合法但僵硬的模板，schema 全过，模型却学不到真实语音输入的不确定性。质量闸门要同时拦住这两类样本。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>语音对话合成数据的核心不是生成，而是质量治理。先把 schema、quality_flags、n-best、reason code 和评测回流建起来，再扩大规模。没有这些闸门，合成数据会把训练目标污染成系统性偏差。</p>
-<p>下一步阅读：<a href="/2026/06/10/ASR-Data-Quality-Pipeline-Open-Source/">ASR 数据质量流水线：伪标签、切分与可追溯评测</a></p>
-]]></content>
-      <tags>
-        <tag>Open Source</tag>
-        <tag>ASR</tag>
-        <tag>Data</tag>
-        <tag>Evaluation</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>音频模型 Batch 一致性排查：从有效输入区间到逐层 diff</title>
     <url>/2026/06/10/Speech-Batch-Consistency-Debugging/</url>
     <content><![CDATA[<p>同一个音频，batch size 不同却输出不同，这是音频模型排障里很典型的问题。它通常不是“模型随机性”一句话能解释的，而是 padding、mask、dtype、subsampling、归一化或缓存边界出了问题。</p>
@@ -996,6 +1050,45 @@
       </tags>
   </entry>
   <entry>
+    <title>语音对话合成数据工程：Schema、口语化与质量闸门</title>
+    <url>/2026/06/11/Speech-Dialog-Data-Synthesis-Quality-Gates/</url>
+    <content><![CDATA[<p>合成对话数据的风险不是“生成得不够多”，而是生成得太像模板、太干净、太不符合语音输入的真实噪声。数量扩大很容易，难的是让样本既覆盖任务，又不把模型训练成只会回答标准文本。</p>
+<p>所以语音对话合成数据要先设计质量闸门，再谈规模。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>对话数据要服务下游训练和评测。它既要有结构化 schema，保证字段、意图、实体和状态可控；又要有口语化表达，覆盖停顿、重复、自我修正、n-best 候选和 ASR 错误。</p>
+<p>如果只生成标准书面语，模型上线后会被真实口语击穿。如果只追求随机扰动，样本又会失去任务结构。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>合成语音对话数据真正要模拟的是不确定性，而不是生产更整齐的文本。</p>
+<p>对话数据越干净，越可能远离真实语音输入。真正有价值的合成样本，要同时保留 schema 约束、口语化扰动、n-best 不确定性、状态变化和失败原因。它不是文本扩增，而是一个可控的交互模拟器。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一条合成样本至少要包含：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">dialogue_id</span><br><span class="line">turns</span><br><span class="line">intent</span><br><span class="line">entities</span><br><span class="line">state</span><br><span class="line">n-best</span><br><span class="line">quality_flags</span><br><span class="line">reason code</span><br></pre></td></tr></table></figure>
+
+<p><code>quality_flags</code> 记录口语化、实体覆盖、逻辑一致性、敏感词、重复和异常格式。<code>reason code</code> 说明样本为什么保留、丢弃或需要人工复核。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>质量闸门可以分三层。</p>
+<p>第一层是 schema 校验：字段是否完整、实体是否在合法范围、状态转移是否合理。</p>
+<p>第二层是语言质量：是否过于模板化、是否包含自然口语、是否有重复和自我修正。</p>
+<p>第三层是训练影响：加入这批数据后，目标任务指标是否提升，错误类型是否减少，是否引入系统性偏差。</p>
+<p>每一批合成数据都应该能回溯到生成配置、过滤规则和评测结果。否则数据越多，问题越难定位。</p>
+<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>schema 越严格，不代表数据越好。schema 能保证字段合法，但也容易把样本变成模板填空。模型会学到固定字段顺序，却学不到真实输入里的停顿、重复、修正和候选歧义。</p>
+<p>口语化也不是随机加噪。随机插入口头词、重复句子或错别字，可能让文本看起来更像口语，却破坏实体、状态和轮次关系。好的生成流程应该是先生成结构化计划，再生成口语化表达，最后把表达回填到 schema 校验。如果回填失败，这条样本就应该带着 reason code 进入复核，而不是被静默丢弃。</p>
+<p>n-best 的价值也常被低估。语音输入里很多错误来自候选不确定性，而不是唯一 transcript 的文字错误。训练样本保留 n-best，可以让模型学会在模糊表达下维持状态。</p>
+<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>第一批数据不要追求数量，先跑一个小闭环：固定少量 schema，生成样本，做 schema 回填校验，抽查失败样本，再做一次增量训练。每条失败样本都标明原因：字段缺失、状态冲突、实体漂移、轮次不一致、表达模板化，或者过滤规则过严。</p>
+<p>如果加入合成数据后指标没有提升，先不要扩大规模。要看错误分布是否变化：是不是边界样本变好了但常规样本变差了，是不是状态跟踪改善但实体抽取下降了，是不是模型学到了模板口吻。</p>
+<h2 id="评测设计"><a href="#评测设计" class="headerlink" title="评测设计"></a>评测设计</h2><p>离线质量看 schema 通过率、字段覆盖率、实体合法率、轮次一致性、口语化比例、重复率和 quality_flags 分布。训练收益看目标任务指标、状态跟踪错误、实体抽取错误、异常输入恢复能力和真实口语样本泛化。</p>
+<p>最重要的是增量评测。一次只加入一批合成策略，记录它改善了哪类错误、引入了哪类新偏差。合成数据的目标不是让训练集变大，而是让错误类型变得可控。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一条合成样本可以先有结构化计划：这一轮要表达哪个 intent，哪些 entities 必须出现，状态从哪里转到哪里。随后再生成口语化表达，比如重复、停顿、自我修正和候选歧义。最后把生成表达重新解析回 schema：如果字段回填失败，这不是小瑕疵，而是训练目标已经漂移。</p>
+<p>这样的闭环能避免两类坏数据。第一类是漂亮但无效的文本，看起来像自然对话，实际状态对不上。第二类是合法但僵硬的模板，schema 全过，模型却学不到真实语音输入的不确定性。质量闸门要同时拦住这两类样本。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>语音对话合成数据的核心不是生成，而是质量治理。先把 schema、quality_flags、n-best、reason code 和评测回流建起来，再扩大规模。没有这些闸门，合成数据会把训练目标污染成系统性偏差。</p>
+<p>下一步阅读：<a href="/2026/06/10/ASR-Data-Quality-Pipeline-Open-Source/">ASR 数据质量流水线：伪标签、切分与可追溯评测</a></p>
+]]></content>
+      <tags>
+        <tag>Open Source</tag>
+        <tag>ASR</tag>
+        <tag>Data</tag>
+        <tag>Evaluation</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>语音大模型工程：音频 token、LLM 主干与对齐契约</title>
     <url>/2026/06/10/Speech-LLM-Audio-Token-Alignment/</url>
     <content><![CDATA[<p>语音大模型不是把 ASR encoder 接到 LLM 上就结束了。真正困难的是接口契约：音频如何被压成 token，token 如何进入 LLM，文本监督如何约束语音表示，流式场景又如何保证延迟和上下文一致。</p>
@@ -1036,6 +1129,44 @@
         <tag>LLM</tag>
         <tag>Open Source</tag>
         <tag>ASR</tag>
+        <tag>Speech</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>实时语音 Turn-taking 评测：从端点检测到可接话判断</title>
+    <url>/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/</url>
+    <content><![CDATA[<p>实时语音系统里，判断用户“说完了”比看起来更难。静音不一定代表结束，短停顿可能只是思考；语义已经完整，也可能还会补充条件。Turn-taking 要解决的不是单纯端点检测，而是系统什么时候可以安全接话。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>传统 VAD 或 endpointing 主要看声学静音。实时助手需要更复杂的判断：当前 partial 结果是否语义完整，用户是否可能继续说，系统现在接话是否会打断。</p>
+<p>如果判断过早，系统会抢话；判断过晚，交互 latency 会变差。这个 tradeoff 不能只靠经验阈值。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>Turn-taking 不是“检测用户说完”，而是在不确定输入下选择系统行动时机。</p>
+<p>静音、semantic end、partial 稳定性和 latency 都只是信号，真正的输出不是一个客观标签，而是“现在接话是否值得”。这个判断必须同时考虑抢话成本和等待成本。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一个 turn-taking 决策至少包含：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">audio_state</span><br><span class="line">partial_transcript</span><br><span class="line">semantic end score</span><br><span class="line">silence_duration</span><br><span class="line">rollback_risk</span><br><span class="line">latency_budget</span><br><span class="line">decision</span><br></pre></td></tr></table></figure>
+
+<p><code>semantic end</code> 表示语义是否完成；<code>partial</code> 表示当前流式识别结果仍可能变化；<code>latency_budget</code> 控制系统为了更准愿意等多久。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>评测要同时看三类指标。</p>
+<p>第一类是交互延迟：用户停顿后多久系统响应，p95&#x2F;p99 是否可接受。</p>
+<p>第二类是打断率：系统是否在用户还没说完时抢答。</p>
+<p>第三类是漏接或慢接：用户已经说完但系统迟迟不响应。</p>
+<p>离线评测可以用标注的 turn boundary；在线评测还要记录 partial 变化、ASR 回滚、semantic end 分数和最终用户体验。</p>
+<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>静音不等于结束，语义完整也不等于可以接话。用户可能短暂停顿后继续补充，或者语义已经完整但还在列举条件。反过来，语义没有完全闭合时，系统也可能需要轻量反馈，以免交互显得停滞。</p>
+<p>所以 Turn-taking 不能脱离系统动作讨论。如果系统接话后可以取消或轻量回滚，策略可以激进一点；如果一旦开口就会明显打断，就必须保守。模型输出的不是“结束事实”，而是“行动风险”。</p>
+<p>低首包延迟和语义稳定也天然冲突。ASR partial 越早，越容易回滚；决策越稳，越可能慢。工程上应把识别层和决策层拆开：识别层尽早给候选，决策层用 partial 历史、回滚风险和 semantic end 分数决定是否接话。</p>
+<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>第一版评测应该从 timeline 回放做起。把音频能量、partial 文本、semantic end 分数、静音时长、候选边界、决策点和用户后续语音放在一条时间线上。只要能看到系统在什么信号组合下接话，阈值调整就不会变成盲调。</p>
+<p>错误样本按四类分桶：正确接话、过早接话、过晚接话、正确等待。过早和过晚不能合并，因为修复方向相反。过早需要提高语义完成阈值或回滚风险权重；过晚需要放松等待策略或降低模型延迟。</p>
+<h2 id="评测设计"><a href="#评测设计" class="headerlink" title="评测设计"></a>评测设计</h2><p>指标要同时包含动作质量和时间质量。动作质量看打断率、慢接率、漏接率、正确等待率。时间质量看 decision latency、first response latency、p95&#x2F;p99 和取消后的恢复时间。</p>
+<p>最终报告要能回答一个具体问题：当前策略是偏向“少打断但慢”，还是“快响应但抢话多”。没有这个取舍曲线，Turn-taking 指标就只是一堆阈值实验。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>同一个候选边界，600ms 接话和 900ms 接话可能都是“对”的，但代价不同。600ms 可能让交互更快，也可能在用户补充条件时抢话；900ms 更稳，却可能让用户重复或以为系统没听懂。Turn-taking 评测要比较的不是单点准确率，而是这条代价曲线。</p>
+<p>因此，每个错误样本都应该回放到时间线：系统在哪个 partial 上做了 decision，semantic end 当时多少，后续 partial 是否回滚，用户后面是否继续说。只看最终边界标签，会丢掉最关键的策略信息。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Turn-taking 不是 VAD 的别名，而是声学、语义和延迟预算共同决定的接话策略。先把 partial、semantic end、silence 和 latency 分开记录，再调阈值或训练模型。</p>
+<p>下一步阅读：<a href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/">LLM 与语音模型推理服务：先把延迟拆成可观测链路</a></p>
+]]></content>
+      <tags>
+        <tag>Open Source</tag>
+        <tag>ASR</tag>
+        <tag>Evaluation</tag>
         <tag>Speech</tag>
       </tags>
   </entry>

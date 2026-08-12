@@ -165,7 +165,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-count">23</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -187,6 +187,191 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/08/12/Agent-Engineering-Radar-2026-08-12/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Alan Fang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/08/12/Agent-Engineering-Radar-2026-08-12/" class="post-title-link" itemprop="url">【Agent Engineering Radar】2026-08-12 Agent 工程技术雷达</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2026-08-12 09:00:00 / Modified: 13:34:27" itemprop="dateCreated datePublished" datetime="2026-08-12T09:00:00+08:00">2026-08-12</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>上周是 OpenAI 和 Cloudflare 的工程化更新高发窗口：同一周内出现了 Agent SDK 的默认模型与状态模型、MCP v2 协商，以及 Cloudflare 的可观测与沙箱执行栈新增。今天这版雷达强调两个方向：</p>
+<ul>
+<li>是否把“会话化 + 协调编排”逐步迁移到可回放、可审计的运行时栈；</li>
+<li>是否先在可回滚边界内试点新 Runtime 与 RAG 能力，避免把未充分验证能力直接推到生产。</li>
+</ul>
+<h2 id="This-Week’s-Signal"><a href="#This-Week’s-Signal" class="headerlink" title="This Week’s Signal"></a>This Week’s Signal</h2><ul>
+<li>OpenAI Agents SDK for JavaScript&#x2F;TypeScript 发布 <code>v0.15.0</code>（2026-08-11）。该版本要求 <code>openai &gt;= 7.2</code>，默认模型改为 <code>gpt-5.6-luna</code>，并新增 MCP v2 协商能力，同时保留 v1 兼容；<code>RunState.addInput()</code>、<code>pendingInput</code> 与可重放安全控制被明确加入，沙箱凭证暴露确认机制也加强。(<a target="_blank" rel="noopener" href="https://github.com/openai/openai-agents-js/releases/tag/v0.15.0">OpenAI Agents SDK JS Release Notes</a>)</li>
+<li>OpenAI Agents SDK for Python 发布 <code>v0.20.0</code>（2026-08-11）。该版本在本地 MCP 连接层同时支持 SDK v1&#x2F;v2 并增强 Streamable HTTP &#x2F; MCP 传输兼容；<code>RunState.add_input</code> 用于暂停后安全追加输入；默认模型切换为 <code>gpt-5.6-luna</code>；沙箱挂载权限与重放行为收紧。(<a target="_blank" rel="noopener" href="https://github.com/openai/openai-agents-python/releases/tag/v0.20.0">OpenAI Agents SDK Python Release Notes</a>)</li>
+<li>Cloudflare AI Changelog 发布 <code>Sandbox SDK 1.0 preview on @next</code>（2026-08-07），同时给出 <code>sandbox.exec()</code> 重构接口：单命令与长作业共享执行语义、去除旧会话状态模型，建议新项目优先迁移。(<a target="_blank" rel="noopener" href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog</a>)</li>
+<li>Cloudflare AI Changelog 发布 Agent traces（2026-08-04），覆盖 Agents SDK、Think、AI SDK 的 Agent run 全链路追踪（turn、tool、审批、token、运行时操作），用于故障复现与治理。(<a target="_blank" rel="noopener" href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog</a>)</li>
+<li>Cloudflare AI Changelog 在 2026-07-30 宣布 AI Search 与 Agents SDK、AI SDK、LangChain 的官方整合，带来更一致的 grounded retrieval 工具调用路径。(<a target="_blank" rel="noopener" href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog</a>)</li>
+</ul>
+<h2 id="Adopt"><a href="#Adopt" class="headerlink" title="Adopt"></a>Adopt</h2><ul>
+<li><p><strong>对齐 OpenAI Agents SDK 的模型与会话默认行为</strong></p>
+<ul>
+<li><strong>为何重要</strong>：两个官方 SDK 同步采用 <code>gpt-5.6-luna</code> 作为默认模型，并新增 <code>RunState.addInput</code>&#x2F;<code>add_input</code> 机制，说明“默认可用性 + 可恢复状态”的设计开始收敛，适合降低长任务波动。</li>
+<li><strong>成熟度</strong>：高。两个主语言 SDK 均有 Release Notes 与明确迁移点，说明生态可同步调整。</li>
+<li><strong>风险</strong>：默认模型切换可能影响成本与输出风格；若未显式固定模型会引入不一致。</li>
+<li><strong>下一步</strong>：给核心流程显式设置模型与 <code>OPENAI_DEFAULT_MODEL</code> 覆盖策略，并对关键链路做 A&#x2F;B 与回滚测试。</li>
+</ul>
+</li>
+<li><p><strong>升级 MCP 客户端为 v2 优先并保留 v1 兼容</strong></p>
+<ul>
+<li><strong>为何重要</strong>：JS 与 Python 均已支持 MCP v2 协商与 legacy v1 回退，减少“为新规范重写全部服务端”的迁移压力。</li>
+<li><strong>成熟度</strong>：中高。官方 release 明确给出兼容入口。</li>
+<li><strong>风险</strong>：自定义 MCP 本地传输和认证代码可能受 API 版本差异影响。</li>
+<li><strong>下一步</strong>：把 <code>MCPServerSSE</code>、<code>MCPServerStreamableHttp</code>、<code>stdio</code> 客户端统一升级到“先尝试 v2，不行 fallback v1”的策略，并补充兼容回归用例。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Trial"><a href="#Trial" class="headerlink" title="Trial"></a>Trial</h2><ul>
+<li><p><strong>Cloudflare Agent traces 试点接入</strong></p>
+<ul>
+<li><strong>为何重要</strong>：trace 能把 turn、tool、审批与运行时事件统一拉通，显著提升失败复盘效率。</li>
+<li><strong>成熟度</strong>：中。文档已提供可配置开关。</li>
+<li><strong>风险</strong>：采集过密可能带来隐私与成本压力。</li>
+<li><strong>下一步</strong>：选 1 个非生产服务先只开 <code>model/agent_turn</code> 采样，再按需扩展。</li>
+</ul>
+</li>
+<li><p><strong>Cloudflare Sandbox SDK 1.0 preview 试点（<code>@next</code>）</strong></p>
+<ul>
+<li><strong>为何重要</strong>：<code>sandbox.exec()</code> 统一执行语义有利于简化长服务与短命令混合场景。</li>
+<li><strong>成熟度</strong>：预览阶段，仍需验证迁移边界。</li>
+<li><strong>风险</strong>：版本与桥接组件不完全兼容可能引入回归。</li>
+<li><strong>下一步</strong>：仅在 dev tooling 或 CI sandbox 场景做 PoC，保留稳定版本回退路径。</li>
+</ul>
+</li>
+<li><p><strong>AI Search 在 RAG 工具链中的试接入</strong></p>
+<ul>
+<li><strong>为何重要</strong>：官方整合减少检索 glue code，适合先在少量场景验证 retrieval+tooling 收敛。</li>
+<li><strong>成熟度</strong>：中高，官方指南已覆盖 Agents SDK &#x2F; AI SDK &#x2F; LangChain。</li>
+<li><strong>风险</strong>：检索权限和 query 域控制处理不当会放大数据外泄风险。</li>
+<li><strong>下一步</strong>：先替换一个现有检索实现，并补齐域白名单、查询预算和日志规范。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h2><ul>
+<li><p><strong>预览级运行时的上线节奏</strong></p>
+<ul>
+<li><strong>为何重要</strong>：Cloudflare 沙箱进入 <code>@next</code> 表明底层执行层在快速重构，值得关注正式稳定时间与 bridge 兼容情况。</li>
+<li><strong>成熟度</strong>：预览中，需持续跟踪。</li>
+<li><strong>风险</strong>：稳定版与预览版兼容间隙可能影响生产迁移。</li>
+<li><strong>下一步</strong>：关注 <code>sandbox-migrate-to-next</code> 更新，确认与现网 CI&#x2F;部署链路的兼容窗口。</li>
+</ul>
+</li>
+<li><p><strong>MCP 兼容与治理边界</strong></p>
+<ul>
+<li><strong>为何重要</strong>：v0.20 体系下的弃用列表在持续扩大，长期治理必须同步。</li>
+<li><strong>成熟度</strong>：供应商文档可跟踪。</li>
+<li><strong>风险</strong>：未跟进弃用计划会导致隐性中断。</li>
+<li><strong>下一步</strong>：每周盘点 Cloudflare changelog 与 MCP release notes 的 API 弃用项。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Hold-Risks"><a href="#Hold-Risks" class="headerlink" title="Hold&#x2F;Risks"></a>Hold&#x2F;Risks</h2><ul>
+<li>暂缓全面切到 <code>@cloudflare/sandbox@next</code>，将其限制在可回滚测试环境。</li>
+<li>暂缓默认开启 <code>approveUnsafeReplay</code>，该能力应结合人工审批策略与告警。</li>
+<li>暂缓立即移除 legacy MCP 回退路径，除非所有关键 server 已通过 v2 兼容验证。</li>
+</ul>
+<h2 id="Practical-Stack-Adjustments"><a href="#Practical-Stack-Adjustments" class="headerlink" title="Practical Stack Adjustments"></a>Practical Stack Adjustments</h2><ol>
+<li>同步更新 OpenAI Agent SDK 适配器：明确默认模型策略与覆盖规则。</li>
+<li>在 MCP 客户端加入“v2 优先 + v1 回退”能力，补充传输与认证兼容测试。</li>
+<li>为关键服务先开 trace sampling：优先采集 agent turn 与工具元数据。</li>
+<li>用 AI Search 替换一个内部检索工具链（非生产）并补齐权限、日志与速率控制。</li>
+<li>用 <code>sandbox.exec()</code> 做最小沙箱 PoC，验证 exec 生命周期与超时策略。</li>
+</ol>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><ul>
+<li>默认模型变更与默认行为是否会影响成本和一致性？</li>
+<li>MCP v2 与 v1 混用时，哪些 server&#x2F;client 组合会出现不可见失败？</li>
+<li>trace 与 RAG 上线后，哪些数据项需要脱敏才可放到可共享日志？</li>
+</ul>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><ul>
+<li>运行时层：<code>v0.15</code> 与 <code>v0.20</code> 同步接入，统一 <code>Model 选择 + MCP 协商 + 可恢复输入</code>。</li>
+<li>工具层：AI Search&#x2F;RAG 先在一个服务内打通检索与工具调用。</li>
+<li>观测层：先采样 <code>agent_turn</code> 与 <code>tool</code> 元数据，再逐步扩到 payload。</li>
+</ul>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><ol>
+<li>先在 staging 对两套 OpenAI SDK 跑同一批长任务，验证默认模型与 v2 fallback 结果可比性。</li>
+<li>再引入 MCP v2 协商开关的金丝雀（10% 流量）并保留 v1 回退。</li>
+<li>最后接入 trace 和 AI Search 组合，确保“可追踪 + 可回放 + 可检索”。</li>
+</ol>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>本周信号建议采取“低风险先试点”节奏：在非生产范围完成 MCP v2 升级、trace 打点和 RAG 整合的最小闭环后，再扩展到生产关键流量。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>目前周更最优策略是：优先在可回放的执行路径上收敛 OpenAI 与 Cloudflare 的运行时能力；MCP 与工具编排可在兼容回退下推进，观测与 RAG 应先试点后放量。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><ul>
+<li>预期：单服务试点 1 周后，长任务 <code>trace+resume</code> 的定位时间显著下降，且 v2 协商失败率可控。</li>
+<li>风险：若自定义 MCP 认证链路未完成迁移，可能出现少量回退抖动或审批卡死。</li>
+</ul>
+<h2 id="下一步阅读："><a href="#下一步阅读：" class="headerlink" title="下一步阅读："></a>下一步阅读：</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://openai.github.io/openai-agents-js/">OpenAI Agents SDK JS 文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/ai/">Cloudflare AI SDK 与 Agents 指南</a></li>
+</ul>
+<h2 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/openai/openai-agents-js/releases/tag/v0.15.0">OpenAI Agents SDK JS v0.15.0</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/openai/openai-agents-python/releases/tag/v0.20.0">OpenAI Agents SDK Python v0.20.0</a></li>
+<li><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog（AI Product Group）</a></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1105,90 +1290,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/06/10/PEFT-Engineering-Tradeoffs/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Alan Fang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/06/10/PEFT-Engineering-Tradeoffs/" class="post-title-link" itemprop="url">PEFT 工程取舍：省参数只是入口，部署路径才是边界</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2026-06-10 17:30:00" itemprop="dateCreated datePublished" datetime="2026-06-10T17:30:00+08:00">2026-06-10</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 19:17:15" itemprop="dateModified" datetime="2026-06-18T19:17:15+08:00">2026-06-18</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>PEFT 常被理解成“少训练一些参数”。这句话没错，但它只说了训练成本，没有说清楚工程边界。真正的选择不是参数越少越好，而是训练显存、适配能力、推理开销、上下文占用、版本管理和回滚方式之间的取舍。</p>
-<p>如果不把这些约束写清楚，LoRA、Prefix-Tuning、P-Tuning、QLoRA 很容易被比较成一张简单榜单，而不是可复用的工程组件。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2026/06/10/PEFT-Engineering-Tradeoffs/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
