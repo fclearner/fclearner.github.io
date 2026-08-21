@@ -20,15 +20,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="上周 Agent 工程栈最大的变化是 MCP 的 2026-07-28 规格正式对外发布，并且多家运行时同时给出可执行迁移路径。今天的 Radar 重点关注：协议扩展是否真的能降低系统复杂性、如何在保留观测能力的前提下快速试点、以及评测结果是否还可信。 This Week’s Signal Model Context Protocol 正式发布 2026-07-28 版本，核心是无状态协议、无需握">
+    <meta name="description" content="上周 Agent 工程栈最大的变化是 MCP 的 2026-07-28 规格正式对外发布，并且多家运行时同时给出可执行迁移路径。今天的 Radar 重点关注：协议扩展是否真的能降低系统复杂性、如何在保留观测能力的前提下快速试点、以及评测结果是否还可信。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="【Agent Engineering Radar】2026-08-07 Agent 工程技术雷达">
 <meta property="og:url" content="https://alanfangblog.com/2026/08/07/Agent-Engineering-Radar-2026-08-07/index.html">
 <meta property="og:site_name" content="AlanFangBlog">
-<meta property="og:description" content="上周 Agent 工程栈最大的变化是 MCP 的 2026-07-28 规格正式对外发布，并且多家运行时同时给出可执行迁移路径。今天的 Radar 重点关注：协议扩展是否真的能降低系统复杂性、如何在保留观测能力的前提下快速试点、以及评测结果是否还可信。 This Week’s Signal Model Context Protocol 正式发布 2026-07-28 版本，核心是无状态协议、无需握">
+<meta property="og:description" content="上周 Agent 工程栈最大的变化是 MCP 的 2026-07-28 规格正式对外发布，并且多家运行时同时给出可执行迁移路径。今天的 Radar 重点关注：协议扩展是否真的能降低系统复杂性、如何在保留观测能力的前提下快速试点、以及评测结果是否还可信。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-08-07T01:00:00.000Z">
-<meta property="article:modified_time" content="2026-08-07T02:16:20.968Z">
+<meta property="article:modified_time" content="2026-08-21T02:58:56.013Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="AI">
 <meta property="article:tag" content="Agent">
@@ -237,9 +237,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-08-07 09:00:00 / Modified: 10:16:20" itemprop="dateCreated datePublished" datetime="2026-08-07T09:00:00+08:00">2026-08-07</time>
+      <time title="Created: 2026-08-07 09:00:00" itemprop="dateCreated datePublished" datetime="2026-08-07T09:00:00+08:00">2026-08-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-08-21 10:58:56" itemprop="dateModified" datetime="2026-08-21T10:58:56+08:00">2026-08-21</time>
     </span>
 
   
@@ -252,6 +258,8 @@
     
     
     <div class="post-body" itemprop="articleBody"><p>上周 Agent 工程栈最大的变化是 MCP 的 2026-07-28 规格正式对外发布，并且多家运行时同时给出可执行迁移路径。今天的 Radar 重点关注：协议扩展是否真的能降低系统复杂性、如何在保留观测能力的前提下快速试点、以及评测结果是否还可信。</p>
+<span id="more"></span>
+
 <h2 id="This-Week’s-Signal"><a href="#This-Week’s-Signal" class="headerlink" title="This Week’s Signal"></a>This Week’s Signal</h2><ul>
 <li>Model Context Protocol 正式发布 <code>2026-07-28</code> 版本，核心是无状态协议、无需握手&#x2F;会话、可缓存列表、以及扩展框架与治理机制（<code>Mcp-Method</code>、<code>Mcp-Name</code> 头路由、授权与生命周期改造）。这是过去 1 年代理互通最大的修订。(<a target="_blank" rel="noopener" href="https://blog.modelcontextprotocol.io/posts/2026-07-28/">MCP 2026-07-28 Specification</a>)</li>
 <li>AWS 同步发布 AgentCore Gateway 对 2026-07-28 的支持，强调网关侧按版本广播即可并行兼容，降低了旧系统到新协议的切换成本。(<a target="_blank" rel="noopener" href="https://aws.amazon.com/blogs/machine-learning/how-agentcore-gateway-supports-the-mcp-2026-07-28-spec/">How AgentCore Gateway supports the MCP 2026-07-28 spec</a>)</li>

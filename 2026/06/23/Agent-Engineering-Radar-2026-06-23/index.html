@@ -20,15 +20,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="2026-06-23 周报聚焦于最近一周可公开验证的 Agent 工程信号：运行时更新、浏览器化代理能力、评测与风险治理。 This Week’s Signal OpenCode 发布了 v1.17.9（2026-06-21），修复了步骤边界、模型检测和流式行为，并补上了高&#x2F;最高思考参数暴露 (GitHub Release)。 Browser-Use 发布 0.13.2（2026-06-">
+    <meta name="description" content="2026-06-23 周报聚焦于最近一周可公开验证的 Agent 工程信号：运行时更新、浏览器化代理能力、评测与风险治理。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="【Agent Engineering Radar】2026-06-23 Agent 工程技术雷达">
 <meta property="og:url" content="https://alanfangblog.com/2026/06/23/Agent-Engineering-Radar-2026-06-23/index.html">
 <meta property="og:site_name" content="AlanFangBlog">
-<meta property="og:description" content="2026-06-23 周报聚焦于最近一周可公开验证的 Agent 工程信号：运行时更新、浏览器化代理能力、评测与风险治理。 This Week’s Signal OpenCode 发布了 v1.17.9（2026-06-21），修复了步骤边界、模型检测和流式行为，并补上了高&#x2F;最高思考参数暴露 (GitHub Release)。 Browser-Use 发布 0.13.2（2026-06-">
+<meta property="og:description" content="2026-06-23 周报聚焦于最近一周可公开验证的 Agent 工程信号：运行时更新、浏览器化代理能力、评测与风险治理。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-06-23T01:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-23T01:04:32.959Z">
+<meta property="article:modified_time" content="2026-08-21T02:58:55.731Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="AI">
 <meta property="article:tag" content="Agent">
@@ -236,9 +236,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2026-06-23 09:00:00 / Modified: 09:04:32" itemprop="dateCreated datePublished" datetime="2026-06-23T09:00:00+08:00">2026-06-23</time>
+      <time title="Created: 2026-06-23 09:00:00" itemprop="dateCreated datePublished" datetime="2026-06-23T09:00:00+08:00">2026-06-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-08-21 10:58:55" itemprop="dateModified" datetime="2026-08-21T10:58:55+08:00">2026-08-21</time>
     </span>
 
   
@@ -251,6 +257,8 @@
     
     
     <div class="post-body" itemprop="articleBody"><p>2026-06-23 周报聚焦于最近一周可公开验证的 Agent 工程信号：运行时更新、浏览器化代理能力、评测与风险治理。</p>
+<span id="more"></span>
+
 <h2 id="This-Week’s-Signal"><a href="#This-Week’s-Signal" class="headerlink" title="This Week’s Signal"></a>This Week’s Signal</h2><ul>
 <li>OpenCode 发布了 <code>v1.17.9</code>（2026-06-21），修复了步骤边界、模型检测和流式行为，并补上了高&#x2F;最高思考参数暴露 (<a target="_blank" rel="noopener" href="https://github.com/anomalyco/opencode/releases/tag/v1.17.9">GitHub Release</a>)。</li>
 <li>Browser-Use 发布 <code>0.13.2</code>（2026-06-12），核心是 <code>BU3</code> 模型接入、<code>ChatBrowserUse</code> 支持 provider 前缀模型，以及发布流程门控与依赖升级 (<a target="_blank" rel="noopener" href="https://github.com/browser-use/browser-use/releases/tag/0.13.2">GitHub Release</a>)。</li>
