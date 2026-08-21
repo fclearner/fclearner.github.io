@@ -6,6 +6,8 @@ tags: [AI, Agent, Engineering, MCP, Benchmark, Observability]
 
 2026-06-23 周报聚焦于最近一周可公开验证的 Agent 工程信号：运行时更新、浏览器化代理能力、评测与风险治理。
 
+<!--more-->
+
 ## This Week’s Signal
 
 - OpenCode 发布了 `v1.17.9`（2026-06-21），修复了步骤边界、模型检测和流式行为，并补上了高/最高思考参数暴露 ([GitHub Release](https://github.com/anomalyco/opencode/releases/tag/v1.17.9))。

@@ -92,6 +92,9 @@ if (!errors.length) {
   for (const sourcePost of sourcePosts) {
     const sourcePath = path.join(sourcePostsDir, sourcePost);
     const sourceContent = read(sourcePath);
+    if (!/<!--\s*more\s*-->/.test(sourceContent)) {
+      fail(`Public post ${sourcePost} is missing the Hexo excerpt separator.`);
+    }
     for (const marker of problemDrivenMarkers) {
       if (!sourceContent.includes(marker)) {
         fail(`Public post ${sourcePost} is missing problem-driven marker ${JSON.stringify(marker)}.`);
@@ -211,6 +214,16 @@ if (!errors.length) {
   ];
   for (const rel of criticalFiles) {
     if (!exists(path.join(publicDir, rel))) fail(`Missing generated file: public/${rel}`);
+  }
+
+  const homePath = path.join(publicDir, 'index.html');
+  if (exists(homePath)) {
+    const homeHtml = read(homePath);
+    const homePostCount = (homeHtml.match(/<div class="post-block">/g) || []).length;
+    const homeExcerptCount = (homeHtml.match(/<div class="post-button">/g) || []).length;
+    if (homePostCount !== homeExcerptCount) {
+      fail(`Expected every home-page post to use an excerpt, found ${homeExcerptCount} excerpts for ${homePostCount} posts.`);
+    }
   }
 
   const searchXmlPath = path.join(publicDir, 'search.xml');

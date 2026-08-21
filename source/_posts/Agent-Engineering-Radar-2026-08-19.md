@@ -6,6 +6,8 @@ tags: [AI, Agent, Engineering, MCP, RAG, Observability, Governance, Tracing]
 
 过去一周的可执行信号集中在 Cloudflare 的 agent 平台面向可观测、检索和治理三块同步加码：可回放观测（tracing）、AI Search 工具化、以及通过 Access 与 User Insights 做身份级成本与异常控制。对我个人的 Agent 栈来说，核心问题仍然是：优先把“可测、可控、可回退”的能力先落地，再谈扩展。
 
+<!--more-->
+
 ## This Week’s Signal
 
 - Cloudflare AI Changelog（2026-08-06）发布 AI Search 生产化增强：支持自定义域、身份控制、跨实例一入口与站点缺失sitemap的抓取模式。意味着从“单一检索 API”走向“能直接服务化给内部系统的检索入口”。([Cloudflare AI Changelog](https://developers.cloudflare.com/changelog/product-group/ai/))

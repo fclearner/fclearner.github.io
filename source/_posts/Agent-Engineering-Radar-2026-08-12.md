@@ -8,6 +8,8 @@ tags: [AI, Agent, Engineering, MCP, Benchmark, Observability, Governance, RAG]
 - 是否把“会话化 + 协调编排”逐步迁移到可回放、可审计的运行时栈；
 - 是否先在可回滚边界内试点新 Runtime 与 RAG 能力，避免把未充分验证能力直接推到生产。
 
+<!--more-->
+
 ## This Week’s Signal
 
 - OpenAI Agents SDK for JavaScript/TypeScript 发布 `v0.15.0`（2026-08-11）。该版本要求 `openai >= 7.2`，默认模型改为 `gpt-5.6-luna`，并新增 MCP v2 协商能力，同时保留 v1 兼容；`RunState.addInput()`、`pendingInput` 与可重放安全控制被明确加入，沙箱凭证暴露确认机制也加强。([OpenAI Agents SDK JS Release Notes](https://github.com/openai/openai-agents-js/releases/tag/v0.15.0))

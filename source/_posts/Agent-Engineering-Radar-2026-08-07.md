@@ -6,6 +6,8 @@ tags: [AI, Agent, Engineering, MCP, Benchmark, Observability, Governance]
 
 上周 Agent 工程栈最大的变化是 MCP 的 2026-07-28 规格正式对外发布，并且多家运行时同时给出可执行迁移路径。今天的 Radar 重点关注：协议扩展是否真的能降低系统复杂性、如何在保留观测能力的前提下快速试点、以及评测结果是否还可信。
 
+<!--more-->
+
 ## This Week’s Signal
 
 - Model Context Protocol 正式发布 `2026-07-28` 版本，核心是无状态协议、无需握手/会话、可缓存列表、以及扩展框架与治理机制（`Mcp-Method`、`Mcp-Name` 头路由、授权与生命周期改造）。这是过去 1 年代理互通最大的修订。([MCP 2026-07-28 Specification](https://blog.modelcontextprotocol.io/posts/2026-07-28/))
