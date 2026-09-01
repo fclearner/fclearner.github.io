@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/AlanFangicon32X32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/AlanFangicon16X16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="过去一周主要信号集中在“可控的工具权限扩展”“可执行的评测信号扩展”和“Agent 运行过程的可恢复性”。海外生态继续推进 MCP 与网关治理，国内头部 Agent 则在独立复核、会话续跑、跨端接管和企业用量治理上给出了更贴近本地开发环境的实现。对个人栈来说，重点不是按厂商堆工具，而是用同一套任务和安全指标比较不同 Agent。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Agent Engineering Radar】2026-09-01 Agent 工程技术雷达">
+<meta property="og:url" content="https://alanfangblog.com/2026/09/01/Agent-Engineering-Radar-2026-09-01/index.html">
+<meta property="og:site_name" content="AlanFangBlog">
+<meta property="og:description" content="过去一周主要信号集中在“可控的工具权限扩展”“可执行的评测信号扩展”和“Agent 运行过程的可恢复性”。海外生态继续推进 MCP 与网关治理，国内头部 Agent 则在独立复核、会话续跑、跨端接管和企业用量治理上给出了更贴近本地开发环境的实现。对个人栈来说，重点不是按厂商堆工具，而是用同一套任务和安全指标比较不同 Agent。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-09-01T01:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-01T02:08:55.052Z">
+<meta property="article:author" content="Alan Fang">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="Benchmark">
+<meta property="article:tag" content="China AI">
+<meta property="article:tag" content="Engineering">
+<meta property="article:tag" content="Governance">
+<meta property="article:tag" content="MCP">
+<meta property="article:tag" content="Memory">
+<meta property="article:tag" content="Observability">
+<meta property="article:tag" content="RAG">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://alanfangblog.com/2026/09/01/Agent-Engineering-Radar-2026-09-01/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2026/09/01/Agent-Engineering-Radar-2026-09-01/","path":"2026/09/01/Agent-Engineering-Radar-2026-09-01/","title":"【Agent Engineering Radar】2026-09-01 Agent 工程技术雷达"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>【Agent Engineering Radar】2026-09-01 Agent 工程技术雷达 | AlanFangBlog</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">AlanFangBlog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#This-Week%E2%80%99s-Signal"><span class="nav-number">1.</span> <span class="nav-text">This Week’s Signal</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%BD%E5%86%85%E5%A4%B4%E9%83%A8-Agent-%E4%BF%A1%E5%8F%B7"><span class="nav-number">2.</span> <span class="nav-text">国内头部 Agent 信号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Adopt"><span class="nav-number">3.</span> <span class="nav-text">Adopt</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Trial"><span class="nav-number">4.</span> <span class="nav-text">Trial</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Watch"><span class="nav-number">5.</span> <span class="nav-text">Watch</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hold-Risks"><span class="nav-number">6.</span> <span class="nav-text">Hold&#x2F;Risks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Practical-Stack-Adjustments"><span class="nav-number">7.</span> <span class="nav-text">Practical Stack Adjustments</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8E%E7%BB%AD%E9%9B%B7%E8%BE%BE%E7%9A%84%E8%A6%86%E7%9B%96%E8%A7%84%E5%88%99"><span class="nav-number">8.</span> <span class="nav-text">后续雷达的覆盖规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">9.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">10.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">11.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">12.</span> <span class="nav-text">直接结论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E5%88%A4%E6%96%AD"><span class="nav-number">13.</span> <span class="nav-text">主线判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B7%E6%9C%AC%E6%8E%A8%E6%BC%94"><span class="nav-number">14.</span> <span class="nav-text">小样本推演</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8B%E4%B8%80%E6%AD%A5%E9%98%85%E8%AF%BB%EF%BC%9A"><span class="nav-number">15.</span> <span class="nav-text">下一步阅读：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">16.</span> <span class="nav-text">结论</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Alan Fang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/09/01/Agent-Engineering-Radar-2026-09-01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Alan Fang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="【Agent Engineering Radar】2026-09-01 Agent 工程技术雷达 | AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【Agent Engineering Radar】2026-09-01 Agent 工程技术雷达
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2026-09-01 09:00:00 / Modified: 10:08:55" itemprop="dateCreated datePublished" datetime="2026-09-01T09:00:00+08:00">2026-09-01</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>过去一周主要信号集中在“可控的工具权限扩展”“可执行的评测信号扩展”和“Agent 运行过程的可恢复性”。海外生态继续推进 MCP 与网关治理，国内头部 Agent 则在独立复核、会话续跑、跨端接管和企业用量治理上给出了更贴近本地开发环境的实现。对个人栈来说，重点不是按厂商堆工具，而是用同一套任务和安全指标比较不同 Agent。</p>
+<span id="more"></span>
+
+<h2 id="This-Week’s-Signal"><a href="#This-Week’s-Signal" class="headerlink" title="This Week’s Signal"></a>This Week’s Signal</h2><ul>
+<li><strong>AI Search 与模型接入面强化（2026-08-25 到 2026-08-30）</strong>：Cloudflare AI Changelog 在近两周持续加入高 token 上下文、更多模型与多模态入口，且对 AI Search 的元数据承载能力做了扩展。<code>@cf/zai-org/glm-5.3-flash</code>（2026-08-30）提供 1,048,576 token 上下文，<code>@cf/zai-org/glm-5.3</code>（2026-08-28）定位为偏工具驱动的 agentic coding 使用。AI Search 还新增 10 KiB 向量元数据 envelope（2026-08-25）。(<a target="_blank" rel="noopener" href="https://developers.cloudflare.com/changelog/product-group/ai/">AI Changelog</a>)</li>
+<li><strong>MCP 权限治理从“全授权”转向“可编辑最小授权”（2026-08-22）</strong>：Cloudflare Workers changelog 指明 Wrangler 和 Cloudflare API MCP server 开始支持可选 OAuth scope。该更新直接降低了“默认全开权限”导致的 blast radius。(<a target="_blank" rel="noopener" href="https://developers.cloudflare.com/changelog/product/workers/">Workers Changelog</a>)</li>
+<li><strong>AI Gateway 的身份可观测与异常监测（2026-08-19）</strong>：Cloudflare AI Gateway 发布 User Insights，基于 30 天 p95 会话成本基线做异常检测，并把 Access 身份与网关日志打通。对生产化 agent，治理入口由“模型级日志”升级到“身份维度告警与预算控制”。(<a target="_blank" rel="noopener" href="https://developers.cloudflare.com/changelog/product/ai-gateway/">AI Gateway Changelog</a>)</li>
+<li><strong>OpenAI Agents Python 的会话持久化缺陷公开化（2026-08-26）</strong>：openai-agents-python 的 issue 报告了并发场景下 <code>responses.compact</code> 与 session 写入竞争导致历史条目丢失（<code>OpenAIResponsesCompactionSession</code>）。这提示“可运行”不等于“可重放”，会话一致性需要主动护栏。(<a target="_blank" rel="noopener" href="https://github.com/openai/openai-agents-python/issues/4679">GitHub Issue #4679</a>)</li>
+<li><strong>评测信号持续收紧：移动端与多模态长期任务基准出现新压力测试（2026-08-21 &#x2F; 2026-08-24）</strong>：两篇新论文围绕真实场景手机代理任务定义了更重的工具协作、记忆使用与状态一致性评测维度，提示未来 benchmark 不再只看“最终成功率”。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.23035">MobilePA-Bench</a>, <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.27477">GMA</a>)</li>
+</ul>
+<h2 id="国内头部-Agent-信号"><a href="#国内头部-Agent-信号" class="headerlink" title="国内头部 Agent 信号"></a>国内头部 Agent 信号</h2><ul>
+<li><strong>阿里 Qwen Code 把“第二意见”和中断恢复做成产品能力（2026-08-20 &#x2F; 2026-08-27）</strong>：<code>/advisor</code> 使用只读旁路会话检查当前对话，<code>qwen sessions ps</code> 提供本机运行会话清单，PR Review 支持校验状态后续跑；随后发布的 Local Control 允许手机在可信局域网内查看同一 daemon 会话、diff、工具调用和权限请求。这组更新的价值不在功能数量，而在“主执行链路之外有独立复核”和“人离开电脑后仍能接管授权”。(<a target="_blank" rel="noopener" href="https://qwenlm.github.io/qwen-code-docs/zh/blog/updates/weekly-update-2026-08-20/">Qwen Code 周报</a>, <a target="_blank" rel="noopener" href="https://qwenlm.github.io/qwen-code-docs/zh/blog/feat-qwen-serve-mobile/">Local Control</a>)</li>
+<li><strong>月之暗面 Kimi Code 已形成完整的本地 Agent 执行面（2026-08-12）</strong>：官方产品说明覆盖 Plan、Goal、Swarm、后台任务、Skills、插件、MCP、定时任务和会话压缩，并明确区分需要逐次确认的默认模式与自动批准模式。它值得进入对比试验，但百万上下文和并行 Agent 的宣传指标不能代替真实仓库上的成功率、成本和权限边界测试。(<a target="_blank" rel="noopener" href="https://www.kimi.ai/resources/kimi-code-introduction">Kimi Code 官方介绍</a>)</li>
+<li><strong>字节 TRAE 将企业 Agent 从“能力展示”推进到统一入口与用量治理（2026-08-28）</strong>：TRAE 企业版把内置 <code>Agent</code> 与 <code>SOLO Agent</code> 合并，并增加企业自定义模型用量明细；此前版本已提供企业沙箱、Hook、Subagent、记忆和 Goal 工作流。这个方向说明国内 Agent 的竞争点正在从模型效果转向身份、预算、沙箱和生命周期控制。(<a target="_blank" rel="noopener" href="https://docs.trae.cn/enterprise_release-notes">TRAE 企业版更新日志</a>)</li>
+<li><strong>Manus 的服务切换暴露了云端 Agent 的可移植性风险（2026-08-23 到 2026-08-25）</strong>：官方要求部分受影响账户先备份任务数据与产物，再经历数据删除和恢复流程。无论产品能力如何，若任务历史、连接器授权和生成物只能留在厂商云端，就不应成为唯一工作底座。(<a target="_blank" rel="noopener" href="https://help.manus.im/en/articles/16147831-service-change-overview-what-s-happening-and-am-i-affected">Manus Service Change Overview</a>)</li>
+</ul>
+<p>本期把“国内头部”限定为有公开产品、官方文档和可验证工程入口的 Agent，而不是主观市场排名。后续固定观察池如下：</p>
+<table>
+<thead>
+<tr>
+<th>厂商 &#x2F; 产品</th>
+<th>主要形态</th>
+<th>本期位置</th>
+<th>持续观察点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>月之暗面 Kimi Code &#x2F; Kimi Agent</td>
+<td>Coding + 通用任务</td>
+<td>Trial</td>
+<td>Goal&#x2F;Swarm 的真实并行收益、审批边界、长任务成本</td>
+</tr>
+<tr>
+<td>阿里 Qwen Code</td>
+<td>开源 Coding Agent</td>
+<td>Trial</td>
+<td>只读复核、会话恢复、跨端权限接管</td>
+</tr>
+<tr>
+<td>字节 TRAE Code &#x2F; Work</td>
+<td>Coding + 企业工作台</td>
+<td>Trial</td>
+<td>企业沙箱、Hook、用量归因和模型开放策略</td>
+</tr>
+<tr>
+<td>MiniMax Agent</td>
+<td>通用 Agent Team</td>
+<td>Watch</td>
+<td>Leader&#x2F;Worker&#x2F;Verifier 质量门是否可复现、开源交付完整度</td>
+</tr>
+<tr>
+<td>腾讯 CodeBuddy</td>
+<td>Coding + 工作 Agent</td>
+<td>Watch</td>
+<td>Agent Teams、危险命令控制、企业部署与审计能力</td>
+</tr>
+<tr>
+<td>Manus</td>
+<td>云端通用 Agent</td>
+<td>Hold&#x2F;Watch</td>
+<td>数据可导出性、服务连续性、连接器授权恢复</td>
+</tr>
+</tbody></table>
+<h2 id="Adopt"><a href="#Adopt" class="headerlink" title="Adopt"></a>Adopt</h2><ul>
+<li><p><strong>把 MCP OAuth scope 作为默认策略</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：把可选权限变为用户可见可选项，能显著降低 token 泄露或账号劫持后的横向扩散。</li>
+<li><strong>成熟度</strong>：高（官方可直接配置）。</li>
+<li><strong>风险</strong>：首轮执行会触发部分工具调用失败（尤其是自动化脚本历史流程）。</li>
+<li><strong>下一步</strong>：对外部 MCP 客户端分层定义 <code>required</code>&#x2F;<code>optional</code> scope；先把高敏工具放到默认关闭清单。</li>
+</ul>
+</li>
+<li><p><strong>把 AI Gateway 日志升级为身份维度可追踪数据</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：告警若能按用户、网关、模型联合拆解，可快速定位“哪条 agent 路径异常激增”。</li>
+<li><strong>成熟度</strong>：中高（官方文档与指标已就绪）。</li>
+<li><strong>风险</strong>：日志关联字段设计不当会放大隐私面。</li>
+<li><strong>下一步</strong>：先在 staging 打通 <code>cf.user_id</code> 等字段并保留 payload 不落盘策略，优先落日志聚合面板。</li>
+</ul>
+</li>
+<li><p><strong>把 RAG 检索层“元数据预算”前置</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：AI Search 10 KiB metadata envelope 更利于语义过滤和路由策略，但索引字段越大也意味着过滤成本与治理复杂度上升。</li>
+<li><strong>成熟度</strong>：高（文档化的模型更新）。</li>
+<li><strong>风险</strong>：无索引治理会让 metadata 成为“写入无序桶”。</li>
+<li><strong>下一步</strong>：给检索字段明确命名空间（如 <code>agent_scope/*</code>），把超长文本折叠到摘要字段。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Trial"><a href="#Trial" class="headerlink" title="Trial"></a>Trial</h2><ul>
+<li><p><strong>用同一任务集横向试跑 Kimi Code、Qwen Code 与 TRAE</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：三者已经覆盖本地代码、终端、子 Agent 和长任务执行，但官方展示无法回答“在我的仓库里谁更稳”。</li>
+<li><strong>成熟度</strong>：中高（均有可用产品和官方文档）。</li>
+<li><strong>风险</strong>：不同默认模型、订阅配额和权限模式会让结果不可比。</li>
+<li><strong>下一步</strong>：固定模型档位、上下文输入和权限级别，跑 5 类任务：只读诊断、小范围修复、跨文件重构、失败恢复、越权诱导；统一记录成功率、人工接管次数、工具调用数、耗时和成本。</li>
+</ul>
+</li>
+<li><p><strong>试点 Qwen Code 的只读 <code>/advisor</code> 与可恢复 Review</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：独立复核若不继承主 Agent 的行动权限，能减少同一上下文内的确认偏差；状态校验后的续跑也比盲目重启更适合长任务。</li>
+<li><strong>成熟度</strong>：中高（正式版本已发布）。</li>
+<li><strong>风险</strong>：第二模型意见仍可能共享同一知识盲区，不能代替测试和人工 review。</li>
+<li><strong>下一步</strong>：选择 10 个历史缺陷修复，让主 Agent 与 <code>/advisor</code> 分别给结论，统计新增有效风险、误报和额外 token 成本。</li>
+</ul>
+</li>
+<li><p><strong>在沙盒环境试点 OpenAI Agents 的会话并发保护策略</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：issue 说明并发 compaction 与写入冲突会丢历史，必须先在小规模服务验证。</li>
+<li><strong>成熟度</strong>：中（有公开复现路径）。</li>
+<li><strong>风险</strong>：会影响吞吐与延迟。</li>
+<li><strong>下一步</strong>：做并发场景 A&#x2F;B：一个分支按当前逻辑，另一个分支给关键 session 增加“排队 + 单写回放”保护，观察 24 小时内历史一致性差异。</li>
+</ul>
+</li>
+<li><p><strong>把新基准维度用于月度回归，而非每日 gate</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：MobilePA &#x2F; GMA 更强调状态一致性与任务级规划，不适合作为日常 CI 直接阻断指标。</li>
+<li><strong>成熟度</strong>：中（论文阶段）。</li>
+<li><strong>风险</strong>：过早过重会误伤迭代速度。</li>
+<li><strong>下一步</strong>：按周新增“可复现 smoke”：每周抽 2-3 条长链路任务，仅对同一 stack 做对比。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h2><ul>
+<li><strong>多模态编码模型（如 GLM-5.3）在真实工作流中的成本-收益边界</strong>是否与官方公开 benchmark 一致。</li>
+<li><strong>MiniMax Agent Team 的 Leader&#x2F;Worker&#x2F;Verifier 编排</strong>能否在同一任务预算下稳定优于单 Agent；当前先依据官方设计进入观察池，不直接把架构描述当成质量结论。(<a target="_blank" rel="noopener" href="https://www.minimax.io/blog/minimax-agent-team-long-running-1779893953">MiniMax Agent Team</a>)</li>
+<li><strong>腾讯 CodeBuddy Agent Teams 的共享任务与成员间通信</strong>是否带来可审计的并行协作，而不是增加上下文分叉和重复劳动。(<a target="_blank" rel="noopener" href="https://www.codebuddy.ai/docs/cli/agent-teams">CodeBuddy Agent Teams</a>)</li>
+<li><strong>Cloudflare 可选 OAuth scope 的可视化体验是否与现有 CLI 自动化流程兼容</strong>，尤其是需要长期授权续约的脚本。</li>
+<li><strong>GPU&#x2F;令牌成本上涨下，AI Search 新增模型是否在你的 RAG 路径引入“吞吐噪音”</strong>。</li>
+</ul>
+<h2 id="Hold-Risks"><a href="#Hold-Risks" class="headerlink" title="Hold&#x2F;Risks"></a>Hold&#x2F;Risks</h2><ul>
+<li><strong>暂缓一次性把所有 MCP 客户端默认切到可选 scope 模式</strong>：先选 1-2 条业务链路验证。</li>
+<li><strong>暂缓将新模型大规模纳入生产 RAG 默认路由</strong>：先验证上下文窗口增大对重排和成本的实际影响。</li>
+<li><strong>暂缓把 GitHub issue 的缺陷当作临时已修复状态发布</strong>：直到相关 PR 合并或验证替代实现稳定。</li>
+<li><strong>暂缓把任何云端 Agent 设为唯一任务存储</strong>：至少保留需求、关键上下文、产物和授权清单的本地可恢复副本，尤其是在 Manus 已出现区域性数据迁移窗口之后。</li>
+</ul>
+<h2 id="Practical-Stack-Adjustments"><a href="#Practical-Stack-Adjustments" class="headerlink" title="Practical Stack Adjustments"></a>Practical Stack Adjustments</h2><ol>
+<li>新建 MCP scope 清单：<code>required</code> 默认保持、<code>optional</code> 默认关闭并记录审批理由。</li>
+<li>给 AI Gateway 加入 <code>user_id</code>、<code>model</code>、<code>task_type</code> 的日志拆分标签，先实现异常会话重放视图。</li>
+<li>AI Search RAG 的 metadata schema 统一命名：<code>agent/*</code>, <code>trace/*</code>, <code>rag/*</code>，限制 10 KiB envelope 内高频字段。</li>
+<li>增加 Agents Python session 并发回归测试：覆盖 compaction 与并发 <code>add_items</code> 的一致性场景。</li>
+<li>每周一次 benchmark 评测：新增 <code>MobilePA-Bench</code> 与 <code>GMA</code> 的 3~5 个长链路用例，跟踪成功率与失败归因。</li>
+<li>建立国内 Agent 对比表：Kimi Code、Qwen Code、TRAE 先进入 Trial，MiniMax Agent 与 CodeBuddy 保持 Watch，所有产品共用同一套任务、权限和成本指标。</li>
+<li>给云端 Agent 增加退出检查：任务历史能否导出、产物能否本地重建、连接器授权能否撤销、服务迁移时是否有恢复路径。</li>
+</ol>
+<h2 id="后续雷达的覆盖规则"><a href="#后续雷达的覆盖规则" class="headerlink" title="后续雷达的覆盖规则"></a>后续雷达的覆盖规则</h2><p>从下一期开始，每周信号源固定分成四组扫描：国际 Agent &#x2F; 协议与基础设施、国内通用 Agent、国内 Coding Agent、公开 benchmark 与安全研究。若某组当周没有进入正文，需明确写“无足够强的官方信号”，而不是默认跳过。国内产品至少持续覆盖 Kimi、Qwen、TRAE、MiniMax、CodeBuddy 与 Manus；智谱 AutoGLM 等设备 Agent 在出现可验证产品或工程更新时纳入，不把单纯模型发布重复计为 Agent 信号。</p>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><ul>
+<li>国内外 Agent 的产品形态、默认模型和计费方式不同，怎样避免把宣传指标直接放进同一张排行榜？</li>
+<li>多 Agent、长上下文和自动执行都可能提高完成率，也可能放大成本与越权面，怎样用统一指标判断净收益？</li>
+<li>当任务历史和连接器绑定在云端时，怎样保证厂商调整服务后仍能恢复关键工作？</li>
+<li>每周信息量有限，怎样避免因为海外文档更容易检索，就系统性漏掉国内官方更新？</li>
+</ul>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><ul>
+<li><code>signal_pool</code>：按国际基础设施、国内通用 Agent、国内 Coding Agent、评测与安全研究分桶采集，只接受可追溯的官方文档、版本记录或可执行论文。</li>
+<li><code>comparison_harness</code>：所有候选 Agent 使用相同任务输入、权限等级、验收标准与人工接管规则，输出成功率、恢复率、耗时、成本和策略违例率。</li>
+<li><code>governance</code>：把沙箱、审批、Hook、身份归因和只读复核视为独立能力，不与模型 benchmark 混成一个总分。</li>
+<li><code>portability</code>：任务上下文、产物、连接器清单和恢复步骤必须能导出或本地重建，云端历史不是唯一事实源。</li>
+</ul>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><ol>
+<li>每周一先完成四组信号扫描；任何一组没有正文条目时，记录“无足够强官方信号”及搜索范围。</li>
+<li>每月选 Kimi Code、Qwen Code、TRAE 各跑一次固定 5 类任务集，禁止在单个产品上临时放宽权限或增加上下文。</li>
+<li>每次试验保存任务输入、版本、模型、权限模式、人工干预点和最终 diff；失败任务必须能判断是模型、工具、环境还是权限原因。</li>
+<li>每季度执行一次退出演练：停用云端会话后，仅使用本地材料重建一个代表性任务，并检查第三方连接器授权是否已撤销。</li>
+</ol>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>国内 Agent 已经不能只作为“补充新闻”出现。Kimi、Qwen、TRAE 分别在长任务编排、独立复核与会话续跑、企业治理上形成了可验证路线；MiniMax、CodeBuddy 和 Manus 则分别提供多 Agent 质量门、团队协作和服务连续性样本。下一步应做同任务、同权限、同验收标准的实测，而不是再用厂商 benchmark 替代选择。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>未来几期雷达的主线应从“跟踪海外基础设施发布”调整为“双轨观察”：一条看 MCP、网关、评测等跨产品基础设施，另一条看国内外 Agent 如何把这些能力落进真实产品。产品国别负责保证信号覆盖，最终的 Adopt&#x2F;Trial&#x2F;Watch 判断仍只由工程证据决定。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><ul>
+<li>如果只读诊断任务中 Qwen Code 的 <code>/advisor</code> 能稳定补充有效风险且误报可控，它可以成为主 Agent 之外的默认轻量复核层。</li>
+<li>如果 Kimi Code 或 TRAE 的多 Agent 路线在跨文件任务中没有降低总耗时，或人工接管次数上升，就应回退到单 Agent + 明确任务分解，而不是继续增加并发。</li>
+<li>如果一次退出演练无法仅靠本地材料重建云端任务，则该产品即使单次完成率领先，也只能停留在 Trial 或 Watch。</li>
+</ul>
+<h2 id="下一步阅读："><a href="#下一步阅读：" class="headerlink" title="下一步阅读："></a>下一步阅读：</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://qwenlm.github.io/qwen-code-docs/zh/blog/updates/weekly-update-2026-08-20/">Qwen Code：独立第二意见与可恢复 Review</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.kimi.ai/resources/kimi-code-introduction">Kimi Code：终端与 IDE Agent 能力</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.trae.cn/enterprise_release-notes">TRAE 企业版更新日志</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.minimax.io/blog/minimax-agent-team-long-running-1779893953">MiniMax Agent Team 的 Leader&#x2F;Worker&#x2F;Verifier 设计</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.codebuddy.ai/docs/cli/agent-teams">腾讯 CodeBuddy Agent Teams</a></li>
+<li><a target="_blank" rel="noopener" href="https://help.manus.im/en/articles/16147831-service-change-overview-what-s-happening-and-am-i-affected">Manus 服务切换与数据恢复说明</a></li>
+</ul>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>本周信号值得“收敛式扩展”：工具权限最小化 + 身份可观测 + 会话一致性测试，同时用统一任务集补上国内 Agent 的实测。Qwen Code 的旁路复核与续跑、Kimi Code 的 Goal&#x2F;Swarm、TRAE 的企业治理代表了三条不同路线；真正值得进入主栈的，不是“国内”或“国外”的标签，而是在同一安全、成本和恢复指标下更稳定的实现。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/AI/" rel="tag"># AI</a>
+              <a href="/tags/RAG/" rel="tag"># RAG</a>
+              <a href="/tags/Agent/" rel="tag"># Agent</a>
+              <a href="/tags/Engineering/" rel="tag"># Engineering</a>
+              <a href="/tags/MCP/" rel="tag"># MCP</a>
+              <a href="/tags/Benchmark/" rel="tag"># Benchmark</a>
+              <a href="/tags/Observability/" rel="tag"># Observability</a>
+              <a href="/tags/Governance/" rel="tag"># Governance</a>
+              <a href="/tags/Memory/" rel="tag"># Memory</a>
+              <a href="/tags/China-AI/" rel="tag"># China AI</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/08/26/Agent-Engineering-Radar-2026-08-26/" rel="prev" title="【Agent Engineering Radar】2026-08-26 Agent 工程技术雷达">
+                  <i class="fa fa-angle-left"></i> 【Agent Engineering Radar】2026-08-26 Agent 工程技术雷达
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/09/01/Speech-LLM-Radar-2026-09-01/" rel="next" title="【Speech LLM Radar】2026-09-01 语音大模型技术雷达">
+                  【Speech LLM Radar】2026-09-01 语音大模型技术雷达 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments giscus-container">
+  <div class="giscus"></div>
+  <script src="https://giscus.app/client.js"
+        data-repo="fclearner/fclearner.github.io"
+        data-repo-id="MDEwOlJlcG9zaXRvcnkxOTQwMTgyMjk="
+        data-category="Announcements"
+        data-category-id="DIC_kwDOC5B7tc4C-7pW"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+  </script>
+</div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Alan Fang</span>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

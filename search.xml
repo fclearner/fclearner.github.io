@@ -47,6 +47,42 @@
       </tags>
   </entry>
   <entry>
+    <title>ASR 特征归一化：CMVN 解决的不是数值美观，而是通道偏移</title>
+    <url>/2021/08/24/ASR-CMVN/</url>
+    <content><![CDATA[<p>语音识别里的特征归一化很容易被当成预处理细节：把均值拉到 0，把方差压到 1，然后继续训练模型。这个理解没有错，但它没有说清楚 CMVN 真正解决的问题。</p>
+<p>CMVN 要处理的是录音设备、信道、说话环境和能量尺度带来的系统性偏移。它不是为了让特征“好看”，而是为了让声学模型少花容量去适配无关的通道差异。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>ASR 特征通常来自频谱或倒谱空间。同一句话在不同麦克风、不同音量、不同环境下，语义内容没有变，但特征分布会整体漂移。如果模型直接学习这种漂移，就会把说话内容和采集条件混在一起。</p>
+<p>这会带来两个后果。第一，训练集和线上环境不一致时，识别效果容易波动。第二，模型会浪费参数容量去拟合信道差异，而不是发音和词序本身。</p>
+<p>CMN（Cepstral Mean Normalisation）只减均值，CMVN（Cepstral Mean Variance Normalisation）同时处理均值和方差。它们的核心都是把每段语音或每个窗口内的统计尺度拉回到相对稳定的空间。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>CMVN 的主线不是把特征标准化成固定形状，而是把无关的信道偏移从声学建模里剥离出去。</p>
+<p>它的收益取决于环境差异、统计窗口和实时约束。离线任务里可以追求更稳定的全局统计，在线任务里则必须面对窗口延迟和冷启动边界。把 CMVN 当成默认开关，会掩盖真正需要评估的取舍。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 CMVN 看成一个局部滤波器：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">feature_t -&gt; feature_t - mean(window)</span><br><span class="line">feature_t -&gt; (feature_t - mean(window)) / std(window)</span><br></pre></td></tr></table></figure>
+
+<p>这个抽象有两个关键点。第一，它处理的是特征统计分布，而不是语音内容。第二，它需要一个统计窗口，窗口越长越稳定，延迟越高；窗口越短越实时，统计越不稳。</p>
+<p>离线训练时，可以基于整段语音或全训练集统计。在线识别时，只能用滑动窗口或历史缓存，这就引入了响应时间和边界效应。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>CMVN 是否值得保留，不能只看单条样本效果，应该看三个维度。</p>
+<ul>
+<li>准确率：字错率、词错率或关键实体召回是否改善；</li>
+<li>延迟：在线滑动窗口是否增加首包或尾包时间；</li>
+<li>鲁棒性：不同设备、不同音量、不同噪声条件下是否更稳定。</li>
+</ul>
+<p>在传统 GMM-HMM、DNN-HMM 或较浅的声学模型里，CMVN 往往很有价值。端到端模型和大规模预训练模型吸收了更多数据分布，特征归一化的重要性会下降，但并不代表它永远无用。只要输入分布漂移明显，CMVN 仍然是一个低成本诊断点。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>可以构造一个四组对照：同一批语音分别来自近讲麦、远场麦、高音量和低音量。模型不变，只比较不开 CMVN、全局 CMVN、说话人级 CMVN、滑动窗口 CMVN。</p>
+<p>如果全局 CMVN 提升离线 WER，但滑动窗口版本首包明显变慢或开头几个字变差，结论就不是“CMVN 有用或无用”，而是统计窗口和实时性没有同时满足。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>CMVN 的工程定位是“消除无关通道偏移”，不是固定必须打开的预处理模板。离线任务可以优先验证全局或说话人级统计；实时任务要额外评估滑动窗口带来的延迟和边界误差。</p>
+<p>如果模型已经足够强、训练覆盖足够广，CMVN 可能收益很小；如果线上设备、音量或环境差异明显，它仍然值得作为第一批鲁棒性实验。</p>
+<p>下一步阅读：<a href="/2021/08/29/ASR-CTC/">ASR CTC：没有帧级标注时，如何把音频和文本对齐</a></p>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a href="http://www.apsipa.org/proceedings/2020/pdfs/0000532.pdf">Significance of CMVN for Replay Spoof Detection</a></p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>Feature-engineering</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Adaptive RAG（一）：何时检索比检索多少更重要</title>
     <url>/2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/</url>
     <content><![CDATA[<p>RAG 最容易被讲成一个检索增强公式：切块、向量化、取 top-k、拼进 prompt、让模型回答。这个公式很实用，但它默认了一件事：系统在回答之前已经知道自己缺什么信息。</p>
@@ -85,42 +121,6 @@
         <tag>RAG</tag>
         <tag>LLM</tag>
         <tag>Open Source</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ASR 特征归一化：CMVN 解决的不是数值美观，而是通道偏移</title>
-    <url>/2021/08/24/ASR-CMVN/</url>
-    <content><![CDATA[<p>语音识别里的特征归一化很容易被当成预处理细节：把均值拉到 0，把方差压到 1，然后继续训练模型。这个理解没有错，但它没有说清楚 CMVN 真正解决的问题。</p>
-<p>CMVN 要处理的是录音设备、信道、说话环境和能量尺度带来的系统性偏移。它不是为了让特征“好看”，而是为了让声学模型少花容量去适配无关的通道差异。</p>
-<span id="more"></span>
-
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>ASR 特征通常来自频谱或倒谱空间。同一句话在不同麦克风、不同音量、不同环境下，语义内容没有变，但特征分布会整体漂移。如果模型直接学习这种漂移，就会把说话内容和采集条件混在一起。</p>
-<p>这会带来两个后果。第一，训练集和线上环境不一致时，识别效果容易波动。第二，模型会浪费参数容量去拟合信道差异，而不是发音和词序本身。</p>
-<p>CMN（Cepstral Mean Normalisation）只减均值，CMVN（Cepstral Mean Variance Normalisation）同时处理均值和方差。它们的核心都是把每段语音或每个窗口内的统计尺度拉回到相对稳定的空间。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>CMVN 的主线不是把特征标准化成固定形状，而是把无关的信道偏移从声学建模里剥离出去。</p>
-<p>它的收益取决于环境差异、统计窗口和实时约束。离线任务里可以追求更稳定的全局统计，在线任务里则必须面对窗口延迟和冷启动边界。把 CMVN 当成默认开关，会掩盖真正需要评估的取舍。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 CMVN 看成一个局部滤波器：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">feature_t -&gt; feature_t - mean(window)</span><br><span class="line">feature_t -&gt; (feature_t - mean(window)) / std(window)</span><br></pre></td></tr></table></figure>
-
-<p>这个抽象有两个关键点。第一，它处理的是特征统计分布，而不是语音内容。第二，它需要一个统计窗口，窗口越长越稳定，延迟越高；窗口越短越实时，统计越不稳。</p>
-<p>离线训练时，可以基于整段语音或全训练集统计。在线识别时，只能用滑动窗口或历史缓存，这就引入了响应时间和边界效应。</p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>CMVN 是否值得保留，不能只看单条样本效果，应该看三个维度。</p>
-<ul>
-<li>准确率：字错率、词错率或关键实体召回是否改善；</li>
-<li>延迟：在线滑动窗口是否增加首包或尾包时间；</li>
-<li>鲁棒性：不同设备、不同音量、不同噪声条件下是否更稳定。</li>
-</ul>
-<p>在传统 GMM-HMM、DNN-HMM 或较浅的声学模型里，CMVN 往往很有价值。端到端模型和大规模预训练模型吸收了更多数据分布，特征归一化的重要性会下降，但并不代表它永远无用。只要输入分布漂移明显，CMVN 仍然是一个低成本诊断点。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>可以构造一个四组对照：同一批语音分别来自近讲麦、远场麦、高音量和低音量。模型不变，只比较不开 CMVN、全局 CMVN、说话人级 CMVN、滑动窗口 CMVN。</p>
-<p>如果全局 CMVN 提升离线 WER，但滑动窗口版本首包明显变慢或开头几个字变差，结论就不是“CMVN 有用或无用”，而是统计窗口和实时性没有同时满足。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>CMVN 的工程定位是“消除无关通道偏移”，不是固定必须打开的预处理模板。离线任务可以优先验证全局或说话人级统计；实时任务要额外评估滑动窗口带来的延迟和边界误差。</p>
-<p>如果模型已经足够强、训练覆盖足够广，CMVN 可能收益很小；如果线上设备、音量或环境差异明显，它仍然值得作为第一批鲁棒性实验。</p>
-<p>下一步阅读：<a href="/2021/08/29/ASR-CTC/">ASR CTC：没有帧级标注时，如何把音频和文本对齐</a></p>
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a href="http://www.apsipa.org/proceedings/2020/pdfs/0000532.pdf">Significance of CMVN for Replay Spoof Detection</a></p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>Feature-engineering</tag>
       </tags>
   </entry>
   <entry>
@@ -214,42 +214,6 @@
       </tags>
   </entry>
   <entry>
-    <title>多语种 ASR：低资源、口音和统一部署之间的取舍</title>
-    <url>/2022/04/22/ASR-Multilingual/</url>
-    <content><![CDATA[<p>多语种 ASR 不是把多个单语模型简单合并。它真正要解决的是三个工程问题：低资源语种数据不足，口音和方言带来分布偏移，多语种部署让模型数量和维护成本快速上升。</p>
-<p>如果只把多语种识别理解成“一个模型识别很多语言”，很容易忽略它背后的取舍：共享越多，迁移越强，但语种之间的干扰也越明显。</p>
-<span id="more"></span>
-
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>世界上大部分语种都不是高资源语种。单独为每个语种收集大量标注数据、训练模型、维护词表和解码配置，成本很高。即使是普通话或英语，真实场景也会遇到口音、方言、跨语种夹杂和专有名词问题。</p>
-<p>多语种 ASR 的价值在于让高资源语种的声学和表示能力迁移到低资源语种，同时减少部署系统里的模型数量。但它也会引入共享建模的副作用：语言边界模糊、发音空间冲突、词表膨胀和高资源语种压制低资源语种。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>多语种 ASR 的主线不是让一个模型覆盖更多语言，而是管理共享表示带来的迁移收益和语言干扰。</p>
-<p>共享声学层可以帮助低资源语种，统一 tokenizer 可以降低维护成本，但高资源语种也可能压制低资源语种，语言边界也可能在 code-switching 中变模糊。多语种工程的核心是先定义评测分组，再谈模型规模。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把多语种 ASR 看成三个共享层次。</p>
-<p>第一层是声学表示共享。不同语言的人声、音素、韵律和噪声环境有共性，自监督预训练和跨语种迁移学习主要利用这一层。</p>
-<p>第二层是符号空间共享。可以共享音素、字节、字符或子词。共享越细，覆盖越广；共享越粗，语言特异性越强。</p>
-<p>第三层是任务和部署共享。一个模型是否需要自动识别语言、是否允许用户指定语言、是否支持 code-switching，都会影响训练标签和解码策略。</p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>多语种模型不能只看平均 WER。平均值会掩盖低资源语种被牺牲的问题。更合理的评测包括：</p>
-<ul>
-<li>每个语种独立 WER&#x2F;CER；</li>
-<li>高资源和低资源语种的分组指标；</li>
-<li>口音、方言、噪声条件下的鲁棒性；</li>
-<li>code-switching 场景下的语言边界错误；</li>
-<li>单模型部署节省的成本是否抵消精度损失。</li>
-</ul>
-<p>技术路线上，可以从跨语种迁移学习、多任务学习、自监督学习、共享音素集和统一 tokenizer 几个方向组合。第一版系统不要同时追求所有能力，应该先明确主目标：低资源迁移、口音鲁棒、统一部署，还是跨语种混说。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一个最小实验可以只选三组数据：高资源语种、低资源语种、混说样本。分别比较单语模型、多语种联合模型和高资源预训练后低资源微调。</p>
-<p>如果平均 WER 下降，但低资源语种 CER 上升，说明共享带来的收益被平均值掩盖了；如果混说样本语言边界错得更多，就要检查 tokenizer、语言标签和解码约束，而不是只扩大训练集。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>多语种 ASR 的核心不是“支持更多语言”，而是在共享表示和语种特异性之间找平衡。工程上先把语种分布、评测分组和部署目标定义清楚，再决定是做单语微调、多语种联合训练，还是使用预训练模型做迁移。</p>
-<p>下一步阅读：<a href="/2026/06/10/ASR-Data-Quality-Pipeline-Open-Source/">ASR 数据质量流水线：伪标签、切分与可追溯评测</a></p>
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a href="https://arxiv.org/abs/2202.12576">A Survey on Multilingual Automatic Speech Recognition</a></p>
-]]></content>
-      <tags>
-        <tag>ASR</tag>
-        <tag>ASR Low-resource</tag>
-        <tag>ASR Multilingual</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>LAS 模型：把语音识别改写成听、对齐、拼写</title>
     <url>/2021/08/24/ASR-LAS-model/</url>
     <content><![CDATA[<p>传统 ASR 通常把声学模型、发音词典和语言模型拆成多个模块。LAS（Listen, Attend and Spell）提出的是另一种问题表述：能不能让模型先听完整段语音，再通过 attention 找到相关声学片段，最后像拼写一样输出字符序列。</p>
@@ -287,6 +251,42 @@
         <tag>ASR-Classic</tag>
         <tag>Deep-learning</tag>
         <tag>Attention</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>多语种 ASR：低资源、口音和统一部署之间的取舍</title>
+    <url>/2022/04/22/ASR-Multilingual/</url>
+    <content><![CDATA[<p>多语种 ASR 不是把多个单语模型简单合并。它真正要解决的是三个工程问题：低资源语种数据不足，口音和方言带来分布偏移，多语种部署让模型数量和维护成本快速上升。</p>
+<p>如果只把多语种识别理解成“一个模型识别很多语言”，很容易忽略它背后的取舍：共享越多，迁移越强，但语种之间的干扰也越明显。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>世界上大部分语种都不是高资源语种。单独为每个语种收集大量标注数据、训练模型、维护词表和解码配置，成本很高。即使是普通话或英语，真实场景也会遇到口音、方言、跨语种夹杂和专有名词问题。</p>
+<p>多语种 ASR 的价值在于让高资源语种的声学和表示能力迁移到低资源语种，同时减少部署系统里的模型数量。但它也会引入共享建模的副作用：语言边界模糊、发音空间冲突、词表膨胀和高资源语种压制低资源语种。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>多语种 ASR 的主线不是让一个模型覆盖更多语言，而是管理共享表示带来的迁移收益和语言干扰。</p>
+<p>共享声学层可以帮助低资源语种，统一 tokenizer 可以降低维护成本，但高资源语种也可能压制低资源语种，语言边界也可能在 code-switching 中变模糊。多语种工程的核心是先定义评测分组，再谈模型规模。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把多语种 ASR 看成三个共享层次。</p>
+<p>第一层是声学表示共享。不同语言的人声、音素、韵律和噪声环境有共性，自监督预训练和跨语种迁移学习主要利用这一层。</p>
+<p>第二层是符号空间共享。可以共享音素、字节、字符或子词。共享越细，覆盖越广；共享越粗，语言特异性越强。</p>
+<p>第三层是任务和部署共享。一个模型是否需要自动识别语言、是否允许用户指定语言、是否支持 code-switching，都会影响训练标签和解码策略。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>多语种模型不能只看平均 WER。平均值会掩盖低资源语种被牺牲的问题。更合理的评测包括：</p>
+<ul>
+<li>每个语种独立 WER&#x2F;CER；</li>
+<li>高资源和低资源语种的分组指标；</li>
+<li>口音、方言、噪声条件下的鲁棒性；</li>
+<li>code-switching 场景下的语言边界错误；</li>
+<li>单模型部署节省的成本是否抵消精度损失。</li>
+</ul>
+<p>技术路线上，可以从跨语种迁移学习、多任务学习、自监督学习、共享音素集和统一 tokenizer 几个方向组合。第一版系统不要同时追求所有能力，应该先明确主目标：低资源迁移、口音鲁棒、统一部署，还是跨语种混说。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一个最小实验可以只选三组数据：高资源语种、低资源语种、混说样本。分别比较单语模型、多语种联合模型和高资源预训练后低资源微调。</p>
+<p>如果平均 WER 下降，但低资源语种 CER 上升，说明共享带来的收益被平均值掩盖了；如果混说样本语言边界错得更多，就要检查 tokenizer、语言标签和解码约束，而不是只扩大训练集。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>多语种 ASR 的核心不是“支持更多语言”，而是在共享表示和语种特异性之间找平衡。工程上先把语种分布、评测分组和部署目标定义清楚，再决定是做单语微调、多语种联合训练，还是使用预训练模型做迁移。</p>
+<p>下一步阅读：<a href="/2026/06/10/ASR-Data-Quality-Pipeline-Open-Source/">ASR 数据质量流水线：伪标签、切分与可追溯评测</a></p>
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><p>[1] <a href="https://arxiv.org/abs/2202.12576">A Survey on Multilingual Automatic Speech Recognition</a></p>
+]]></content>
+      <tags>
+        <tag>ASR</tag>
+        <tag>ASR Low-resource</tag>
+        <tag>ASR Multilingual</tag>
       </tags>
   </entry>
   <entry>
@@ -330,44 +330,6 @@
       </tags>
   </entry>
   <entry>
-    <title>【Agent Engineering Radar】2026-06-16 Agent 工程技术雷达</title>
-    <url>/2026/06/16/Agent-Engineering-Radar-2026-06-16/</url>
-    <content><![CDATA[<p>本期信号很明确：agent 技术栈的竞争正在从“哪个框架更会跑 demo”，转向“哪个框架更容易被实现、验证、观测和约束”。公开评测、trace 规范、MCP 工具连接和 skills 基准都指向同一个结论：先建设吸收机制，再选择框架。</p>
-<span id="more"></span>
-
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>Agent 框架和工具更新很快，但直接追新会带来三个风险。</p>
-<p>第一，文档 demo 成功不代表真实任务成功。ADK Arena 把 51 个 Python Agent Development Kit 放到同一套自动化流程里比较，框架生成成功率只有 57%，生成成本相差 5.6 倍，单一 benchmark 上的最佳框架可以很强，但中位框架只有 32% 左右任务解决率。<a href="https://arxiv.org/abs/2606.05548">来源：arXiv:2606.05548</a></p>
-<p>第二，连接标准不等于可信执行。MCP 解决 AI 应用和外部系统的连接问题，但身份、权限、预算、审计和禁用开关仍然要自己做。<a href="https://modelcontextprotocol.io/docs/getting-started/intro">来源：MCP 官方文档</a></p>
-<p>第三，skills 不一定带来收益。SWE-Skills-Bench 测了 49 个公开 SWE skills，很多 skill 没有提升 pass-rate，版本不匹配还会伤害结果。<a href="https://arxiv.org/abs/2603.15401">来源：arXiv:2603.15401</a></p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>Agent Engineering Radar 的主线不是收集新闻，而是把外部技术信号压缩成可验证的工程吸收机制。</p>
-<p>框架、协议、benchmark、skills 每周都会出现新材料。真正有价值的雷达不是列链接，而是判断哪些变化会影响本地工程决策：是否要试验、如何设安全边界、用什么指标进入或退出主栈。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 agent 技术栈拆成四层。</p>
-<p>框架层负责 agent loop、状态和工具调用。</p>
-<p>连接层负责 MCP、API、文件系统、浏览器和终端。</p>
-<p>观测层负责 trace、span、成本、错误和 artifact 记录。OpenInference 已经覆盖 LLM 调用、检索、工具调用等上下文，OpenTelemetry 也在推进 GenAI 和 Agent spans 语义约定。<a href="https://arize-ai.github.io/openinference/">来源：OpenInference</a> <a href="https://opentelemetry.io/docs/specs/semconv/gen-ai/">来源：OpenTelemetry GenAI semantic conventions</a></p>
-<p>评测层负责 smoke、benchmark、dialogue task 和安全门槛。Dialogue SWE-Bench 提醒我们，交互式 coding agent 的澄清和对话能力与一次性解题不是同一维度。<a href="https://arxiv.org/abs/2606.13995">来源：arXiv:2606.13995</a></p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>本周真正该做的是小闭环，而不是迁移主栈。</p>
-<ol>
-<li>建一个最小 agent smoke suite，覆盖工具调用、文件修改、测试、恢复和 trace。</li>
-<li>给每次 agent 实验记录成功率、成本、步数和失败类型。</li>
-<li>MCP server 默认进入 Trial 清单，必须通过权限和日志检查后再进入常用工具集。</li>
-<li>Skills 做 paired eval，同一任务有 skill &#x2F; 无 skill 各跑一组，比较成功率、token 和错误类型。</li>
-</ol>
-<p>Terminal-Bench 2.0 和 TerminalWorld 也说明，终端任务需要单独评估命令规划、环境感知、文件副作用和恢复能力，不能只用 coding benchmark 替代。<a href="https://www.tbench.ai/">来源：Terminal-Bench</a> <a href="https://arxiv.org/abs/2605.22535">来源：arXiv:2605.22535</a></p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>看到一个新的 agent framework 时，不应该先迁移项目，而是先放进 Trial 清单。最小验证可以是三类任务：只读检索、受限文件修改、失败恢复。每类记录成功率、工具调用次数、成本、trace 完整度和越权风险。</p>
-<p>如果 demo 很强但 trace 不完整、权限不可控或失败后无法恢复，它就只能保留在观察区。雷达的作用是避免被单点亮点牵着走。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Agent Engineering 的技术视野要保持开放，但吸收机制要收紧。框架、协议、skills、benchmark 都可以跟进；真正进入主技术栈的，只应该是能被验证、能被观测、能被回滚的部分。</p>
-<p>下一步阅读：<a href="/2026/06/10/Agentic-Coding-Governance/">Agentic Coding 工程治理：多模型协作先定义责任边界</a></p>
-]]></content>
-      <tags>
-        <tag>AI</tag>
-        <tag>Open Source</tag>
-        <tag>Evaluation</tag>
-        <tag>Agent</tag>
-        <tag>Engineering</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>ASR 特征前端：从原始波形到可训练的声学表示</title>
     <url>/2021/08/24/ASR-preprocess/</url>
     <content><![CDATA[<p>ASR 模型看到的通常不是原始波形，而是一组经过短时分析和频率压缩的声学特征。预加重、分帧、加窗、傅里叶变换、Mel 滤波这些步骤看起来像传统信号处理清单，但它们共同解决一个问题：<strong>把连续、非平稳的语音波形变成模型可以稳定学习的局部谱表示</strong>。</p>
@@ -405,6 +367,44 @@
       <tags>
         <tag>ASR</tag>
         <tag>Preprocess</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>【Agent Engineering Radar】2026-06-16 Agent 工程技术雷达</title>
+    <url>/2026/06/16/Agent-Engineering-Radar-2026-06-16/</url>
+    <content><![CDATA[<p>本期信号很明确：agent 技术栈的竞争正在从“哪个框架更会跑 demo”，转向“哪个框架更容易被实现、验证、观测和约束”。公开评测、trace 规范、MCP 工具连接和 skills 基准都指向同一个结论：先建设吸收机制，再选择框架。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>Agent 框架和工具更新很快，但直接追新会带来三个风险。</p>
+<p>第一，文档 demo 成功不代表真实任务成功。ADK Arena 把 51 个 Python Agent Development Kit 放到同一套自动化流程里比较，框架生成成功率只有 57%，生成成本相差 5.6 倍，单一 benchmark 上的最佳框架可以很强，但中位框架只有 32% 左右任务解决率。<a href="https://arxiv.org/abs/2606.05548">来源：arXiv:2606.05548</a></p>
+<p>第二，连接标准不等于可信执行。MCP 解决 AI 应用和外部系统的连接问题，但身份、权限、预算、审计和禁用开关仍然要自己做。<a href="https://modelcontextprotocol.io/docs/getting-started/intro">来源：MCP 官方文档</a></p>
+<p>第三，skills 不一定带来收益。SWE-Skills-Bench 测了 49 个公开 SWE skills，很多 skill 没有提升 pass-rate，版本不匹配还会伤害结果。<a href="https://arxiv.org/abs/2603.15401">来源：arXiv:2603.15401</a></p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>Agent Engineering Radar 的主线不是收集新闻，而是把外部技术信号压缩成可验证的工程吸收机制。</p>
+<p>框架、协议、benchmark、skills 每周都会出现新材料。真正有价值的雷达不是列链接，而是判断哪些变化会影响本地工程决策：是否要试验、如何设安全边界、用什么指标进入或退出主栈。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>可以把 agent 技术栈拆成四层。</p>
+<p>框架层负责 agent loop、状态和工具调用。</p>
+<p>连接层负责 MCP、API、文件系统、浏览器和终端。</p>
+<p>观测层负责 trace、span、成本、错误和 artifact 记录。OpenInference 已经覆盖 LLM 调用、检索、工具调用等上下文，OpenTelemetry 也在推进 GenAI 和 Agent spans 语义约定。<a href="https://arize-ai.github.io/openinference/">来源：OpenInference</a> <a href="https://opentelemetry.io/docs/specs/semconv/gen-ai/">来源：OpenTelemetry GenAI semantic conventions</a></p>
+<p>评测层负责 smoke、benchmark、dialogue task 和安全门槛。Dialogue SWE-Bench 提醒我们，交互式 coding agent 的澄清和对话能力与一次性解题不是同一维度。<a href="https://arxiv.org/abs/2606.13995">来源：arXiv:2606.13995</a></p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>本周真正该做的是小闭环，而不是迁移主栈。</p>
+<ol>
+<li>建一个最小 agent smoke suite，覆盖工具调用、文件修改、测试、恢复和 trace。</li>
+<li>给每次 agent 实验记录成功率、成本、步数和失败类型。</li>
+<li>MCP server 默认进入 Trial 清单，必须通过权限和日志检查后再进入常用工具集。</li>
+<li>Skills 做 paired eval，同一任务有 skill &#x2F; 无 skill 各跑一组，比较成功率、token 和错误类型。</li>
+</ol>
+<p>Terminal-Bench 2.0 和 TerminalWorld 也说明，终端任务需要单独评估命令规划、环境感知、文件副作用和恢复能力，不能只用 coding benchmark 替代。<a href="https://www.tbench.ai/">来源：Terminal-Bench</a> <a href="https://arxiv.org/abs/2605.22535">来源：arXiv:2605.22535</a></p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>看到一个新的 agent framework 时，不应该先迁移项目，而是先放进 Trial 清单。最小验证可以是三类任务：只读检索、受限文件修改、失败恢复。每类记录成功率、工具调用次数、成本、trace 完整度和越权风险。</p>
+<p>如果 demo 很强但 trace 不完整、权限不可控或失败后无法恢复，它就只能保留在观察区。雷达的作用是避免被单点亮点牵着走。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Agent Engineering 的技术视野要保持开放，但吸收机制要收紧。框架、协议、skills、benchmark 都可以跟进；真正进入主技术栈的，只应该是能被验证、能被观测、能被回滚的部分。</p>
+<p>下一步阅读：<a href="/2026/06/10/Agentic-Coding-Governance/">Agentic Coding 工程治理：多模型协作先定义责任边界</a></p>
+]]></content>
+      <tags>
+        <tag>AI</tag>
+        <tag>Open Source</tag>
+        <tag>Evaluation</tag>
+        <tag>Agent</tag>
+        <tag>Engineering</tag>
       </tags>
   </entry>
   <entry>
@@ -651,133 +651,6 @@
         <tag>Benchmark</tag>
         <tag>Observability</tag>
         <tag>Governance</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>【Agent Engineering Radar】2026-08-19 Agent 工程技术雷达</title>
-    <url>/2026/08/19/Agent-Engineering-Radar-2026-08-19/</url>
-    <content><![CDATA[<p>过去一周的可执行信号集中在 Cloudflare 的 agent 平台面向可观测、检索和治理三块同步加码：可回放观测（tracing）、AI Search 工具化、以及通过 Access 与 User Insights 做身份级成本与异常控制。对我个人的 Agent 栈来说，核心问题仍然是：优先把“可测、可控、可回退”的能力先落地，再谈扩展。</p>
-<span id="more"></span>
-
-<h2 id="This-Week’s-Signal"><a href="#This-Week’s-Signal" class="headerlink" title="This Week’s Signal"></a>This Week’s Signal</h2><ul>
-<li>Cloudflare AI Changelog（2026-08-06）发布 AI Search 生产化增强：支持自定义域、身份控制、跨实例一入口与站点缺失sitemap的抓取模式。意味着从“单一检索 API”走向“能直接服务化给内部系统的检索入口”。(<a href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog</a>)</li>
-<li>同期发布的 Kitesurf（agent-first browser）提供无头浏览器级运行时，可用于 AI 代理在高并发页面抓取&#x2F;提取场景，面向资源开销与启动时延给出了更轻量选项。(<a href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog</a>, <a href="https://developers.cloudflare.com/browser-run/kitesurf/">Kitesurf docs</a>)</li>
-<li>Cloudflare AI Changelog（2026-08-04）继续补齐 Agents SDK 的 Agent traces：把 agent turn、模型调用、工具调用、审批事件和 tokens 纳入统一 trace 视图，便于排错与回放。(<a href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog</a>)</li>
-<li>AI Gateway Changelog（2026-08-05）加入 User Insights 与身份感知控制（Access 联动），将异常使用检测、身份归因与网关治理打通。(<a href="https://developers.cloudflare.com/changelog/product/ai-gateway/">Cloudflare AI Gateway Changelog</a>, <a href="https://developers.cloudflare.com/ai-gateway/observability/user-insights/">User Insights</a>, <a href="https://developers.cloudflare.com/ai-gateway/configuration/cloudflare-access/">AI Gateway + Access</a>)</li>
-</ul>
-<h2 id="Adopt"><a href="#Adopt" class="headerlink" title="Adopt"></a>Adopt</h2><ul>
-<li><p><strong>引入身份级使用归因与异常检测</strong></p>
-<ul>
-<li><strong>为何重要</strong>：身份归因与异常报警是 agent 运维的核心安全底线，能显著减少“凭证被滥用但看起来正常”的盲区。</li>
-<li><strong>成熟度</strong>：高，直接有文档化的发布说明与控制台能力。</li>
-<li><strong>风险</strong>：早期接入可能会把“非异常尖峰”误判为高风险。</li>
-<li><strong>下一步</strong>：先在一个服务上打开 User Insights，并同步 <code>cf.user_id</code>，按用户&#x2F;服务设置 95&#x2F;30 天阈值告警，不直接触发封禁。</li>
-</ul>
-</li>
-<li><p><strong>上线 Agent traces 的最小链路</strong></p>
-<ul>
-<li><strong>为何重要</strong>：trace 将“模型输出质量不好”与“工具失败&#x2F;审批卡死”拆开，便于有依据地优化编排。</li>
-<li><strong>成熟度</strong>：高，Cloudflare 已提供配置和 API 调用示例。</li>
-<li><strong>风险</strong>：默认不建议持久化 payload，隐私风险与日志噪音会增加。</li>
-<li><strong>下一步</strong>：在非生产先试点 <code>storeMessages/storeTools = false</code>，只打 <code>agent_turn</code> 与工具元数据。</li>
-</ul>
-</li>
-</ul>
-<h2 id="Trial"><a href="#Trial" class="headerlink" title="Trial"></a>Trial</h2><ul>
-<li><p><strong>在实验性路径使用 Kitesurf 代替标准浏览执行</strong></p>
-<ul>
-<li><strong>为何重要</strong>：页面抓取和结构化提取是 agent 常见瓶颈，Kitesurf 宣称在多项任务上节省 CPU&#x2F;内存。</li>
-<li><strong>成熟度</strong>：中，偏向可试点，仍在 beta。</li>
-<li><strong>风险</strong>：边界能力有限（功能支持差异、回归风险）。</li>
-<li><strong>下一步</strong>：先给低风险任务开 PoC（如公开站点截图&#x2F;文本提取），并保留原执行器作回滚通道。</li>
-</ul>
-</li>
-<li><p><strong>把 AI Search 作为工具层 RAG 入口逐步接入</strong></p>
-<ul>
-<li><strong>为何重要</strong>：从纯 REST 调用迁移到框架内建工具调用可减少 glue code。</li>
-<li><strong>成熟度</strong>：中高，已有 Agents SDK&#x2F;AI SDK&#x2F;LangChain 集成路径。</li>
-<li><strong>风险</strong>：源内容更新机制与索引延迟处理不充分会导致检索漂移。</li>
-<li><strong>下一步</strong>：选一个非生产服务替换为 AI Search 工具，先验证索引刷新周期和权限边界。</li>
-</ul>
-</li>
-</ul>
-<h2 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h2><ul>
-<li><p><strong>MCP 2026-07-28 的稳定化推进节奏</strong></p>
-<ul>
-<li><strong>为何重要</strong>：MCP 已从有状态转向更无状态的稳定规范方向，但 agent tooling 已在向下兼容过渡。</li>
-<li><strong>成熟度</strong>：中，标准层面成熟，SDK 落地不一。</li>
-<li><strong>风险</strong>：短期出现客户端&#x2F;服务端协商偏差。</li>
-<li><strong>下一步</strong>：持续观察各 runtime 的 <code>2026-07-28</code> 落地状态，优先以兼容测试替代全量切换。</li>
-<li><strong>来源</strong>：(<a href="https://github.com/modelcontextprotocol/modelcontextprotocol/releases/tag/2026-07-28">MCP releases</a>, <a href="https://github.com/modelcontextprotocol/modelcontextprotocol/releases/tag/2026-07-28-RC">MCP changelog</a>)</li>
-</ul>
-</li>
-<li><p><strong>Coding-agent 生态更新的节奏放缓</strong></p>
-<ul>
-<li><strong>为何重要</strong>：与上周相比，本周期官方信号更偏向基础设施&#x2F;治理，意味着应用层框架功能更新可能滞后。</li>
-<li><strong>成熟度</strong>：低，缺少新的公开编排&#x2F;评测里程碑。</li>
-<li><strong>风险</strong>：若仍按“新框架即更优”决策，容易投入偏离。</li>
-<li><strong>下一步</strong>：继续跟踪 OpenAI&#x2F;主流框架与 Cloudflare 的安全、可观测更新。</li>
-</ul>
-</li>
-</ul>
-<h2 id="Hold-Risks"><a href="#Hold-Risks" class="headerlink" title="Hold&#x2F;Risks"></a>Hold&#x2F;Risks</h2><ul>
-<li>暂缓将 Kitesurf 做为所有浏览任务默认运行时；先做可回滚的分层试点。</li>
-<li>暂缓在生产端默认开启 trace payload 采集，先做仅元数据模式。</li>
-<li>暂缓一次性切掉现有 MCP server 版本策略；在新旧协议并行期保留回退。</li>
-</ul>
-<h2 id="Practical-Stack-Adjustments"><a href="#Practical-Stack-Adjustments" class="headerlink" title="Practical Stack Adjustments"></a>Practical Stack Adjustments</h2><ol>
-<li>增加 <code>.env</code> 与网关层的身份标签透传，接入 <code>cf.user_id</code> 到 trace 与日志查询。</li>
-<li>为关键链路补一套三层告警：成本异常（User Insights）、trace 失败率、工具超时率。</li>
-<li>将 AI Search 的检索能力先接到一个非生产服务作为工具，使用统一 query 预算与 allowlist。</li>
-<li>给代理运行环境新增 <code>kitesurf</code> 与标准浏览执行器的 A&#x2F;B 配置，按任务类型自动切换。</li>
-<li>在 CI 里增加 MCP 版本协商冒烟测试，至少覆盖 <code>2025-11-25</code> 与 <code>2026-07-28</code> 互通。</li>
-</ol>
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><ul>
-<li>身份归因、异常检测和可观测链路是否能覆盖代理生态中的高风险路径？</li>
-<li>AI Search 与浏览器运行时切换后，检索准确性和会话吞吐是否发生显著回归？</li>
-<li>MCP 规范切换是否会带来兼容断层，尤其在混合客户端版本下？</li>
-</ul>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><ul>
-<li>运行时层：引入 <code>agent-trace</code> + 身份标签，统一 <code>agent_id</code>、<code>conversation_id</code>、<code>tenant_id</code> 上下文。</li>
-<li>工具层：AI Search 作为统一检索工具入口，保留现有 REST 回退路径。</li>
-<li>安全治理层：AI Gateway 统一 <code>Access + User Insights</code>，先做异常告警再做自动限流策略。</li>
-</ul>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><ol>
-<li>在 staging 落地 trace+identity 最小配置，验证可定位的失败路径是否提高 30% 以上（对比一周前基线）。</li>
-<li>用一个非生产服务接入 AI Search + Kitesurf 的组合，验证页面提取完整率与执行稳定性。</li>
-<li>通过 CI 加入 MCP 版本协商冒烟测试后再推进到金丝雀流量。</li>
-</ol>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>本周主张“先上可观测与安全底座，再小规模试点工具&#x2F;浏览器层优化”，避免把底层治理不完整的问题放大到全部生产流量。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>当前周更策略建议继续周更，但重点应是：trace 与治理先行，agentic 运行时改造保持可回退。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><ul>
-<li>预期：1 周内完成可观测闭环后，agent 失效复盘时间可明显下降。</li>
-<li>风险：若未做 schema &#x2F; payload 控制，日志与审计可能引入隐私与合规负担。</li>
-</ul>
-<h2 id="下一步阅读："><a href="#下一步阅读：" class="headerlink" title="下一步阅读："></a>下一步阅读：</h2><ul>
-<li><a href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog（AI 产品组）</a></li>
-<li><a href="https://developers.cloudflare.com/changelog/product/ai-gateway/">Cloudflare AI Gateway Changelog</a></li>
-<li><a href="https://developers.cloudflare.com/access/">Cloudflare Access 安全配置</a></li>
-<li><a href="https://github.com/modelcontextprotocol/modelcontextprotocol">MCP 规范仓库</a></li>
-</ul>
-<h2 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h2><ul>
-<li><a href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog</a></li>
-<li><a href="https://developers.cloudflare.com/changelog/product/ai-gateway/">Cloudflare AI Gateway Changelog</a></li>
-<li><a href="https://developers.cloudflare.com/ai-gateway/observability/user-insights/">AI Gateway User Insights</a></li>
-<li><a href="https://developers.cloudflare.com/ai-gateway/configuration/cloudflare-access/">AI Gateway + Cloudflare Access</a></li>
-<li><a href="https://developers.cloudflare.com/agents/runtime/operations/observability/tracing/">Agents tracing guidance</a></li>
-<li><a href="https://developers.cloudflare.com/browser-run/kitesurf/">Kitesurf documentation</a></li>
-<li><a href="https://github.com/modelcontextprotocol/modelcontextprotocol/releases/tag/2026-07-28">Model Context Protocol releases</a></li>
-</ul>
-]]></content>
-      <tags>
-        <tag>AI</tag>
-        <tag>RAG</tag>
-        <tag>Agent</tag>
-        <tag>Engineering</tag>
-        <tag>MCP</tag>
-        <tag>Observability</tag>
-        <tag>Governance</tag>
-        <tag>Tracing</tag>
       </tags>
   </entry>
   <entry>
@@ -1095,6 +968,133 @@
       </tags>
   </entry>
   <entry>
+    <title>【Agent Engineering Radar】2026-08-19 Agent 工程技术雷达</title>
+    <url>/2026/08/19/Agent-Engineering-Radar-2026-08-19/</url>
+    <content><![CDATA[<p>过去一周的可执行信号集中在 Cloudflare 的 agent 平台面向可观测、检索和治理三块同步加码：可回放观测（tracing）、AI Search 工具化、以及通过 Access 与 User Insights 做身份级成本与异常控制。对我个人的 Agent 栈来说，核心问题仍然是：优先把“可测、可控、可回退”的能力先落地，再谈扩展。</p>
+<span id="more"></span>
+
+<h2 id="This-Week’s-Signal"><a href="#This-Week’s-Signal" class="headerlink" title="This Week’s Signal"></a>This Week’s Signal</h2><ul>
+<li>Cloudflare AI Changelog（2026-08-06）发布 AI Search 生产化增强：支持自定义域、身份控制、跨实例一入口与站点缺失sitemap的抓取模式。意味着从“单一检索 API”走向“能直接服务化给内部系统的检索入口”。(<a href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog</a>)</li>
+<li>同期发布的 Kitesurf（agent-first browser）提供无头浏览器级运行时，可用于 AI 代理在高并发页面抓取&#x2F;提取场景，面向资源开销与启动时延给出了更轻量选项。(<a href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog</a>, <a href="https://developers.cloudflare.com/browser-run/kitesurf/">Kitesurf docs</a>)</li>
+<li>Cloudflare AI Changelog（2026-08-04）继续补齐 Agents SDK 的 Agent traces：把 agent turn、模型调用、工具调用、审批事件和 tokens 纳入统一 trace 视图，便于排错与回放。(<a href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog</a>)</li>
+<li>AI Gateway Changelog（2026-08-05）加入 User Insights 与身份感知控制（Access 联动），将异常使用检测、身份归因与网关治理打通。(<a href="https://developers.cloudflare.com/changelog/product/ai-gateway/">Cloudflare AI Gateway Changelog</a>, <a href="https://developers.cloudflare.com/ai-gateway/observability/user-insights/">User Insights</a>, <a href="https://developers.cloudflare.com/ai-gateway/configuration/cloudflare-access/">AI Gateway + Access</a>)</li>
+</ul>
+<h2 id="Adopt"><a href="#Adopt" class="headerlink" title="Adopt"></a>Adopt</h2><ul>
+<li><p><strong>引入身份级使用归因与异常检测</strong></p>
+<ul>
+<li><strong>为何重要</strong>：身份归因与异常报警是 agent 运维的核心安全底线，能显著减少“凭证被滥用但看起来正常”的盲区。</li>
+<li><strong>成熟度</strong>：高，直接有文档化的发布说明与控制台能力。</li>
+<li><strong>风险</strong>：早期接入可能会把“非异常尖峰”误判为高风险。</li>
+<li><strong>下一步</strong>：先在一个服务上打开 User Insights，并同步 <code>cf.user_id</code>，按用户&#x2F;服务设置 95&#x2F;30 天阈值告警，不直接触发封禁。</li>
+</ul>
+</li>
+<li><p><strong>上线 Agent traces 的最小链路</strong></p>
+<ul>
+<li><strong>为何重要</strong>：trace 将“模型输出质量不好”与“工具失败&#x2F;审批卡死”拆开，便于有依据地优化编排。</li>
+<li><strong>成熟度</strong>：高，Cloudflare 已提供配置和 API 调用示例。</li>
+<li><strong>风险</strong>：默认不建议持久化 payload，隐私风险与日志噪音会增加。</li>
+<li><strong>下一步</strong>：在非生产先试点 <code>storeMessages/storeTools = false</code>，只打 <code>agent_turn</code> 与工具元数据。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Trial"><a href="#Trial" class="headerlink" title="Trial"></a>Trial</h2><ul>
+<li><p><strong>在实验性路径使用 Kitesurf 代替标准浏览执行</strong></p>
+<ul>
+<li><strong>为何重要</strong>：页面抓取和结构化提取是 agent 常见瓶颈，Kitesurf 宣称在多项任务上节省 CPU&#x2F;内存。</li>
+<li><strong>成熟度</strong>：中，偏向可试点，仍在 beta。</li>
+<li><strong>风险</strong>：边界能力有限（功能支持差异、回归风险）。</li>
+<li><strong>下一步</strong>：先给低风险任务开 PoC（如公开站点截图&#x2F;文本提取），并保留原执行器作回滚通道。</li>
+</ul>
+</li>
+<li><p><strong>把 AI Search 作为工具层 RAG 入口逐步接入</strong></p>
+<ul>
+<li><strong>为何重要</strong>：从纯 REST 调用迁移到框架内建工具调用可减少 glue code。</li>
+<li><strong>成熟度</strong>：中高，已有 Agents SDK&#x2F;AI SDK&#x2F;LangChain 集成路径。</li>
+<li><strong>风险</strong>：源内容更新机制与索引延迟处理不充分会导致检索漂移。</li>
+<li><strong>下一步</strong>：选一个非生产服务替换为 AI Search 工具，先验证索引刷新周期和权限边界。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h2><ul>
+<li><p><strong>MCP 2026-07-28 的稳定化推进节奏</strong></p>
+<ul>
+<li><strong>为何重要</strong>：MCP 已从有状态转向更无状态的稳定规范方向，但 agent tooling 已在向下兼容过渡。</li>
+<li><strong>成熟度</strong>：中，标准层面成熟，SDK 落地不一。</li>
+<li><strong>风险</strong>：短期出现客户端&#x2F;服务端协商偏差。</li>
+<li><strong>下一步</strong>：持续观察各 runtime 的 <code>2026-07-28</code> 落地状态，优先以兼容测试替代全量切换。</li>
+<li><strong>来源</strong>：(<a href="https://github.com/modelcontextprotocol/modelcontextprotocol/releases/tag/2026-07-28">MCP releases</a>, <a href="https://github.com/modelcontextprotocol/modelcontextprotocol/releases/tag/2026-07-28-RC">MCP changelog</a>)</li>
+</ul>
+</li>
+<li><p><strong>Coding-agent 生态更新的节奏放缓</strong></p>
+<ul>
+<li><strong>为何重要</strong>：与上周相比，本周期官方信号更偏向基础设施&#x2F;治理，意味着应用层框架功能更新可能滞后。</li>
+<li><strong>成熟度</strong>：低，缺少新的公开编排&#x2F;评测里程碑。</li>
+<li><strong>风险</strong>：若仍按“新框架即更优”决策，容易投入偏离。</li>
+<li><strong>下一步</strong>：继续跟踪 OpenAI&#x2F;主流框架与 Cloudflare 的安全、可观测更新。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Hold-Risks"><a href="#Hold-Risks" class="headerlink" title="Hold&#x2F;Risks"></a>Hold&#x2F;Risks</h2><ul>
+<li>暂缓将 Kitesurf 做为所有浏览任务默认运行时；先做可回滚的分层试点。</li>
+<li>暂缓在生产端默认开启 trace payload 采集，先做仅元数据模式。</li>
+<li>暂缓一次性切掉现有 MCP server 版本策略；在新旧协议并行期保留回退。</li>
+</ul>
+<h2 id="Practical-Stack-Adjustments"><a href="#Practical-Stack-Adjustments" class="headerlink" title="Practical Stack Adjustments"></a>Practical Stack Adjustments</h2><ol>
+<li>增加 <code>.env</code> 与网关层的身份标签透传，接入 <code>cf.user_id</code> 到 trace 与日志查询。</li>
+<li>为关键链路补一套三层告警：成本异常（User Insights）、trace 失败率、工具超时率。</li>
+<li>将 AI Search 的检索能力先接到一个非生产服务作为工具，使用统一 query 预算与 allowlist。</li>
+<li>给代理运行环境新增 <code>kitesurf</code> 与标准浏览执行器的 A&#x2F;B 配置，按任务类型自动切换。</li>
+<li>在 CI 里增加 MCP 版本协商冒烟测试，至少覆盖 <code>2025-11-25</code> 与 <code>2026-07-28</code> 互通。</li>
+</ol>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><ul>
+<li>身份归因、异常检测和可观测链路是否能覆盖代理生态中的高风险路径？</li>
+<li>AI Search 与浏览器运行时切换后，检索准确性和会话吞吐是否发生显著回归？</li>
+<li>MCP 规范切换是否会带来兼容断层，尤其在混合客户端版本下？</li>
+</ul>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><ul>
+<li>运行时层：引入 <code>agent-trace</code> + 身份标签，统一 <code>agent_id</code>、<code>conversation_id</code>、<code>tenant_id</code> 上下文。</li>
+<li>工具层：AI Search 作为统一检索工具入口，保留现有 REST 回退路径。</li>
+<li>安全治理层：AI Gateway 统一 <code>Access + User Insights</code>，先做异常告警再做自动限流策略。</li>
+</ul>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><ol>
+<li>在 staging 落地 trace+identity 最小配置，验证可定位的失败路径是否提高 30% 以上（对比一周前基线）。</li>
+<li>用一个非生产服务接入 AI Search + Kitesurf 的组合，验证页面提取完整率与执行稳定性。</li>
+<li>通过 CI 加入 MCP 版本协商冒烟测试后再推进到金丝雀流量。</li>
+</ol>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>本周主张“先上可观测与安全底座，再小规模试点工具&#x2F;浏览器层优化”，避免把底层治理不完整的问题放大到全部生产流量。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>当前周更策略建议继续周更，但重点应是：trace 与治理先行，agentic 运行时改造保持可回退。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><ul>
+<li>预期：1 周内完成可观测闭环后，agent 失效复盘时间可明显下降。</li>
+<li>风险：若未做 schema &#x2F; payload 控制，日志与审计可能引入隐私与合规负担。</li>
+</ul>
+<h2 id="下一步阅读："><a href="#下一步阅读：" class="headerlink" title="下一步阅读："></a>下一步阅读：</h2><ul>
+<li><a href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog（AI 产品组）</a></li>
+<li><a href="https://developers.cloudflare.com/changelog/product/ai-gateway/">Cloudflare AI Gateway Changelog</a></li>
+<li><a href="https://developers.cloudflare.com/access/">Cloudflare Access 安全配置</a></li>
+<li><a href="https://github.com/modelcontextprotocol/modelcontextprotocol">MCP 规范仓库</a></li>
+</ul>
+<h2 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h2><ul>
+<li><a href="https://developers.cloudflare.com/changelog/product-group/ai/">Cloudflare AI Changelog</a></li>
+<li><a href="https://developers.cloudflare.com/changelog/product/ai-gateway/">Cloudflare AI Gateway Changelog</a></li>
+<li><a href="https://developers.cloudflare.com/ai-gateway/observability/user-insights/">AI Gateway User Insights</a></li>
+<li><a href="https://developers.cloudflare.com/ai-gateway/configuration/cloudflare-access/">AI Gateway + Cloudflare Access</a></li>
+<li><a href="https://developers.cloudflare.com/agents/runtime/operations/observability/tracing/">Agents tracing guidance</a></li>
+<li><a href="https://developers.cloudflare.com/browser-run/kitesurf/">Kitesurf documentation</a></li>
+<li><a href="https://github.com/modelcontextprotocol/modelcontextprotocol/releases/tag/2026-07-28">Model Context Protocol releases</a></li>
+</ul>
+]]></content>
+      <tags>
+        <tag>AI</tag>
+        <tag>RAG</tag>
+        <tag>Agent</tag>
+        <tag>Engineering</tag>
+        <tag>MCP</tag>
+        <tag>Observability</tag>
+        <tag>Governance</tag>
+        <tag>Tracing</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>CCA 与 SSVEP 频率识别：为什么线性相关仍然有效</title>
     <url>/2019/07/15/CCA-application-in-SSVEP-frequency-detection/</url>
     <content><![CDATA[<p>脑机接口里的 SSVEP 频率识别有一个很实际的问题：训练数据少、个体差异大、信号噪声高，但系统仍然需要快速判断用户注视的是哪个闪烁频率。</p>
@@ -1184,6 +1184,241 @@
       </tags>
   </entry>
   <entry>
+    <title>【Agent Engineering Radar】2026-09-01 Agent 工程技术雷达</title>
+    <url>/2026/09/01/Agent-Engineering-Radar-2026-09-01/</url>
+    <content><![CDATA[<p>过去一周主要信号集中在“可控的工具权限扩展”“可执行的评测信号扩展”和“Agent 运行过程的可恢复性”。海外生态继续推进 MCP 与网关治理，国内头部 Agent 则在独立复核、会话续跑、跨端接管和企业用量治理上给出了更贴近本地开发环境的实现。对个人栈来说，重点不是按厂商堆工具，而是用同一套任务和安全指标比较不同 Agent。</p>
+<span id="more"></span>
+
+<h2 id="This-Week’s-Signal"><a href="#This-Week’s-Signal" class="headerlink" title="This Week’s Signal"></a>This Week’s Signal</h2><ul>
+<li><strong>AI Search 与模型接入面强化（2026-08-25 到 2026-08-30）</strong>：Cloudflare AI Changelog 在近两周持续加入高 token 上下文、更多模型与多模态入口，且对 AI Search 的元数据承载能力做了扩展。<code>@cf/zai-org/glm-5.3-flash</code>（2026-08-30）提供 1,048,576 token 上下文，<code>@cf/zai-org/glm-5.3</code>（2026-08-28）定位为偏工具驱动的 agentic coding 使用。AI Search 还新增 10 KiB 向量元数据 envelope（2026-08-25）。(<a href="https://developers.cloudflare.com/changelog/product-group/ai/">AI Changelog</a>)</li>
+<li><strong>MCP 权限治理从“全授权”转向“可编辑最小授权”（2026-08-22）</strong>：Cloudflare Workers changelog 指明 Wrangler 和 Cloudflare API MCP server 开始支持可选 OAuth scope。该更新直接降低了“默认全开权限”导致的 blast radius。(<a href="https://developers.cloudflare.com/changelog/product/workers/">Workers Changelog</a>)</li>
+<li><strong>AI Gateway 的身份可观测与异常监测（2026-08-19）</strong>：Cloudflare AI Gateway 发布 User Insights，基于 30 天 p95 会话成本基线做异常检测，并把 Access 身份与网关日志打通。对生产化 agent，治理入口由“模型级日志”升级到“身份维度告警与预算控制”。(<a href="https://developers.cloudflare.com/changelog/product/ai-gateway/">AI Gateway Changelog</a>)</li>
+<li><strong>OpenAI Agents Python 的会话持久化缺陷公开化（2026-08-26）</strong>：openai-agents-python 的 issue 报告了并发场景下 <code>responses.compact</code> 与 session 写入竞争导致历史条目丢失（<code>OpenAIResponsesCompactionSession</code>）。这提示“可运行”不等于“可重放”，会话一致性需要主动护栏。(<a href="https://github.com/openai/openai-agents-python/issues/4679">GitHub Issue #4679</a>)</li>
+<li><strong>评测信号持续收紧：移动端与多模态长期任务基准出现新压力测试（2026-08-21 &#x2F; 2026-08-24）</strong>：两篇新论文围绕真实场景手机代理任务定义了更重的工具协作、记忆使用与状态一致性评测维度，提示未来 benchmark 不再只看“最终成功率”。(<a href="https://arxiv.org/abs/2608.23035">MobilePA-Bench</a>, <a href="https://arxiv.org/abs/2608.27477">GMA</a>)</li>
+</ul>
+<h2 id="国内头部-Agent-信号"><a href="#国内头部-Agent-信号" class="headerlink" title="国内头部 Agent 信号"></a>国内头部 Agent 信号</h2><ul>
+<li><strong>阿里 Qwen Code 把“第二意见”和中断恢复做成产品能力（2026-08-20 &#x2F; 2026-08-27）</strong>：<code>/advisor</code> 使用只读旁路会话检查当前对话，<code>qwen sessions ps</code> 提供本机运行会话清单，PR Review 支持校验状态后续跑；随后发布的 Local Control 允许手机在可信局域网内查看同一 daemon 会话、diff、工具调用和权限请求。这组更新的价值不在功能数量，而在“主执行链路之外有独立复核”和“人离开电脑后仍能接管授权”。(<a href="https://qwenlm.github.io/qwen-code-docs/zh/blog/updates/weekly-update-2026-08-20/">Qwen Code 周报</a>, <a href="https://qwenlm.github.io/qwen-code-docs/zh/blog/feat-qwen-serve-mobile/">Local Control</a>)</li>
+<li><strong>月之暗面 Kimi Code 已形成完整的本地 Agent 执行面（2026-08-12）</strong>：官方产品说明覆盖 Plan、Goal、Swarm、后台任务、Skills、插件、MCP、定时任务和会话压缩，并明确区分需要逐次确认的默认模式与自动批准模式。它值得进入对比试验，但百万上下文和并行 Agent 的宣传指标不能代替真实仓库上的成功率、成本和权限边界测试。(<a href="https://www.kimi.ai/resources/kimi-code-introduction">Kimi Code 官方介绍</a>)</li>
+<li><strong>字节 TRAE 将企业 Agent 从“能力展示”推进到统一入口与用量治理（2026-08-28）</strong>：TRAE 企业版把内置 <code>Agent</code> 与 <code>SOLO Agent</code> 合并，并增加企业自定义模型用量明细；此前版本已提供企业沙箱、Hook、Subagent、记忆和 Goal 工作流。这个方向说明国内 Agent 的竞争点正在从模型效果转向身份、预算、沙箱和生命周期控制。(<a href="https://docs.trae.cn/enterprise_release-notes">TRAE 企业版更新日志</a>)</li>
+<li><strong>Manus 的服务切换暴露了云端 Agent 的可移植性风险（2026-08-23 到 2026-08-25）</strong>：官方要求部分受影响账户先备份任务数据与产物，再经历数据删除和恢复流程。无论产品能力如何，若任务历史、连接器授权和生成物只能留在厂商云端，就不应成为唯一工作底座。(<a href="https://help.manus.im/en/articles/16147831-service-change-overview-what-s-happening-and-am-i-affected">Manus Service Change Overview</a>)</li>
+</ul>
+<p>本期把“国内头部”限定为有公开产品、官方文档和可验证工程入口的 Agent，而不是主观市场排名。后续固定观察池如下：</p>
+<table>
+<thead>
+<tr>
+<th>厂商 &#x2F; 产品</th>
+<th>主要形态</th>
+<th>本期位置</th>
+<th>持续观察点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>月之暗面 Kimi Code &#x2F; Kimi Agent</td>
+<td>Coding + 通用任务</td>
+<td>Trial</td>
+<td>Goal&#x2F;Swarm 的真实并行收益、审批边界、长任务成本</td>
+</tr>
+<tr>
+<td>阿里 Qwen Code</td>
+<td>开源 Coding Agent</td>
+<td>Trial</td>
+<td>只读复核、会话恢复、跨端权限接管</td>
+</tr>
+<tr>
+<td>字节 TRAE Code &#x2F; Work</td>
+<td>Coding + 企业工作台</td>
+<td>Trial</td>
+<td>企业沙箱、Hook、用量归因和模型开放策略</td>
+</tr>
+<tr>
+<td>MiniMax Agent</td>
+<td>通用 Agent Team</td>
+<td>Watch</td>
+<td>Leader&#x2F;Worker&#x2F;Verifier 质量门是否可复现、开源交付完整度</td>
+</tr>
+<tr>
+<td>腾讯 CodeBuddy</td>
+<td>Coding + 工作 Agent</td>
+<td>Watch</td>
+<td>Agent Teams、危险命令控制、企业部署与审计能力</td>
+</tr>
+<tr>
+<td>Manus</td>
+<td>云端通用 Agent</td>
+<td>Hold&#x2F;Watch</td>
+<td>数据可导出性、服务连续性、连接器授权恢复</td>
+</tr>
+</tbody></table>
+<h2 id="Adopt"><a href="#Adopt" class="headerlink" title="Adopt"></a>Adopt</h2><ul>
+<li><p><strong>把 MCP OAuth scope 作为默认策略</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：把可选权限变为用户可见可选项，能显著降低 token 泄露或账号劫持后的横向扩散。</li>
+<li><strong>成熟度</strong>：高（官方可直接配置）。</li>
+<li><strong>风险</strong>：首轮执行会触发部分工具调用失败（尤其是自动化脚本历史流程）。</li>
+<li><strong>下一步</strong>：对外部 MCP 客户端分层定义 <code>required</code>&#x2F;<code>optional</code> scope；先把高敏工具放到默认关闭清单。</li>
+</ul>
+</li>
+<li><p><strong>把 AI Gateway 日志升级为身份维度可追踪数据</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：告警若能按用户、网关、模型联合拆解，可快速定位“哪条 agent 路径异常激增”。</li>
+<li><strong>成熟度</strong>：中高（官方文档与指标已就绪）。</li>
+<li><strong>风险</strong>：日志关联字段设计不当会放大隐私面。</li>
+<li><strong>下一步</strong>：先在 staging 打通 <code>cf.user_id</code> 等字段并保留 payload 不落盘策略，优先落日志聚合面板。</li>
+</ul>
+</li>
+<li><p><strong>把 RAG 检索层“元数据预算”前置</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：AI Search 10 KiB metadata envelope 更利于语义过滤和路由策略，但索引字段越大也意味着过滤成本与治理复杂度上升。</li>
+<li><strong>成熟度</strong>：高（文档化的模型更新）。</li>
+<li><strong>风险</strong>：无索引治理会让 metadata 成为“写入无序桶”。</li>
+<li><strong>下一步</strong>：给检索字段明确命名空间（如 <code>agent_scope/*</code>），把超长文本折叠到摘要字段。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Trial"><a href="#Trial" class="headerlink" title="Trial"></a>Trial</h2><ul>
+<li><p><strong>用同一任务集横向试跑 Kimi Code、Qwen Code 与 TRAE</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：三者已经覆盖本地代码、终端、子 Agent 和长任务执行，但官方展示无法回答“在我的仓库里谁更稳”。</li>
+<li><strong>成熟度</strong>：中高（均有可用产品和官方文档）。</li>
+<li><strong>风险</strong>：不同默认模型、订阅配额和权限模式会让结果不可比。</li>
+<li><strong>下一步</strong>：固定模型档位、上下文输入和权限级别，跑 5 类任务：只读诊断、小范围修复、跨文件重构、失败恢复、越权诱导；统一记录成功率、人工接管次数、工具调用数、耗时和成本。</li>
+</ul>
+</li>
+<li><p><strong>试点 Qwen Code 的只读 <code>/advisor</code> 与可恢复 Review</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：独立复核若不继承主 Agent 的行动权限，能减少同一上下文内的确认偏差；状态校验后的续跑也比盲目重启更适合长任务。</li>
+<li><strong>成熟度</strong>：中高（正式版本已发布）。</li>
+<li><strong>风险</strong>：第二模型意见仍可能共享同一知识盲区，不能代替测试和人工 review。</li>
+<li><strong>下一步</strong>：选择 10 个历史缺陷修复，让主 Agent 与 <code>/advisor</code> 分别给结论，统计新增有效风险、误报和额外 token 成本。</li>
+</ul>
+</li>
+<li><p><strong>在沙盒环境试点 OpenAI Agents 的会话并发保护策略</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：issue 说明并发 compaction 与写入冲突会丢历史，必须先在小规模服务验证。</li>
+<li><strong>成熟度</strong>：中（有公开复现路径）。</li>
+<li><strong>风险</strong>：会影响吞吐与延迟。</li>
+<li><strong>下一步</strong>：做并发场景 A&#x2F;B：一个分支按当前逻辑，另一个分支给关键 session 增加“排队 + 单写回放”保护，观察 24 小时内历史一致性差异。</li>
+</ul>
+</li>
+<li><p><strong>把新基准维度用于月度回归，而非每日 gate</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：MobilePA &#x2F; GMA 更强调状态一致性与任务级规划，不适合作为日常 CI 直接阻断指标。</li>
+<li><strong>成熟度</strong>：中（论文阶段）。</li>
+<li><strong>风险</strong>：过早过重会误伤迭代速度。</li>
+<li><strong>下一步</strong>：按周新增“可复现 smoke”：每周抽 2-3 条长链路任务，仅对同一 stack 做对比。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h2><ul>
+<li><strong>多模态编码模型（如 GLM-5.3）在真实工作流中的成本-收益边界</strong>是否与官方公开 benchmark 一致。</li>
+<li><strong>MiniMax Agent Team 的 Leader&#x2F;Worker&#x2F;Verifier 编排</strong>能否在同一任务预算下稳定优于单 Agent；当前先依据官方设计进入观察池，不直接把架构描述当成质量结论。(<a href="https://www.minimax.io/blog/minimax-agent-team-long-running-1779893953">MiniMax Agent Team</a>)</li>
+<li><strong>腾讯 CodeBuddy Agent Teams 的共享任务与成员间通信</strong>是否带来可审计的并行协作，而不是增加上下文分叉和重复劳动。(<a href="https://www.codebuddy.ai/docs/cli/agent-teams">CodeBuddy Agent Teams</a>)</li>
+<li><strong>Cloudflare 可选 OAuth scope 的可视化体验是否与现有 CLI 自动化流程兼容</strong>，尤其是需要长期授权续约的脚本。</li>
+<li><strong>GPU&#x2F;令牌成本上涨下，AI Search 新增模型是否在你的 RAG 路径引入“吞吐噪音”</strong>。</li>
+</ul>
+<h2 id="Hold-Risks"><a href="#Hold-Risks" class="headerlink" title="Hold&#x2F;Risks"></a>Hold&#x2F;Risks</h2><ul>
+<li><strong>暂缓一次性把所有 MCP 客户端默认切到可选 scope 模式</strong>：先选 1-2 条业务链路验证。</li>
+<li><strong>暂缓将新模型大规模纳入生产 RAG 默认路由</strong>：先验证上下文窗口增大对重排和成本的实际影响。</li>
+<li><strong>暂缓把 GitHub issue 的缺陷当作临时已修复状态发布</strong>：直到相关 PR 合并或验证替代实现稳定。</li>
+<li><strong>暂缓把任何云端 Agent 设为唯一任务存储</strong>：至少保留需求、关键上下文、产物和授权清单的本地可恢复副本，尤其是在 Manus 已出现区域性数据迁移窗口之后。</li>
+</ul>
+<h2 id="Practical-Stack-Adjustments"><a href="#Practical-Stack-Adjustments" class="headerlink" title="Practical Stack Adjustments"></a>Practical Stack Adjustments</h2><ol>
+<li>新建 MCP scope 清单：<code>required</code> 默认保持、<code>optional</code> 默认关闭并记录审批理由。</li>
+<li>给 AI Gateway 加入 <code>user_id</code>、<code>model</code>、<code>task_type</code> 的日志拆分标签，先实现异常会话重放视图。</li>
+<li>AI Search RAG 的 metadata schema 统一命名：<code>agent/*</code>, <code>trace/*</code>, <code>rag/*</code>，限制 10 KiB envelope 内高频字段。</li>
+<li>增加 Agents Python session 并发回归测试：覆盖 compaction 与并发 <code>add_items</code> 的一致性场景。</li>
+<li>每周一次 benchmark 评测：新增 <code>MobilePA-Bench</code> 与 <code>GMA</code> 的 3~5 个长链路用例，跟踪成功率与失败归因。</li>
+<li>建立国内 Agent 对比表：Kimi Code、Qwen Code、TRAE 先进入 Trial，MiniMax Agent 与 CodeBuddy 保持 Watch，所有产品共用同一套任务、权限和成本指标。</li>
+<li>给云端 Agent 增加退出检查：任务历史能否导出、产物能否本地重建、连接器授权能否撤销、服务迁移时是否有恢复路径。</li>
+</ol>
+<h2 id="后续雷达的覆盖规则"><a href="#后续雷达的覆盖规则" class="headerlink" title="后续雷达的覆盖规则"></a>后续雷达的覆盖规则</h2><p>从下一期开始，每周信号源固定分成四组扫描：国际 Agent &#x2F; 协议与基础设施、国内通用 Agent、国内 Coding Agent、公开 benchmark 与安全研究。若某组当周没有进入正文，需明确写“无足够强的官方信号”，而不是默认跳过。国内产品至少持续覆盖 Kimi、Qwen、TRAE、MiniMax、CodeBuddy 与 Manus；智谱 AutoGLM 等设备 Agent 在出现可验证产品或工程更新时纳入，不把单纯模型发布重复计为 Agent 信号。</p>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><ul>
+<li>国内外 Agent 的产品形态、默认模型和计费方式不同，怎样避免把宣传指标直接放进同一张排行榜？</li>
+<li>多 Agent、长上下文和自动执行都可能提高完成率，也可能放大成本与越权面，怎样用统一指标判断净收益？</li>
+<li>当任务历史和连接器绑定在云端时，怎样保证厂商调整服务后仍能恢复关键工作？</li>
+<li>每周信息量有限，怎样避免因为海外文档更容易检索，就系统性漏掉国内官方更新？</li>
+</ul>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><ul>
+<li><code>signal_pool</code>：按国际基础设施、国内通用 Agent、国内 Coding Agent、评测与安全研究分桶采集，只接受可追溯的官方文档、版本记录或可执行论文。</li>
+<li><code>comparison_harness</code>：所有候选 Agent 使用相同任务输入、权限等级、验收标准与人工接管规则，输出成功率、恢复率、耗时、成本和策略违例率。</li>
+<li><code>governance</code>：把沙箱、审批、Hook、身份归因和只读复核视为独立能力，不与模型 benchmark 混成一个总分。</li>
+<li><code>portability</code>：任务上下文、产物、连接器清单和恢复步骤必须能导出或本地重建，云端历史不是唯一事实源。</li>
+</ul>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><ol>
+<li>每周一先完成四组信号扫描；任何一组没有正文条目时，记录“无足够强官方信号”及搜索范围。</li>
+<li>每月选 Kimi Code、Qwen Code、TRAE 各跑一次固定 5 类任务集，禁止在单个产品上临时放宽权限或增加上下文。</li>
+<li>每次试验保存任务输入、版本、模型、权限模式、人工干预点和最终 diff；失败任务必须能判断是模型、工具、环境还是权限原因。</li>
+<li>每季度执行一次退出演练：停用云端会话后，仅使用本地材料重建一个代表性任务，并检查第三方连接器授权是否已撤销。</li>
+</ol>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>国内 Agent 已经不能只作为“补充新闻”出现。Kimi、Qwen、TRAE 分别在长任务编排、独立复核与会话续跑、企业治理上形成了可验证路线；MiniMax、CodeBuddy 和 Manus 则分别提供多 Agent 质量门、团队协作和服务连续性样本。下一步应做同任务、同权限、同验收标准的实测，而不是再用厂商 benchmark 替代选择。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>未来几期雷达的主线应从“跟踪海外基础设施发布”调整为“双轨观察”：一条看 MCP、网关、评测等跨产品基础设施，另一条看国内外 Agent 如何把这些能力落进真实产品。产品国别负责保证信号覆盖，最终的 Adopt&#x2F;Trial&#x2F;Watch 判断仍只由工程证据决定。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><ul>
+<li>如果只读诊断任务中 Qwen Code 的 <code>/advisor</code> 能稳定补充有效风险且误报可控，它可以成为主 Agent 之外的默认轻量复核层。</li>
+<li>如果 Kimi Code 或 TRAE 的多 Agent 路线在跨文件任务中没有降低总耗时，或人工接管次数上升，就应回退到单 Agent + 明确任务分解，而不是继续增加并发。</li>
+<li>如果一次退出演练无法仅靠本地材料重建云端任务，则该产品即使单次完成率领先，也只能停留在 Trial 或 Watch。</li>
+</ul>
+<h2 id="下一步阅读："><a href="#下一步阅读：" class="headerlink" title="下一步阅读："></a>下一步阅读：</h2><ul>
+<li><a href="https://qwenlm.github.io/qwen-code-docs/zh/blog/updates/weekly-update-2026-08-20/">Qwen Code：独立第二意见与可恢复 Review</a></li>
+<li><a href="https://www.kimi.ai/resources/kimi-code-introduction">Kimi Code：终端与 IDE Agent 能力</a></li>
+<li><a href="https://docs.trae.cn/enterprise_release-notes">TRAE 企业版更新日志</a></li>
+<li><a href="https://www.minimax.io/blog/minimax-agent-team-long-running-1779893953">MiniMax Agent Team 的 Leader&#x2F;Worker&#x2F;Verifier 设计</a></li>
+<li><a href="https://www.codebuddy.ai/docs/cli/agent-teams">腾讯 CodeBuddy Agent Teams</a></li>
+<li><a href="https://help.manus.im/en/articles/16147831-service-change-overview-what-s-happening-and-am-i-affected">Manus 服务切换与数据恢复说明</a></li>
+</ul>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>本周信号值得“收敛式扩展”：工具权限最小化 + 身份可观测 + 会话一致性测试，同时用统一任务集补上国内 Agent 的实测。Qwen Code 的旁路复核与续跑、Kimi Code 的 Goal&#x2F;Swarm、TRAE 的企业治理代表了三条不同路线；真正值得进入主栈的，不是“国内”或“国外”的标签，而是在同一安全、成本和恢复指标下更稳定的实现。</p>
+]]></content>
+      <tags>
+        <tag>AI</tag>
+        <tag>RAG</tag>
+        <tag>Agent</tag>
+        <tag>Engineering</tag>
+        <tag>MCP</tag>
+        <tag>Benchmark</tag>
+        <tag>Observability</tag>
+        <tag>Governance</tag>
+        <tag>Memory</tag>
+        <tag>China AI</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>实时语音 Turn-taking 评测：从端点检测到可接话判断</title>
+    <url>/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/</url>
+    <content><![CDATA[<p>实时语音系统里，判断用户“说完了”比看起来更难。静音不一定代表结束，短停顿可能只是思考；语义已经完整，也可能还会补充条件。Turn-taking 要解决的不是单纯端点检测，而是系统什么时候可以安全接话。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>传统 VAD 或 endpointing 主要看声学静音。实时助手需要更复杂的判断：当前 partial 结果是否语义完整，用户是否可能继续说，系统现在接话是否会打断。</p>
+<p>如果判断过早，系统会抢话；判断过晚，交互 latency 会变差。这个 tradeoff 不能只靠经验阈值。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>Turn-taking 不是“检测用户说完”，而是在不确定输入下选择系统行动时机。</p>
+<p>静音、semantic end、partial 稳定性和 latency 都只是信号，真正的输出不是一个客观标签，而是“现在接话是否值得”。这个判断必须同时考虑抢话成本和等待成本。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一个 turn-taking 决策至少包含：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">audio_state</span><br><span class="line">partial_transcript</span><br><span class="line">semantic end score</span><br><span class="line">silence_duration</span><br><span class="line">rollback_risk</span><br><span class="line">latency_budget</span><br><span class="line">decision</span><br></pre></td></tr></table></figure>
+
+<p><code>semantic end</code> 表示语义是否完成；<code>partial</code> 表示当前流式识别结果仍可能变化；<code>latency_budget</code> 控制系统为了更准愿意等多久。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>评测要同时看三类指标。</p>
+<p>第一类是交互延迟：用户停顿后多久系统响应，p95&#x2F;p99 是否可接受。</p>
+<p>第二类是打断率：系统是否在用户还没说完时抢答。</p>
+<p>第三类是漏接或慢接：用户已经说完但系统迟迟不响应。</p>
+<p>离线评测可以用标注的 turn boundary；在线评测还要记录 partial 变化、ASR 回滚、semantic end 分数和最终用户体验。</p>
+<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>静音不等于结束，语义完整也不等于可以接话。用户可能短暂停顿后继续补充，或者语义已经完整但还在列举条件。反过来，语义没有完全闭合时，系统也可能需要轻量反馈，以免交互显得停滞。</p>
+<p>所以 Turn-taking 不能脱离系统动作讨论。如果系统接话后可以取消或轻量回滚，策略可以激进一点；如果一旦开口就会明显打断，就必须保守。模型输出的不是“结束事实”，而是“行动风险”。</p>
+<p>低首包延迟和语义稳定也天然冲突。ASR partial 越早，越容易回滚；决策越稳，越可能慢。工程上应把识别层和决策层拆开：识别层尽早给候选，决策层用 partial 历史、回滚风险和 semantic end 分数决定是否接话。</p>
+<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>第一版评测应该从 timeline 回放做起。把音频能量、partial 文本、semantic end 分数、静音时长、候选边界、决策点和用户后续语音放在一条时间线上。只要能看到系统在什么信号组合下接话，阈值调整就不会变成盲调。</p>
+<p>错误样本按四类分桶：正确接话、过早接话、过晚接话、正确等待。过早和过晚不能合并，因为修复方向相反。过早需要提高语义完成阈值或回滚风险权重；过晚需要放松等待策略或降低模型延迟。</p>
+<h2 id="评测设计"><a href="#评测设计" class="headerlink" title="评测设计"></a>评测设计</h2><p>指标要同时包含动作质量和时间质量。动作质量看打断率、慢接率、漏接率、正确等待率。时间质量看 decision latency、first response latency、p95&#x2F;p99 和取消后的恢复时间。</p>
+<p>最终报告要能回答一个具体问题：当前策略是偏向“少打断但慢”，还是“快响应但抢话多”。没有这个取舍曲线，Turn-taking 指标就只是一堆阈值实验。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>同一个候选边界，600ms 接话和 900ms 接话可能都是“对”的，但代价不同。600ms 可能让交互更快，也可能在用户补充条件时抢话；900ms 更稳，却可能让用户重复或以为系统没听懂。Turn-taking 评测要比较的不是单点准确率，而是这条代价曲线。</p>
+<p>因此，每个错误样本都应该回放到时间线：系统在哪个 partial 上做了 decision，semantic end 当时多少，后续 partial 是否回滚，用户后面是否继续说。只看最终边界标签，会丢掉最关键的策略信息。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Turn-taking 不是 VAD 的别名，而是声学、语义和延迟预算共同决定的接话策略。先把 partial、semantic end、silence 和 latency 分开记录，再调阈值或训练模型。</p>
+<p>下一步阅读：<a href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/">LLM 与语音模型推理服务：先把延迟拆成可观测链路</a></p>
+]]></content>
+      <tags>
+        <tag>Open Source</tag>
+        <tag>ASR</tag>
+        <tag>Evaluation</tag>
+        <tag>Speech</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>PEFT 工程取舍：省参数只是入口，部署路径才是边界</title>
     <url>/2026/06/10/PEFT-Engineering-Tradeoffs/</url>
     <content><![CDATA[<p>PEFT 常被理解成“少训练一些参数”。这句话没错，但它只说了训练成本，没有说清楚工程边界。真正的选择不是参数越少越好，而是训练显存、适配能力、推理开销、上下文占用、版本管理和回滚方式之间的取舍。</p>
@@ -1269,44 +1504,6 @@
       </tags>
   </entry>
   <entry>
-    <title>实时语音 Turn-taking 评测：从端点检测到可接话判断</title>
-    <url>/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/</url>
-    <content><![CDATA[<p>实时语音系统里，判断用户“说完了”比看起来更难。静音不一定代表结束，短停顿可能只是思考；语义已经完整，也可能还会补充条件。Turn-taking 要解决的不是单纯端点检测，而是系统什么时候可以安全接话。</p>
-<span id="more"></span>
-
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>传统 VAD 或 endpointing 主要看声学静音。实时助手需要更复杂的判断：当前 partial 结果是否语义完整，用户是否可能继续说，系统现在接话是否会打断。</p>
-<p>如果判断过早，系统会抢话；判断过晚，交互 latency 会变差。这个 tradeoff 不能只靠经验阈值。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>Turn-taking 不是“检测用户说完”，而是在不确定输入下选择系统行动时机。</p>
-<p>静音、semantic end、partial 稳定性和 latency 都只是信号，真正的输出不是一个客观标签，而是“现在接话是否值得”。这个判断必须同时考虑抢话成本和等待成本。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一个 turn-taking 决策至少包含：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">audio_state</span><br><span class="line">partial_transcript</span><br><span class="line">semantic end score</span><br><span class="line">silence_duration</span><br><span class="line">rollback_risk</span><br><span class="line">latency_budget</span><br><span class="line">decision</span><br></pre></td></tr></table></figure>
-
-<p><code>semantic end</code> 表示语义是否完成；<code>partial</code> 表示当前流式识别结果仍可能变化；<code>latency_budget</code> 控制系统为了更准愿意等多久。</p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>评测要同时看三类指标。</p>
-<p>第一类是交互延迟：用户停顿后多久系统响应，p95&#x2F;p99 是否可接受。</p>
-<p>第二类是打断率：系统是否在用户还没说完时抢答。</p>
-<p>第三类是漏接或慢接：用户已经说完但系统迟迟不响应。</p>
-<p>离线评测可以用标注的 turn boundary；在线评测还要记录 partial 变化、ASR 回滚、semantic end 分数和最终用户体验。</p>
-<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>静音不等于结束，语义完整也不等于可以接话。用户可能短暂停顿后继续补充，或者语义已经完整但还在列举条件。反过来，语义没有完全闭合时，系统也可能需要轻量反馈，以免交互显得停滞。</p>
-<p>所以 Turn-taking 不能脱离系统动作讨论。如果系统接话后可以取消或轻量回滚，策略可以激进一点；如果一旦开口就会明显打断，就必须保守。模型输出的不是“结束事实”，而是“行动风险”。</p>
-<p>低首包延迟和语义稳定也天然冲突。ASR partial 越早，越容易回滚；决策越稳，越可能慢。工程上应把识别层和决策层拆开：识别层尽早给候选，决策层用 partial 历史、回滚风险和 semantic end 分数决定是否接话。</p>
-<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>第一版评测应该从 timeline 回放做起。把音频能量、partial 文本、semantic end 分数、静音时长、候选边界、决策点和用户后续语音放在一条时间线上。只要能看到系统在什么信号组合下接话，阈值调整就不会变成盲调。</p>
-<p>错误样本按四类分桶：正确接话、过早接话、过晚接话、正确等待。过早和过晚不能合并，因为修复方向相反。过早需要提高语义完成阈值或回滚风险权重；过晚需要放松等待策略或降低模型延迟。</p>
-<h2 id="评测设计"><a href="#评测设计" class="headerlink" title="评测设计"></a>评测设计</h2><p>指标要同时包含动作质量和时间质量。动作质量看打断率、慢接率、漏接率、正确等待率。时间质量看 decision latency、first response latency、p95&#x2F;p99 和取消后的恢复时间。</p>
-<p>最终报告要能回答一个具体问题：当前策略是偏向“少打断但慢”，还是“快响应但抢话多”。没有这个取舍曲线，Turn-taking 指标就只是一堆阈值实验。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>同一个候选边界，600ms 接话和 900ms 接话可能都是“对”的，但代价不同。600ms 可能让交互更快，也可能在用户补充条件时抢话；900ms 更稳，却可能让用户重复或以为系统没听懂。Turn-taking 评测要比较的不是单点准确率，而是这条代价曲线。</p>
-<p>因此，每个错误样本都应该回放到时间线：系统在哪个 partial 上做了 decision，semantic end 当时多少，后续 partial 是否回滚，用户后面是否继续说。只看最终边界标签，会丢掉最关键的策略信息。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>Turn-taking 不是 VAD 的别名，而是声学、语义和延迟预算共同决定的接话策略。先把 partial、semantic end、silence 和 latency 分开记录，再调阈值或训练模型。</p>
-<p>下一步阅读：<a href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/">LLM 与语音模型推理服务：先把延迟拆成可观测链路</a></p>
-]]></content>
-      <tags>
-        <tag>Open Source</tag>
-        <tag>ASR</tag>
-        <tag>Evaluation</tag>
-        <tag>Speech</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>音频模型 Batch 一致性排查：从有效输入区间到逐层 diff</title>
     <url>/2026/06/10/Speech-Batch-Consistency-Debugging/</url>
     <content><![CDATA[<p>同一个音频，batch size 不同却输出不同，这是音频模型排障里很典型的问题。它通常不是“模型随机性”一句话能解释的，而是 padding、mask、dtype、subsampling、归一化或缓存边界出了问题。</p>
@@ -1352,45 +1549,6 @@
       </tags>
   </entry>
   <entry>
-    <title>语音对话合成数据工程：Schema、口语化与质量闸门</title>
-    <url>/2026/06/11/Speech-Dialog-Data-Synthesis-Quality-Gates/</url>
-    <content><![CDATA[<p>合成对话数据的风险不是“生成得不够多”，而是生成得太像模板、太干净、太不符合语音输入的真实噪声。数量扩大很容易，难的是让样本既覆盖任务，又不把模型训练成只会回答标准文本。</p>
-<p>所以语音对话合成数据要先设计质量闸门，再谈规模。</p>
-<span id="more"></span>
-
-<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>对话数据要服务下游训练和评测。它既要有结构化 schema，保证字段、意图、实体和状态可控；又要有口语化表达，覆盖停顿、重复、自我修正、n-best 候选和 ASR 错误。</p>
-<p>如果只生成标准书面语，模型上线后会被真实口语击穿。如果只追求随机扰动，样本又会失去任务结构。</p>
-<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>合成语音对话数据真正要模拟的是不确定性，而不是生产更整齐的文本。</p>
-<p>对话数据越干净，越可能远离真实语音输入。真正有价值的合成样本，要同时保留 schema 约束、口语化扰动、n-best 不确定性、状态变化和失败原因。它不是文本扩增，而是一个可控的交互模拟器。</p>
-<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一条合成样本至少要包含：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">dialogue_id</span><br><span class="line">turns</span><br><span class="line">intent</span><br><span class="line">entities</span><br><span class="line">state</span><br><span class="line">n-best</span><br><span class="line">quality_flags</span><br><span class="line">reason code</span><br></pre></td></tr></table></figure>
-
-<p><code>quality_flags</code> 记录口语化、实体覆盖、逻辑一致性、敏感词、重复和异常格式。<code>reason code</code> 说明样本为什么保留、丢弃或需要人工复核。</p>
-<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>质量闸门可以分三层。</p>
-<p>第一层是 schema 校验：字段是否完整、实体是否在合法范围、状态转移是否合理。</p>
-<p>第二层是语言质量：是否过于模板化、是否包含自然口语、是否有重复和自我修正。</p>
-<p>第三层是训练影响：加入这批数据后，目标任务指标是否提升，错误类型是否减少，是否引入系统性偏差。</p>
-<p>每一批合成数据都应该能回溯到生成配置、过滤规则和评测结果。否则数据越多，问题越难定位。</p>
-<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>schema 越严格，不代表数据越好。schema 能保证字段合法，但也容易把样本变成模板填空。模型会学到固定字段顺序，却学不到真实输入里的停顿、重复、修正和候选歧义。</p>
-<p>口语化也不是随机加噪。随机插入口头词、重复句子或错别字，可能让文本看起来更像口语，却破坏实体、状态和轮次关系。好的生成流程应该是先生成结构化计划，再生成口语化表达，最后把表达回填到 schema 校验。如果回填失败，这条样本就应该带着 reason code 进入复核，而不是被静默丢弃。</p>
-<p>n-best 的价值也常被低估。语音输入里很多错误来自候选不确定性，而不是唯一 transcript 的文字错误。训练样本保留 n-best，可以让模型学会在模糊表达下维持状态。</p>
-<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>第一批数据不要追求数量，先跑一个小闭环：固定少量 schema，生成样本，做 schema 回填校验，抽查失败样本，再做一次增量训练。每条失败样本都标明原因：字段缺失、状态冲突、实体漂移、轮次不一致、表达模板化，或者过滤规则过严。</p>
-<p>如果加入合成数据后指标没有提升，先不要扩大规模。要看错误分布是否变化：是不是边界样本变好了但常规样本变差了，是不是状态跟踪改善但实体抽取下降了，是不是模型学到了模板口吻。</p>
-<h2 id="评测设计"><a href="#评测设计" class="headerlink" title="评测设计"></a>评测设计</h2><p>离线质量看 schema 通过率、字段覆盖率、实体合法率、轮次一致性、口语化比例、重复率和 quality_flags 分布。训练收益看目标任务指标、状态跟踪错误、实体抽取错误、异常输入恢复能力和真实口语样本泛化。</p>
-<p>最重要的是增量评测。一次只加入一批合成策略，记录它改善了哪类错误、引入了哪类新偏差。合成数据的目标不是让训练集变大，而是让错误类型变得可控。</p>
-<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一条合成样本可以先有结构化计划：这一轮要表达哪个 intent，哪些 entities 必须出现，状态从哪里转到哪里。随后再生成口语化表达，比如重复、停顿、自我修正和候选歧义。最后把生成表达重新解析回 schema：如果字段回填失败，这不是小瑕疵，而是训练目标已经漂移。</p>
-<p>这样的闭环能避免两类坏数据。第一类是漂亮但无效的文本，看起来像自然对话，实际状态对不上。第二类是合法但僵硬的模板，schema 全过，模型却学不到真实语音输入的不确定性。质量闸门要同时拦住这两类样本。</p>
-<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>语音对话合成数据的核心不是生成，而是质量治理。先把 schema、quality_flags、n-best、reason code 和评测回流建起来，再扩大规模。没有这些闸门，合成数据会把训练目标污染成系统性偏差。</p>
-<p>下一步阅读：<a href="/2026/06/10/ASR-Data-Quality-Pipeline-Open-Source/">ASR 数据质量流水线：伪标签、切分与可追溯评测</a></p>
-]]></content>
-      <tags>
-        <tag>Open Source</tag>
-        <tag>ASR</tag>
-        <tag>Data</tag>
-        <tag>Evaluation</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>语音大模型工程：音频 token、LLM 主干与对齐契约</title>
     <url>/2026/06/10/Speech-LLM-Audio-Token-Alignment/</url>
     <content><![CDATA[<p>语音大模型不是把 ASR encoder 接到 LLM 上就结束了。真正困难的是接口契约：音频如何被压成 token，token 如何进入 LLM，文本监督如何约束语音表示，流式场景又如何保证延迟和上下文一致。</p>
@@ -1432,6 +1590,224 @@
         <tag>Open Source</tag>
         <tag>ASR</tag>
         <tag>Speech</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>语音对话合成数据工程：Schema、口语化与质量闸门</title>
+    <url>/2026/06/11/Speech-Dialog-Data-Synthesis-Quality-Gates/</url>
+    <content><![CDATA[<p>合成对话数据的风险不是“生成得不够多”，而是生成得太像模板、太干净、太不符合语音输入的真实噪声。数量扩大很容易，难的是让样本既覆盖任务，又不把模型训练成只会回答标准文本。</p>
+<p>所以语音对话合成数据要先设计质量闸门，再谈规模。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>对话数据要服务下游训练和评测。它既要有结构化 schema，保证字段、意图、实体和状态可控；又要有口语化表达，覆盖停顿、重复、自我修正、n-best 候选和 ASR 错误。</p>
+<p>如果只生成标准书面语，模型上线后会被真实口语击穿。如果只追求随机扰动，样本又会失去任务结构。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>合成语音对话数据真正要模拟的是不确定性，而不是生产更整齐的文本。</p>
+<p>对话数据越干净，越可能远离真实语音输入。真正有价值的合成样本，要同时保留 schema 约束、口语化扰动、n-best 不确定性、状态变化和失败原因。它不是文本扩增，而是一个可控的交互模拟器。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>一条合成样本至少要包含：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">dialogue_id</span><br><span class="line">turns</span><br><span class="line">intent</span><br><span class="line">entities</span><br><span class="line">state</span><br><span class="line">n-best</span><br><span class="line">quality_flags</span><br><span class="line">reason code</span><br></pre></td></tr></table></figure>
+
+<p><code>quality_flags</code> 记录口语化、实体覆盖、逻辑一致性、敏感词、重复和异常格式。<code>reason code</code> 说明样本为什么保留、丢弃或需要人工复核。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>质量闸门可以分三层。</p>
+<p>第一层是 schema 校验：字段是否完整、实体是否在合法范围、状态转移是否合理。</p>
+<p>第二层是语言质量：是否过于模板化、是否包含自然口语、是否有重复和自我修正。</p>
+<p>第三层是训练影响：加入这批数据后，目标任务指标是否提升，错误类型是否减少，是否引入系统性偏差。</p>
+<p>每一批合成数据都应该能回溯到生成配置、过滤规则和评测结果。否则数据越多，问题越难定位。</p>
+<h2 id="反直觉点"><a href="#反直觉点" class="headerlink" title="反直觉点"></a>反直觉点</h2><p>schema 越严格，不代表数据越好。schema 能保证字段合法，但也容易把样本变成模板填空。模型会学到固定字段顺序，却学不到真实输入里的停顿、重复、修正和候选歧义。</p>
+<p>口语化也不是随机加噪。随机插入口头词、重复句子或错别字，可能让文本看起来更像口语，却破坏实体、状态和轮次关系。好的生成流程应该是先生成结构化计划，再生成口语化表达，最后把表达回填到 schema 校验。如果回填失败，这条样本就应该带着 reason code 进入复核，而不是被静默丢弃。</p>
+<p>n-best 的价值也常被低估。语音输入里很多错误来自候选不确定性，而不是唯一 transcript 的文字错误。训练样本保留 n-best，可以让模型学会在模糊表达下维持状态。</p>
+<h2 id="排障路径"><a href="#排障路径" class="headerlink" title="排障路径"></a>排障路径</h2><p>第一批数据不要追求数量，先跑一个小闭环：固定少量 schema，生成样本，做 schema 回填校验，抽查失败样本，再做一次增量训练。每条失败样本都标明原因：字段缺失、状态冲突、实体漂移、轮次不一致、表达模板化，或者过滤规则过严。</p>
+<p>如果加入合成数据后指标没有提升，先不要扩大规模。要看错误分布是否变化：是不是边界样本变好了但常规样本变差了，是不是状态跟踪改善但实体抽取下降了，是不是模型学到了模板口吻。</p>
+<h2 id="评测设计"><a href="#评测设计" class="headerlink" title="评测设计"></a>评测设计</h2><p>离线质量看 schema 通过率、字段覆盖率、实体合法率、轮次一致性、口语化比例、重复率和 quality_flags 分布。训练收益看目标任务指标、状态跟踪错误、实体抽取错误、异常输入恢复能力和真实口语样本泛化。</p>
+<p>最重要的是增量评测。一次只加入一批合成策略，记录它改善了哪类错误、引入了哪类新偏差。合成数据的目标不是让训练集变大，而是让错误类型变得可控。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>一条合成样本可以先有结构化计划：这一轮要表达哪个 intent，哪些 entities 必须出现，状态从哪里转到哪里。随后再生成口语化表达，比如重复、停顿、自我修正和候选歧义。最后把生成表达重新解析回 schema：如果字段回填失败，这不是小瑕疵，而是训练目标已经漂移。</p>
+<p>这样的闭环能避免两类坏数据。第一类是漂亮但无效的文本，看起来像自然对话，实际状态对不上。第二类是合法但僵硬的模板，schema 全过，模型却学不到真实语音输入的不确定性。质量闸门要同时拦住这两类样本。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>语音对话合成数据的核心不是生成，而是质量治理。先把 schema、quality_flags、n-best、reason code 和评测回流建起来，再扩大规模。没有这些闸门，合成数据会把训练目标污染成系统性偏差。</p>
+<p>下一步阅读：<a href="/2026/06/10/ASR-Data-Quality-Pipeline-Open-Source/">ASR 数据质量流水线：伪标签、切分与可追溯评测</a></p>
+]]></content>
+      <tags>
+        <tag>Open Source</tag>
+        <tag>ASR</tag>
+        <tag>Data</tag>
+        <tag>Evaluation</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>【Speech LLM Radar】2026-09-01 语音大模型技术雷达</title>
+    <url>/2026/09/01/Speech-LLM-Radar-2026-09-01/</url>
+    <content><![CDATA[<p>过去一个月，语音大模型最重要的变化不是合成声音又自然了一点，而是产品边界正在分叉：一条路线用专用 ASR 强化时间戳、说话人、热词和流式稳定性；另一条路线让原生语音模型持续监听、生成、插话和调用工具。两者解决的问题不同，不应该被一个“语音模型总分”混在一起比较。</p>
+<span id="more"></span>
+
+<h2 id="This-Week’s-Signal"><a href="#This-Week’s-Signal" class="headerlink" title="This Week’s Signal"></a>This Week’s Signal</h2><ul>
+<li><strong>Google 将专用语音识别重新做成独立生产模型（2026-08-26）</strong>：Gemini 3.5 Transcribe GA 分为非流式与 Live 两条路径。非流式版本支持 85+ 语言、说话人分离、词级时间戳和最多 1,000 个自定义词偏置；Live 版本通过 WebSocket 输出 interim&#x2F;final 结果，并提供多种 VAD 策略。这说明端到端语音对话变强之后，结构化转写仍需要可控、可审计的专用接口。(<a href="https://ai.google.dev/gemini-api/docs/changelog">Gemini API Release Notes</a>)</li>
+<li><strong>OpenAI GPT-Live 把实时语音从“轮次请求”改为持续推理（2026-07-08 &#x2F; 2026-08-03）</strong>：GPT-Live 采用全双工语音架构，可同时听和说；工程实现让媒体流保持连续，同时把工具或任务委派放到异步路径，避免阻塞当前对话。7 月 31 日更新还为支持的生成音频加入 SynthID 来源标记。(<a href="https://openai.com/index/introducing-gpt-live/">Introducing GPT-Live</a>, <a href="https://openai.com/index/continuous-voice-interaction-with-gpt-live/">Realtime system engineering</a>)</li>
+<li><strong>字节 SeedRealtime 把全双工扩展到音频、视觉和工具调用（2026-08-05）</strong>：模型持续融合音频、视频和时间信息，不再先把视觉或语音全部转成文本再判断；官方展示的目标包括区分旁人闲聊与真实指令、根据场景主动提醒，以及在对话中调用工具。它值得进入实时交互观察池，但官方端到端人评不能替代本地噪声、口音、多人和权限测试。(<a href="https://seed.bytedance.com/en/blog/seedrealtime-audio-visual-full-duplex-llm-released-toward-omni-modal-natural-interaction">SeedRealtime 官方发布</a>)</li>
+<li><strong>Qwen3-ASR 的本地部署入口趋于完整（2026-06-26）</strong>：0.6B 与 1.7B 模型支持 52 种语言及方言的识别和语言判断，配套 0.6B ForcedAligner；官方仓库新增 Transformers 原生支持与 <code>torch.compile</code>，并保留 vLLM、流式推理和微调路径。对中文私有化语音栈，它比只有云 API 的模型更适合作为可重放基线。(<a href="https://github.com/QwenLM/Qwen3-ASR">Qwen3-ASR 官方仓库</a>)</li>
+<li><strong>ElevenLabs 的近期更新集中在运行可靠性而非新榜单（2026-08-24）</strong>：Scribe Realtime 客户端改进错误传递、麦克风初始化失败清理、连接关闭和迟到音频帧处理；同时 CLI v1 允许把 Agent、工具和测试配置保存为文件。这个信号提示实时语音上线后的主要成本往往来自资源释放、断线和状态恢复。(<a href="https://elevenlabs.io/docs/changelog">ElevenLabs Changelog</a>)</li>
+<li><strong>全双工评测开始覆盖多轮、语言和领域差异（2026-07-31）</strong>：M3-DuplexBench 同时比较英语、日语、闲聊和多轮问答，并区分单轮、仅用户历史、teacher-forced 全上下文等设置。论文结果显示，不同模型存在不同的接话特征，增加上下文也不一定稳定改善结果。(<a href="https://arxiv.org/abs/2607.29125">M3-DuplexBench</a>)</li>
+</ul>
+<h2 id="国内语音大模型观察池"><a href="#国内语音大模型观察池" class="headerlink" title="国内语音大模型观察池"></a>国内语音大模型观察池</h2><p>本系列把“语音大模型”限定为至少覆盖语音理解、语音生成或实时交互中的一项，并且有官方模型、API、代码或技术报告可验证。国内固定观察池如下：</p>
+<table>
+<thead>
+<tr>
+<th>厂商 &#x2F; 模型</th>
+<th>主要方向</th>
+<th>当前位置</th>
+<th>持续观察点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>字节 SeedRealtime &#x2F; Seed Audio 1.0</td>
+<td>全双工音视频交互、场景音频生成</td>
+<td>Trial</td>
+<td>多人抗干扰、主动发言边界、工具调用权限、端到端延迟</td>
+</tr>
+<tr>
+<td>阿里 Qwen3-ASR &#x2F; Qwen-Omni</td>
+<td>ASR、强制对齐、端到端多模态语音</td>
+<td>Trial</td>
+<td>中文方言、流式 partial、本地吞吐、音频 token 预算</td>
+</tr>
+<tr>
+<td>阶跃 StepAudio 2.5</td>
+<td>统一 ASR、TTS 与 Realtime</td>
+<td>Watch</td>
+<td>单一模型跨三种运行模式时的质量与资源折中</td>
+</tr>
+<tr>
+<td>MiniMax Speech 2.8</td>
+<td>TTS、克隆、情绪与声音标签</td>
+<td>Trial</td>
+<td>中文韵律、克隆授权、首包延迟、长文本稳定性</td>
+</tr>
+<tr>
+<td>小米 MiMo-Audio &#x2F; MiMo-ASR</td>
+<td>开源音频理解、生成与 ASR</td>
+<td>Watch</td>
+<td>少样本泛化能否复现、6.25 Hz LLM 表征的效率收益</td>
+</tr>
+</tbody></table>
+<h2 id="Adopt"><a href="#Adopt" class="headerlink" title="Adopt"></a>Adopt</h2><ul>
+<li><p><strong>把专用 ASR 与原生全双工对话拆成两条路由</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：会议转写、字幕和结构化抽取需要稳定文本、时间戳和说话人；实时陪伴或语音 Agent 才需要重叠语音、插话和连续听说。</li>
+<li><strong>成熟度</strong>：高（两类模型均已有可用产品）。</li>
+<li><strong>风险</strong>：统一入口若隐藏底层路由，会让同一音频在不同任务下得到不可解释的结果。</li>
+<li><strong>下一步</strong>：定义 <code>transcribe</code> 与 <code>duplex_dialogue</code> 两个显式任务类型，禁止由模型根据 prompt 静默切换。</li>
+</ul>
+</li>
+<li><p><strong>把双工交互记录成可回放时间线</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：最终回答正确不代表交互正确；抢话、误触发、迟答和打断后继续说都发生在毫秒级时间线上。</li>
+<li><strong>成熟度</strong>：中高（已有公开评测框架可借鉴）。</li>
+<li><strong>风险</strong>：原始音频、说话人和工具调用日志同时落盘会扩大隐私面。</li>
+<li><strong>下一步</strong>：默认只保留脱敏事件：<code>audio_in/out</code> 区间、partial 变化、发言决策、barge-in、工具开始&#x2F;结束和取消结果；原音频单独设置短留存。</li>
+</ul>
+</li>
+<li><p><strong>给生成语音增加来源与授权字段</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：声音克隆和高度拟真人声已进入生产能力，只有音频文件而没有来源信息无法支持投诉、撤回或审计。</li>
+<li><strong>成熟度</strong>：中（部分平台已提供水印，跨平台标准仍不统一）。</li>
+<li><strong>风险</strong>：水印可能在转码、剪辑或混音后丢失。</li>
+<li><strong>下一步</strong>：产物侧同时保存 <code>provider</code>、<code>model</code>、<code>voice_id</code>、授权记录、生成时间和可用的水印验证结果，不把单一水印当作唯一证据。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Trial"><a href="#Trial" class="headerlink" title="Trial"></a>Trial</h2><ul>
+<li><p><strong>用 Qwen3-ASR 与 Gemini 3.5 Transcribe 建立本地 &#x2F; 云端双基线</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：前者提供可部署、可微调的中文基线，后者提供说话人、时间戳和热词能力完整的托管基线。</li>
+<li><strong>成熟度</strong>：高。</li>
+<li><strong>风险</strong>：语言覆盖、模型规模和 API 后处理不同，不能只比较一个总 WER。</li>
+<li><strong>下一步</strong>：固定 100 条中文样本，按普通话、方言、噪声、多人、热词、长音频分桶，记录 CER&#x2F;WER、时间戳偏差、说话人错误、首个 partial 延迟和最终稳定时间。</li>
+</ul>
+</li>
+<li><p><strong>做一次 SeedRealtime &#x2F; GPT-Live &#x2F; Gemini Live 风格的双工小样本评测</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：三条路线都强调自然实时对话，但产品演示无法回答中文停顿、多人闲聊和连续工具调用时谁更稳。</li>
+<li><strong>成熟度</strong>：中（产品可用性和区域入口不同）。</li>
+<li><strong>风险</strong>：模型版本、音频前端和网络条件会显著影响结果。</li>
+<li><strong>下一步</strong>：先跑 20 组脚本化场景：犹豫停顿、用户抢话、系统被打断、背景对话、同音词 + 视觉线索、工具调用中继续说；统一记录 premature response、false trigger、barge-in success、first-audio latency 和任务完成率。</li>
+</ul>
+</li>
+<li><p><strong>比较 MiniMax Speech 2.8 与 Eleven v3 的可控生成，而不是只听自然度</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：声音标签、情绪、停顿和克隆能力只有在文本规范化、实体读法和长段一致性可控时才适合生产。</li>
+<li><strong>成熟度</strong>：中高。</li>
+<li><strong>风险</strong>：主观试听容易忽略电话号码、金额、缩写和跨语言专名错误。</li>
+<li><strong>下一步</strong>：构造数字、URL、专名、情绪切换、长段落和中英混读集合，记录可懂度、实体准确率、首包延迟、长段音色漂移和人工偏好。(<a href="https://www.minimax.io/news/minimax-speech-28">MiniMax Speech 2.8</a>, <a href="https://elevenlabs.io/docs/overview/models">ElevenLabs Models</a>)</li>
+</ul>
+</li>
+</ul>
+<h2 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h2><ul>
+<li><strong>StepAudio 2.5 的统一模型路线</strong>：技术报告将 ASR、TTS 和 Realtime 视为同一音频语言模型的不同运行制度，值得观察统一表征是否真的降低系统复杂度，还是把三种任务的延迟与解码约束藏进更复杂的推理配置。(<a href="https://arxiv.org/abs/2605.23463">StepAudio 2.5 Technical Report</a>)</li>
+<li><strong>Seed Audio 1.0 的“完整声音场景”生成</strong>：它把语音、环境声和音效放进同一场景，并提供对话时间控制；更适合内容生产，不应直接等同于低延迟语音 Agent。(<a href="https://seed.bytedance.com/en/blog/from-speech-to-audio-creation-introducing-the-seed-audio-1-0-audio-creation-model">Seed Audio 1.0</a>)</li>
+<li><strong>MiMo-Audio 的少样本音频任务泛化</strong>：官方开源模型把 RVQ token 经 patch encoder 压到 6.25 Hz 供 LLM 建模，并提供理解、生成、编辑和评测工具；需验证其训练外任务表现是否能在公开权重上复现。(<a href="https://github.com/XiaomiMiMo/MiMo-Audio">MiMo-Audio</a>)</li>
+<li><strong>全双工训练数据的真实性</strong>：DuplexChat 等工作开始规模化构造分离说话人流，但播客分离与合成脚本不等于真实设备上的回声、串音、近讲和远讲分布。(<a href="https://arxiv.org/abs/2607.04941">DuplexChat</a>)</li>
+</ul>
+<h2 id="Hold-Risks"><a href="#Hold-Risks" class="headerlink" title="Hold&#x2F;Risks"></a>Hold&#x2F;Risks</h2><ul>
+<li><strong>暂缓用端到端全双工模型替换所有 VAD + ASR 链路</strong>：结构化转写、法务留痕和可编辑字幕仍优先选择可观察的专用识别路径。</li>
+<li><strong>暂缓用单一 MOS 或试听投票决定 TTS 上线</strong>：至少同时检查实体读法、长段一致性、跨语言发音、延迟和克隆授权。</li>
+<li><strong>暂缓让主动语音模型默认拥有写操作工具</strong>：能主动插话不等于应主动执行；工具权限仍需按读、写、破坏性动作分层。</li>
+<li><strong>暂缓保存无限期原始双工音频</strong>：先定义用途、留存期限、访问范围和删除路径，再开启生产级回放。</li>
+</ul>
+<h2 id="Practical-Stack-Adjustments"><a href="#Practical-Stack-Adjustments" class="headerlink" title="Practical Stack Adjustments"></a>Practical Stack Adjustments</h2><ol>
+<li>新增 <code>speech_task_type</code>：<code>transcribe</code>、<code>align</code>、<code>tts</code>、<code>duplex_dialogue</code>、<code>audio_scene</code>，每类绑定独立模型与验收指标。</li>
+<li>给实时链路增加统一事件账本：音频输入输出区间、partial&#x2F;final、turn decision、barge-in、false trigger、工具调用和取消状态。</li>
+<li>建立 100 条 ASR 分桶集与 20 组双工脚本集，国内外模型共用同一采样率、网络条件和超时预算。</li>
+<li>给所有合成语音产物附加模型、voice_id、授权、时间和来源验证元数据；原始授权材料与音频产物分开保存。</li>
+<li>先把 Qwen3-ASR 作为本地可重放基线，Gemini 3.5 Transcribe 作为云端能力上界，再决定是否引入额外识别服务。</li>
+<li>每月扫描国内 Seed、Qwen、StepAudio、MiniMax、MiMo 与海外 OpenAI、Google、ElevenLabs 的官方模型和运行时更新。</li>
+</ol>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><ul>
+<li>什么时候应该使用可解释的 ASR + LLM + TTS 级联，什么时候原生全双工模型的交互收益足以覆盖治理成本？</li>
+<li>如何同时评估语音内容是否正确、系统何时开口、被打断后是否恢复，以及工具是否越权？</li>
+<li>国内外模型的语言、网络、部署和计费条件不同，怎样构造公平且可复现的横向评测？</li>
+<li>高拟真语音与声音克隆进入常规 API 后，来源、授权、删除和审计如何成为默认工程字段？</li>
+</ul>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><ul>
+<li><code>perception</code>：ASR、说话人、时间戳、语言和音频事件识别。</li>
+<li><code>interaction</code>：turn-taking、backchannel、barge-in、误触发和恢复。</li>
+<li><code>generation</code>：音色、韵律、实体读法、情绪、延迟和长段稳定性。</li>
+<li><code>action</code>：语音意图触发的工具权限、异步任务和取消语义。</li>
+<li><code>governance</code>：授权、来源、水印、留存、可回放和删除路径。</li>
+</ul>
+<p>任何雷达信号都必须落到其中至少一层；只有模型名字、参数量或厂商自报总分而没有可验证工程入口的更新，不进入 Adopt 或 Trial。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><ol>
+<li>每周按 ASR、实时对话、TTS&#x2F;克隆、音频理解&#x2F;生成、评测与治理六类扫描官方来源。</li>
+<li>新模型先进入固定离线集；只有分桶指标可解释，才进入实时或用户试验。</li>
+<li>实时试验必须保存脱敏事件时间线，并能回放一次抢话、一次误触发、一次用户打断和一次工具取消。</li>
+<li>每次模型或 API 升级后重跑相同样本，差异按模型、网络、音频前端、VAD 和后处理五类归因。</li>
+<li>每季度做一次语音产物退出演练：撤销 voice_id、删除原音频、验证派生物和缓存是否可追踪。</li>
+</ol>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>语音大模型已经分成两种生产逻辑：专用 ASR 追求结构化、稳定和可审计，原生全双工模型追求连续感知、自然接话和边说边行动。首期雷达建议 Adopt 的不是某个单一模型，而是“任务显式路由 + 时间线回放 + 来源授权”三件基础设施；模型本身先用 Qwen3-ASR &#x2F; Gemini Transcribe 与 SeedRealtime &#x2F; GPT-Live 两组对照进入 Trial。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>未来半年语音栈的竞争重点会从单句 WER、MOS 和首包延迟，转向多轮状态、发言时机、干扰鲁棒性、工具协作与内容来源。全双工不会消灭 ASR；相反，越是端到端，越需要一条可重放的专用识别基线帮助定位模型到底听到了什么。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><ul>
+<li>同一段 800ms 停顿，专用 VAD 可能立即判停，语义 turn detector 可能继续等，全双工模型还可能先用 backchannel 表示在听。三者都可能合理，评测必须看用户后续行为而不是只看边界标签。</li>
+<li>一条多人会议音频即使最终文本 CER 很低，只要说话人归属或时间戳错误，就不能用于纪要追溯；这类任务优先专用 Transcribe，而不是原生语音聊天模型。</li>
+<li>一个 TTS 样本听起来很自然，但若金额、账号或药名读错，其生产价值可能低于声音略机械但实体准确的模型。自然度只能是评测的一列。</li>
+<li>如果用户打断正在调用工具的语音 Agent，而系统只停止播报、不取消写操作，交互层看似成功，行动层却已经失败；双工评测必须包含工具副作用。</li>
+</ul>
+<h2 id="下一步阅读："><a href="#下一步阅读：" class="headerlink" title="下一步阅读："></a>下一步阅读：</h2><ul>
+<li><a href="/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/">实时语音 Turn-taking 评测：从端点检测到可接话判断</a></li>
+<li><a href="/2026/06/10/Speech-LLM-Audio-Token-Alignment/">语音大模型工程：音频 token、LLM 主干与对齐契约</a></li>
+<li><a href="/2026/06/10/LLM-Speech-Inference-Serving-Observability/">LLM 与语音模型推理服务：队列、流式与可观测性</a></li>
+<li><a href="https://ai.google.dev/gemini-api/docs/changelog">Gemini 3.5 Transcribe Release Notes</a></li>
+<li><a href="https://openai.com/index/continuous-voice-interaction-with-gpt-live/">GPT-Live Realtime Engineering</a></li>
+<li><a href="https://seed.bytedance.com/en/blog/seedrealtime-audio-visual-full-duplex-llm-released-toward-omni-modal-natural-interaction">SeedRealtime</a></li>
+<li><a href="https://github.com/QwenLM/Qwen3-ASR">Qwen3-ASR</a></li>
+<li><a href="https://arxiv.org/abs/2607.29125">M3-DuplexBench</a></li>
+</ul>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>首期语音大模型雷达的关键词不是“更像真人”，而是“路由、时机、恢复与来源”。先把专用 ASR 和全双工对话分开评测，把音频事件与工具副作用放进同一时间线，再讨论哪个模型进入主栈。国内 Seed、Qwen、StepAudio、MiniMax、MiMo 与海外 OpenAI、Google、ElevenLabs 将使用同一套工程口径持续跟踪。</p>
+]]></content>
+      <tags>
+        <tag>AI</tag>
+        <tag>LLM</tag>
+        <tag>ASR</tag>
+        <tag>Evaluation</tag>
+        <tag>Speech</tag>
+        <tag>China AI</tag>
+        <tag>TTS</tag>
+        <tag>Realtime</tag>
       </tags>
   </entry>
   <entry>
