@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/AlanFangicon32X32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/AlanFangicon16X16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="上周信号的重心依然在“可观测化成本治理 + 可恢复执行环境 + Agent 复核能力”。对个人栈来说，方向是先把账务透明、运行可回放和越权风险降下来，再谈新模型与新能力。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Agent Engineering Radar】2026-09-09 Agent 工程技术雷达">
+<meta property="og:url" content="https://alanfangblog.com/2026/09/09/Agent-Engineering-Radar-2026-09-09/index.html">
+<meta property="og:site_name" content="AlanFangBlog">
+<meta property="og:description" content="上周信号的重心依然在“可观测化成本治理 + 可恢复执行环境 + Agent 复核能力”。对个人栈来说，方向是先把账务透明、运行可回放和越权风险降下来，再谈新模型与新能力。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-09-09T01:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-09T02:51:11.853Z">
+<meta property="article:author" content="Alan Fang">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="Benchmark">
+<meta property="article:tag" content="Coding">
+<meta property="article:tag" content="Engineering">
+<meta property="article:tag" content="Governance">
+<meta property="article:tag" content="MCP">
+<meta property="article:tag" content="Observability">
+<meta property="article:tag" content="RAG">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://alanfangblog.com/2026/09/09/Agent-Engineering-Radar-2026-09-09/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2026/09/09/Agent-Engineering-Radar-2026-09-09/","path":"2026/09/09/Agent-Engineering-Radar-2026-09-09/","title":"【Agent Engineering Radar】2026-09-09 Agent 工程技术雷达"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>【Agent Engineering Radar】2026-09-09 Agent 工程技术雷达 | AlanFangBlog</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">AlanFangBlog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#This-Week%E2%80%99s-Signal"><span class="nav-number">1.</span> <span class="nav-text">This Week’s Signal</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Adopt"><span class="nav-number">2.</span> <span class="nav-text">Adopt</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Trial"><span class="nav-number">3.</span> <span class="nav-text">Trial</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Watch"><span class="nav-number">4.</span> <span class="nav-text">Watch</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hold-Risks"><span class="nav-number">5.</span> <span class="nav-text">Hold&#x2F;Risks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Practical-Stack-Adjustments"><span class="nav-number">6.</span> <span class="nav-text">Practical Stack Adjustments</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">7.</span> <span class="nav-text">结论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">8.</span> <span class="nav-text">直接结论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E5%88%A4%E6%96%AD"><span class="nav-number">9.</span> <span class="nav-text">主线判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B7%E6%9C%AC%E6%8E%A8%E6%BC%94"><span class="nav-number">10.</span> <span class="nav-text">小样本推演</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">11.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">12.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">13.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8B%E4%B8%80%E6%AD%A5%E9%98%85%E8%AF%BB%EF%BC%9A"><span class="nav-number">14.</span> <span class="nav-text">下一步阅读：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%9D%A5%E6%BA%90"><span class="nav-number">15.</span> <span class="nav-text">参考来源</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Alan Fang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/09/09/Agent-Engineering-Radar-2026-09-09/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Alan Fang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="【Agent Engineering Radar】2026-09-09 Agent 工程技术雷达 | AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【Agent Engineering Radar】2026-09-09 Agent 工程技术雷达
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2026-09-09 09:00:00 / Modified: 10:51:11" itemprop="dateCreated datePublished" datetime="2026-09-09T09:00:00+08:00">2026-09-09</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>上周信号的重心依然在“可观测化成本治理 + 可恢复执行环境 + Agent 复核能力”。对个人栈来说，方向是先把账务透明、运行可回放和越权风险降下来，再谈新模型与新能力。</p>
+<span id="more"></span>
+
+<h2 id="This-Week’s-Signal"><a href="#This-Week’s-Signal" class="headerlink" title="This Week’s Signal"></a>This Week’s Signal</h2><ul>
+<li>Cloudflare AI Gateway 在 9 月 1 日发布了账单与日志标准化：同模型按月发票改为单条总成本、日志中的模型名改为统一 <code>provider/model</code>，把异常排查和预算归因从“凭感觉”变成可程序化比对。(<a target="_blank" rel="noopener" href="https://developers.cloudflare.com/changelog/post/2026-09-01-billing-and-model-names/">AI Gateway consolidates monthly usage invoice line items and standardizes model names</a>)</li>
+<li>Cloudflare AI Changelog 9 月 2 日同步了 <code>Cursor</code> 在 Cloudflare 的 self-hosted 运行模式：<code>Cursor</code> 会话可在 Cloudflare Containers 中隔离运行，且由平台托管命令、文件、仓库与工具操作。(<a target="_blank" rel="noopener" href="https://developers.cloudflare.com/changelog/post/2026-09-02-cursor-cloud-agents/">Run Cursor Cloud Agents on Cloudflare via self-hosted machines</a>)</li>
+<li>Qwen Code 9 月 3 日官博更新（稳定版 v0.22.3 &#x2F; v0.23.0）强调了三类工程可落地能力：<code>Goal</code> 自动预算控制与交接、输出风格可切换、以及 Web Shell 内置终端；配套 PR 指标显示工具与会话流管理方向继续强化。(<a target="_blank" rel="noopener" href="https://qwenlm.github.io/qwen-code-docs/en/blog/updates/weekly-update-2026-09-03/">Qwen Code Weekly: Pick How the AI Talks to You, DingTalk Bot Sends Files, Web Shell Gets a Built-in Terminal</a>)</li>
+<li>9 月 4 日发布的论文综述（<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.04894">From Language Models to World-Acting Systems</a>）对“模型能力≠可持续代理可靠性”做了明确边界：它把重点放在可复现行为、持久化状态、权限边界与人类接管路径的一致性，而不只是单次指标。这为本周评测框架补齐了方向性约束。</li>
+</ul>
+<h2 id="Adopt"><a href="#Adopt" class="headerlink" title="Adopt"></a>Adopt</h2><ul>
+<li><p><strong>先从账单与日志统一化开始做治理基础</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：跨模型、多项目计费长期靠手工对齐最容易出错；统一后的模型标识和单模型汇总可直接接成本告警、SLA 看板和审批记录。</li>
+<li><strong>成熟度</strong>：高（官方更新且文档齐全）。</li>
+<li><strong>风险</strong>：细分账单被聚合后，短期看不见单 token 成本细分。需要保留原始日志与 usage 抽样。</li>
+<li><strong>下一步</strong>：在 <code>agent</code> 运行路径的 CI&#x2F;排查脚本里，把 Cloudflare AI Gateway 的 <code>provider/model</code> 与 <code>user_id</code> 维度打进统一账本，不再按旧前缀字段做关键决策。</li>
+</ul>
+</li>
+<li><p><strong>按场景引入 Cloudflare 托管自托管 Agent 容器</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：隔离会话 + 平台托管工具执行，能降低“单机环境污染”和本地秘钥外泄联动风险。</li>
+<li><strong>成熟度</strong>：中高（官方流程和模板可执行）。</li>
+<li><strong>风险</strong>：迁移成本和额外运行时成本可观；调试路径比本地更长。</li>
+<li><strong>下一步</strong>：先给非关键任务开单支线：例如文档抓取、日报生成，把“每次会话”转到自托管后与本地工具链对比成功率与成本。</li>
+</ul>
+</li>
+<li><p><strong>把 Qwen 的 Goal&#x2F;预算模型作为“可接管自动化”先导试点</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：长任务能被预算切断并留下交接摘要，有利于失败恢复与人工追溯。</li>
+<li><strong>成熟度</strong>：中（稳定版发布，功能已上线）。</li>
+<li><strong>风险</strong>：预算策略设置不当会出现过早中断。</li>
+<li><strong>下一步</strong>：设置固定 token 预算阈值（例如 4k&#x2F;16k&#x2F;64k 三档）并在同一任务上对比无预算模式的成功率与中断成本。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Trial"><a href="#Trial" class="headerlink" title="Trial"></a>Trial</h2><ul>
+<li><p><strong>把 AI Gateway 账单聚合打通到本地预算警报</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：将日志统一命名和月度单模型总额与现有告警模型结合，能更快识别“账单漂移”。</li>
+<li><strong>成熟度</strong>：中高。</li>
+<li><strong>风险</strong>：模型总成本视角会掩盖某些会话级异常。</li>
+<li><strong>下一步</strong>：在 7 天内跑一轮：对比“按调用方维度”与“按任务维度”的告警命中率，观察误报率是否下降。</li>
+</ul>
+</li>
+<li><p><strong>把 <code>Goal</code> 的接管摘要接进工程流程</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：从“任务中断后重新解释上下文”转成“从摘要恢复”，对长链路维护负担影响大。</li>
+<li><strong>成熟度</strong>：中。</li>
+<li><strong>风险</strong>：摘要质量取决于模型策略，不保证一致性。</li>
+<li><strong>下一步</strong>：在三种任务类型（调研、修复、重构）里强制保存摘要后只做人工接管点对比，不接入新模型不再回放历史。</li>
+</ul>
+</li>
+<li><p><strong>将 Qwen Web Shell 的内置终端作为轻量工具工作台试用</strong></p>
+<ul>
+<li><strong>为什么重要</strong>：聊天上下文和命令执行分离后，误操作恢复点更清晰。</li>
+<li><strong>成熟度</strong>：中高。</li>
+<li><strong>风险</strong>：多会话并发时权限边界与工作目录污染。</li>
+<li><strong>下一步</strong>：在非生产仓库启用“只读命令白名单 + 会话独占目录”后，先做 5–10 个 routine 任务。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h2><ul>
+<li><strong>Cloudflare 的自托管路径是否与现有安全策略兼容</strong>：目前是基础设施层能力，是否真正覆盖 Secret 注入、最小权限、日志留痕和回收策略尚未在同一篇公告中完整落地。</li>
+<li><strong>账单单模型总额是否影响成本归因精细度</strong>：若没有额外字段补齐，模型级成本会掩盖“请求粒度成本异常”。</li>
+<li><strong>Qwen 的输出风格与自动化质量关系</strong>：可配置输出风格和中间复核机制是提升可操作性，但是否在长任务中降低错解风险仍需对照指标。</li>
+<li><strong>代理能力评估是否从“高分榜单”转向“恢复能力”</strong>：最新综述强调代理能力验证应更关注权限、状态与恢复；这类指标是否能融入常规栈评测仍待实践验证。</li>
+</ul>
+<h2 id="Hold-Risks"><a href="#Hold-Risks" class="headerlink" title="Hold&#x2F;Risks"></a>Hold&#x2F;Risks</h2><ul>
+<li>不要把“账单聚合即治理完成”当结论；账单可见性是入口，不是安全控制。</li>
+<li>不建议将所有个人项目一次性切换到 Cloudflare 托管会话；先做 10% 流量灰度。</li>
+<li>不要把 <code>Goal</code> 的预算自动停机作为唯一生产保护；必须保留可追责的人工确认点和手动暂停开关。</li>
+</ul>
+<h2 id="Practical-Stack-Adjustments"><a href="#Practical-Stack-Adjustments" class="headerlink" title="Practical Stack Adjustments"></a>Practical Stack Adjustments</h2><ol>
+<li>在本地日志 schema 增加 <code>provider/model</code> + <code>user_id</code> + <code>task_tag</code>，并要求 AI Gateway 导出的成本与 trace 能跨表 join。</li>
+<li>先按“非关键任务”建立 Cloudflare 自托管会话跑道，限定最小命令集与 24 小时超时。</li>
+<li>给长任务链路新增 <code>handoff_note</code> 接口，要求每次预算暂停后写入状态、已完成动作、下一步计划。</li>
+<li>Qwen 的 <code>Goal</code>、<code>Workflow</code> 与 MCP 工具调用链做一次并行对照：同一任务比较成功率、人工接管次数、补交互次数。</li>
+<li>用 arXiv 综述提出的“复现 + 状态一致性 + 权限边界”三件套重写每周评测表，不再只看一次成功率。</li>
+</ol>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>这周建议的技术优先级是：</p>
+<ul>
+<li><strong>治理先行</strong>（统一账单与日志）；</li>
+<li><strong>执行可恢复</strong>（目标预算 + 交接摘要）；</li>
+<li><strong>再谈扩展能力</strong>（自托管会话与输出工作流）。</li>
+</ul>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><ul>
+<li>可以继续周更，但本周新增内容不再是“新模型”竞争，而是“统一成本、会话恢复与接管能力”三线并进。</li>
+</ul>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><ul>
+<li>先把治理与可恢复性落在默认路径；扩展新能力必须附带最低成本、最低权限、可审计的闭环。</li>
+</ul>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><ul>
+<li>预计 1 周内将 10% 长任务迁移到自托管会话，若预算超支率下降明显而手工接管率不升，说明治理方向有效；若人工接管上升则先回退会话规模。</li>
+</ul>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><ul>
+<li>自托管会话对本地工具链和秘钥注入的兼容边界是什么？</li>
+<li>单次预算暂停能否显著提升恢复效率，而不引入更高的人为决策成本？</li>
+<li>账单统一字段后，是否需要再引入更细粒度的请求标签来满足审计追溯。</li>
+</ul>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><ul>
+<li><code>billing_governance</code>：以 <code>provider/model</code> 与 <code>user_id</code> 做主标签，绑定 budget 与告警策略。</li>
+<li><code>goal_runtime</code>：把长任务 <code>Goal</code> 切分成可中断&#x2F;可恢复段落，输出 <code>handoff_note</code>。</li>
+<li><code>agent_portability</code>：会话迁移时保留最少命令日志与上下文快照，避免一次性上下文丢失。</li>
+</ul>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><ol>
+<li>这周完成一个非关键项目链路的 Cloudflare 自托管试点：对比错误恢复时间与成本。</li>
+<li>下一周把 Qwen <code>Goal</code> + <code>handoff_note</code> 的接管机制加入 3 个任务类型（read-only&#x2F;fix&#x2F;refactor）的固定脚本。</li>
+<li>同步上线一个最小告警面板：预算偏离、会话中断、权限拒绝三类指标。</li>
+<li>生成并执行简表，确保 <code>public post</code> 发布前通过“要解决的问题”五项自检。</li>
+</ol>
+<h2 id="下一步阅读："><a href="#下一步阅读：" class="headerlink" title="下一步阅读："></a>下一步阅读：</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/changelog/post/2026-09-01-billing-and-model-names/">Cloudflare AI Gateway billing 与模型名标准化公告</a></li>
+<li><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/changelog/post/2026-09-02-cursor-cloud-agents/">Cloudflare Cursor Cloud Agents self-hosted 公告</a></li>
+<li><a target="_blank" rel="noopener" href="https://qwenlm.github.io/qwen-code-docs/en/blog/updates/weekly-update-2026-09-03/">Qwen Code 周报（09-03）</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.04894">From Language Models to World-Acting Systems（2609.04894）</a></li>
+</ul>
+<h2 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/changelog/post/2026-09-01-billing-and-model-names/">AI Gateway consolidates monthly usage invoice line items and standardizes model names</a></li>
+<li><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/changelog/product-group/ai/">AI Changelog (September entries)</a></li>
+<li><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/changelog/post/2026-09-02-cursor-cloud-agents/">Run Cursor Cloud Agents on Cloudflare via self-hosted machines</a></li>
+<li><a target="_blank" rel="noopener" href="https://qwenlm.github.io/qwen-code-docs/en/blog/updates/weekly-update-2026-09-03/">Qwen Code Weekly: Pick How the AI Talks to You, DingTalk Bot Sends Files, Web Shell Gets a Built-in Terminal</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.04894">From Language Models to World-Acting Systems: Progress and Limits of Agentic AI across Digital, Social, Virtual, and Physical Environments</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/AI/" rel="tag"># AI</a>
+              <a href="/tags/RAG/" rel="tag"># RAG</a>
+              <a href="/tags/Agent/" rel="tag"># Agent</a>
+              <a href="/tags/Engineering/" rel="tag"># Engineering</a>
+              <a href="/tags/MCP/" rel="tag"># MCP</a>
+              <a href="/tags/Benchmark/" rel="tag"># Benchmark</a>
+              <a href="/tags/Observability/" rel="tag"># Observability</a>
+              <a href="/tags/Governance/" rel="tag"># Governance</a>
+              <a href="/tags/Coding/" rel="tag"># Coding</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/09/01/Speech-LLM-Radar-2026-09-01/" rel="prev" title="【Speech LLM Radar】2026-09-01 语音大模型技术雷达">
+                  <i class="fa fa-angle-left"></i> 【Speech LLM Radar】2026-09-01 语音大模型技术雷达
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments giscus-container">
+  <div class="giscus"></div>
+  <script src="https://giscus.app/client.js"
+        data-repo="fclearner/fclearner.github.io"
+        data-repo-id="MDEwOlJlcG9zaXRvcnkxOTQwMTgyMjk="
+        data-category="Announcements"
+        data-category-id="DIC_kwDOC5B7tc4C-7pW"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+  </script>
+</div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Alan Fang</span>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

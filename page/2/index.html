@@ -165,7 +165,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -187,6 +187,90 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/06/10/Speech-Batch-Consistency-Debugging/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Alan Fang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/06/10/Speech-Batch-Consistency-Debugging/" class="post-title-link" itemprop="url">音频模型 Batch 一致性排查：从有效输入区间到逐层 diff</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2026-06-10 18:10:00" itemprop="dateCreated datePublished" datetime="2026-06-10T18:10:00+08:00">2026-06-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-06-18 19:17:15" itemprop="dateModified" datetime="2026-06-18T19:17:15+08:00">2026-06-18</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>同一个音频，batch size 不同却输出不同，这是音频模型排障里很典型的问题。它通常不是“模型随机性”一句话能解释的，而是 padding、mask、dtype、subsampling、归一化或缓存边界出了问题。</p>
+<p>排查这类问题，关键是把有效输入区间和逐层差异记录下来。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/06/10/Speech-Batch-Consistency-Debugging/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -921,90 +1005,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2026/06/10/AI-Adaptive-RAG-Retrieval-Scheduling/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/06/09/PVAD2-engineering-loop/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Alan Fang">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | AlanFangBlog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/06/09/PVAD2-engineering-loop/" class="post-title-link" itemprop="url">Personal VAD 2.0 工程化：把目标说话人判断做成闭环</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2026-06-09 14:30:00" itemprop="dateCreated datePublished" datetime="2026-06-09T14:30:00+08:00">2026-06-09</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-06-18 19:17:15" itemprop="dateModified" datetime="2026-06-18T19:17:15+08:00">2026-06-18</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>普通 VAD 只回答“这里有没有人声”。Personal VAD 要回答更难的问题：这里有没有目标说话人的声音。这个差异会把任务从声学检测推进到说话人条件建模。</p>
-<p>项目代码可参考：<a target="_blank" rel="noopener" href="https://github.com/fclearner/Personal-vad-2.0">Personal-vad-2.0</a></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2026/06/09/PVAD2-engineering-loop/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
