@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/AlanFangicon32X32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/AlanFangicon16X16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="按工具连接、智能体协作、客户端交互、实时语音与商务交易分层，梳理智能体协议及其截至 2026 年 9 月的进展。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="智能体协议全景：从三种 ACP、MCP、A2A 到实时语音交互">
+<meta property="og:url" content="https://alanfangblog.com/2026/09/13/agent-protocols-and-realtime-voice-2026/index.html">
+<meta property="og:site_name" content="AlanFangBlog">
+<meta property="og:description" content="按工具连接、智能体协作、客户端交互、实时语音与商务交易分层，梳理智能体协议及其截至 2026 年 9 月的进展。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-09-13T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-13T04:00:00.000Z">
+<meta property="article:author" content="Alan Fang">
+<meta property="article:tag" content="A2A">
+<meta property="article:tag" content="ACP">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="MCP">
+<meta property="article:tag" content="Voice">
+<meta property="article:tag" content="WebRTC">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://alanfangblog.com/2026/09/13/agent-protocols-and-realtime-voice-2026/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2026/09/13/agent-protocols-and-realtime-voice-2026/","path":"2026/09/13/agent-protocols-and-realtime-voice-2026/","title":"智能体协议全景：从三种 ACP、MCP、A2A 到实时语音交互"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>智能体协议全景：从三种 ACP、MCP、A2A 到实时语音交互 | AlanFangBlog</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">AlanFangBlog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A3%80%E7%B4%A2%E8%8C%83%E5%9B%B4%E4%B8%8E%E9%98%85%E8%AF%BB%E6%96%B9%E5%BC%8F"><span class="nav-number">1.1.</span> <span class="nav-text">检索范围与阅读方式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E5%88%A4%E6%96%AD"><span class="nav-number">2.</span> <span class="nav-text">主线判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1%EF%BC%9A%E5%8D%8F%E8%AE%AE%E5%88%86%E5%88%AB%E8%BF%9E%E6%8E%A5%E4%BB%80%E4%B9%88"><span class="nav-number">3.</span> <span class="nav-text">最小抽象：协议分别连接什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81ACP-%E5%88%B0%E5%BA%95%E6%98%AF%E5%93%AA%E4%B8%80%E4%B8%AA"><span class="nav-number">4.</span> <span class="nav-text">二、ACP 到底是哪一个</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Agent-Client-Protocol%EF%BC%9A%E8%AE%A9%E7%BC%96%E8%BE%91%E5%99%A8%E6%8E%A5%E5%85%A5%E4%B8%8D%E5%90%8C%E7%BC%96%E7%A0%81%E6%99%BA%E8%83%BD%E4%BD%93"><span class="nav-number">4.1.</span> <span class="nav-text">1. Agent Client Protocol：让编辑器接入不同编码智能体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Agent-Communication-Protocol%EF%BC%9A%E5%B7%B2%E5%B9%B6%E5%85%A5-A2A-%E7%9A%84%E6%97%A7%E8%B7%AF%E7%BA%BF"><span class="nav-number">4.2.</span> <span class="nav-text">2. Agent Communication Protocol：已并入 A2A 的旧路线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Agentic-Commerce-Protocol%EF%BC%9A%E8%B4%AD%E7%89%A9%E7%BB%93%E8%B4%A6%E7%9A%84-ACP"><span class="nav-number">4.3.</span> <span class="nav-text">3. Agentic Commerce Protocol：购物结账的 ACP</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%B7%A5%E5%85%B7%E3%80%81%E4%BB%BB%E5%8A%A1%E4%B8%8E%E5%BC%80%E6%94%BE%E7%BD%91%E7%BB%9C%EF%BC%9AMCP%E3%80%81A2A%E3%80%81ANP"><span class="nav-number">5.</span> <span class="nav-text">三、工具、任务与开放网络：MCP、A2A、ANP</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MCP%EF%BC%9A%E6%8A%8A%E5%B7%A5%E5%85%B7%E5%92%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E6%8E%A5%E5%88%B0%E5%BA%94%E7%94%A8%E4%B8%AD"><span class="nav-number">5.1.</span> <span class="nav-text">MCP：把工具和上下文接到应用中</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#A2A%EF%BC%9A%E6%8A%8A%E5%B7%A5%E4%BD%9C%E4%BA%A4%E7%BB%99%E4%B8%80%E4%B8%AA%E7%8B%AC%E7%AB%8B%E6%99%BA%E8%83%BD%E4%BD%93"><span class="nav-number">5.2.</span> <span class="nav-text">A2A：把工作交给一个独立智能体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ANP%EF%BC%9A%E6%8A%8A%E8%BA%AB%E4%BB%BD%E4%B8%8E%E5%8F%91%E7%8E%B0%E6%89%A9%E5%B1%95%E5%88%B0%E5%BC%80%E6%94%BE%E7%BD%91%E7%BB%9C"><span class="nav-number">5.3.</span> <span class="nav-text">ANP：把身份与发现扩展到开放网络</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E7%94%A8%E6%88%B7%E6%80%8E%E4%B9%88%E5%8F%82%E4%B8%8E%EF%BC%9AAG-UI-%E4%B8%8E-A2UI"><span class="nav-number">6.</span> <span class="nav-text">四、用户怎么参与：AG-UI 与 A2UI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AG-UI%EF%BC%9A%E4%BC%A0%E9%80%92%E5%B7%A5%E4%BD%9C%E8%BF%87%E7%A8%8B%E4%B8%8E%E7%94%A8%E6%88%B7%E4%BA%A4%E4%BA%92"><span class="nav-number">6.1.</span> <span class="nav-text">AG-UI：传递工作过程与用户交互</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#A2UI%EF%BC%9A%E6%8F%8F%E8%BF%B0%E5%BA%94%E8%AF%A5%E6%98%BE%E7%A4%BA%E4%BB%80%E4%B9%88%E7%95%8C%E9%9D%A2"><span class="nav-number">6.2.</span> <span class="nav-text">A2UI：描述应该显示什么界面</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E5%AE%9E%E6%97%B6%E8%AF%AD%E9%9F%B3%EF%BC%9A%E5%85%88%E5%8C%BA%E5%88%86%E5%9B%9B%E4%B8%AA%E5%B1%82%E6%AC%A1"><span class="nav-number">7.</span> <span class="nav-text">五、实时语音：先区分四个层次</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-WebRTC%E3%80%81WebSocket%E3%80%81SIP-%E5%88%86%E5%88%AB%E5%81%9A%E4%BB%80%E4%B9%88"><span class="nav-number">7.1.</span> <span class="nav-text">1. WebRTC、WebSocket、SIP 分别做什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-RTVI%EF%BC%9A%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%90%86%E8%A7%A3%E5%AF%B9%E8%AF%9D%E5%90%8E%E7%AB%AF%E5%9C%A8%E5%81%9A%E4%BB%80%E4%B9%88"><span class="nav-number">7.2.</span> <span class="nav-text">2. RTVI：客户端理解对话后端在做什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%A8%A1%E5%9E%8B%E5%8E%82%E5%95%86%E7%9A%84%E5%AE%9E%E6%97%B6-API%EF%BC%9A%E6%8E%A5%E5%8F%A3%E5%85%AC%E5%BC%80%EF%BC%8C%E4%BD%86%E4%B8%8D%E6%98%AF%E5%85%B1%E5%90%8C%E6%A0%87%E5%87%86"><span class="nav-number">7.3.</span> <span class="nav-text">3. 模型厂商的实时 API：接口公开，但不是共同标准</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-Open-Floor-Protocol%EF%BC%9A%E5%A4%9A%E4%B8%AA%E5%AF%B9%E8%AF%9D%E5%8A%A9%E6%89%8B%E5%A6%82%E4%BD%95%E6%8E%A5%E5%8A%9B"><span class="nav-number">7.4.</span> <span class="nav-text">4. Open Floor Protocol：多个对话助手如何接力</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B7%E6%9C%AC%E6%8E%A8%E6%BC%94%EF%BC%9A%E6%89%93%E6%96%AD%E5%90%8E%E7%9A%84%E7%8A%B6%E6%80%81%E4%B8%80%E8%87%B4%E6%80%A7"><span class="nav-number">8.</span> <span class="nav-text">小样本推演：打断后的状态一致性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E5%95%86%E5%8A%A1%E5%9C%BA%E6%99%AF%EF%BC%9AACP%E3%80%81UCP%E3%80%81AP2-%E7%9A%84%E5%88%86%E5%B7%A5"><span class="nav-number">9.</span> <span class="nav-text">六、商务场景：ACP、UCP、AP2 的分工</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E6%88%AA%E8%87%B3%E6%A3%80%E7%B4%A2%E6%97%A5%EF%BC%8C%E5%93%AA%E4%BA%9B%E6%9B%B4%E6%96%B0%E6%9C%80%E5%80%BC%E5%BE%97%E8%AE%B0%E4%BD%8F"><span class="nav-number">10.</span> <span class="nav-text">七、截至检索日，哪些更新最值得记住</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF%EF%BC%9A%E5%A6%82%E4%BD%95%E6%8C%89%E9%9C%80%E6%B1%82%E9%80%89%E5%9E%8B"><span class="nav-number">11.</span> <span class="nav-text">工程闭环：如何按需求选型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">12.</span> <span class="nav-text">直接结论</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Alan Fang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/09/13/agent-protocols-and-realtime-voice-2026/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Alan Fang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="智能体协议全景：从三种 ACP、MCP、A2A 到实时语音交互 | AlanFangBlog">
+      <meta itemprop="description" content="按工具连接、智能体协作、客户端交互、实时语音与商务交易分层，梳理智能体协议及其截至 2026 年 9 月的进展。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          智能体协议全景：从三种 ACP、MCP、A2A 到实时语音交互
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2026-09-13 12:00:00" itemprop="dateCreated datePublished" datetime="2026-09-13T12:00:00+08:00">2026-09-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/" itemprop="url" rel="index"><span itemprop="name">人工智能</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">按工具连接、智能体协作、客户端交互、实时语音与商务交易分层，梳理智能体协议及其截至 2026 年 9 月的进展。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>智能体领域最近出现了大量协议缩写：MCP、A2A、ACP、AG-UI、A2UI、RTVI……<br>如果只看名字，很容易以为它们都在解决“让两个 AI 对话”这件事。<br>实际接入时才会发现，有的连接编辑器和编码助手，有的描述远程任务，有的传递界面状态，<br>还有的负责语音会话中的说话、打断和交接。</p>
+<p>理解这些协议，可以先问三个问题：<strong>谁与谁连接？交换什么？谁负责执行和确认？</strong><br>本文据此整理协议地图，再单独展开实时语音，因为“能发送音频”与“能自然对话”之间还有很大距离。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>这篇文章要回答的是：面对一个具体智能体产品，应当在哪条连接边界上引入什么协议，<br>以及怎样避免把同名缩写、厂商 API 和开放标准混为一谈。</p>
+<h3 id="检索范围与阅读方式"><a href="#检索范围与阅读方式" class="headerlink" title="检索范围与阅读方式"></a>检索范围与阅读方式</h3><p>本文于 <strong>2026 年 9 月 13 日</strong>检索，重点覆盖 2025—2026 年形成或发生重要变化的智能体协议，<br>并纳入实时语音所依赖的既有互联网标准。资料优先采用官方规范、维护者仓库、更新日志与项目公告，<br>不使用搜索排名、GitHub 星数或厂商宣传来推断市场份额。</p>
+<p>这是一份有范围的技术综述，不是所有同名项目的完整目录。纳入对象需要有可查阅的规范、文档或实现；<br>仅有论文构想的方案不与已有实现的协议并列推荐。<br>文中的“当前”“候选”“草案”按检索日的官方标注记录；选型建议和组合架构属于本文分析。<br><code>latest</code> 和仓库 <code>main</code> 都会变化，实际开发仍应固定规范与 SDK 版本。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>本文的判断是：先定义连接双方和状态责任，再选择协议。<br>工具调用、远程任务、界面事件与语音播放有不同的生命周期，采用同一种底层传输也不会让它们自动兼容。<br>因此，评估重点应是业务语义和失败处理，而不是某个缩写是否流行。</p>
+<h2 id="最小抽象：协议分别连接什么"><a href="#最小抽象：协议分别连接什么" class="headerlink" title="最小抽象：协议分别连接什么"></a>最小抽象：协议分别连接什么</h2><p>下表中的官方入口也作为各条目的来源索引。它们属于不同层级，不能仅凭名称判断替代关系。</p>
+<table>
+<thead>
+<tr>
+<th>连接边界</th>
+<th>协议或接口</th>
+<th>交换的主要内容</th>
+<th>类型与边界</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>应用／智能体 ↔ 工具和数据</td>
+<td><a target="_blank" rel="noopener" href="https://modelcontextprotocol.io/specification/2026-07-28">MCP</a></td>
+<td>工具、资源、提示模板及相关调用</td>
+<td>开放协议；不规定智能体内部如何规划</td>
+</tr>
+<tr>
+<td>客户端 ↔ 编码智能体</td>
+<td><a target="_blank" rel="noopener" href="https://agentclientprotocol.com/protocol/v1/overview">ACP：Agent Client Protocol</a></td>
+<td>会话、进度、文件操作、权限请求</td>
+<td>开放协议；典型客户端是编辑器</td>
+</tr>
+<tr>
+<td>独立智能体 ↔ 独立智能体</td>
+<td><a target="_blank" rel="noopener" href="https://a2a-protocol.org/latest/specification/">A2A</a></td>
+<td>能力描述、消息、任务、产物</td>
+<td>开放协议；保留对方内部实现的独立性</td>
+</tr>
+<tr>
+<td>应用／智能体 ↔ 智能体服务</td>
+<td><a target="_blank" rel="noopener" href="https://agentcommunicationprotocol.dev/introduction/welcome">旧 ACP：Agent Communication Protocol</a></td>
+<td>运行、会话、多模态消息</td>
+<td>历史路线；现已并入 A2A</td>
+</tr>
+<tr>
+<td>开放网络中的智能体</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/agent-network-protocol/AgentNetworkProtocol/blob/main/docs/anp-getting-started-guide.md">ANP</a></td>
+<td>身份、发现、描述、跨域消息</td>
+<td>开放协议套件；部分模块仍是草案</td>
+</tr>
+<tr>
+<td>用户界面 ↔ 智能体后端</td>
+<td><a target="_blank" rel="noopener" href="https://docs.ag-ui.com/introduction">AG-UI</a></td>
+<td>运行事件、文本、工具事件、共享状态</td>
+<td>开放事件协议</td>
+</tr>
+<tr>
+<td>智能体 → 界面渲染器</td>
+<td><a target="_blank" rel="noopener" href="https://a2ui.org/">A2UI</a></td>
+<td>声明式组件和界面数据</td>
+<td>开放 UI 描述协议；可由其他协议承载</td>
+</tr>
+<tr>
+<td>语音客户端 ↔ 对话后端</td>
+<td><a target="_blank" rel="noopener" href="https://docs.pipecat.ai/client/rtvi-standard">RTVI</a></td>
+<td>就绪、说话状态、转写、工具事件</td>
+<td>Pipecat 生态的开放交互协议</td>
+</tr>
+<tr>
+<td>对话助手 ↔ 对话助手</td>
+<td><a target="_blank" rel="noopener" href="https://voiceinteroperability.ai/">Open Floor Protocol</a></td>
+<td>助手发现、对话事件、委派和交接</td>
+<td>开放对话互操作协议</td>
+</tr>
+<tr>
+<td>应用 ↔ 实时模型服务</td>
+<td><a target="_blank" rel="noopener" href="https://developers.openai.com/api/docs/guides/realtime">OpenAI Realtime</a>、<a target="_blank" rel="noopener" href="https://developers.openai.com/api/docs/guides/live">GPT-Live</a>、<a target="_blank" rel="noopener" href="https://ai.google.dev/gemini-api/docs/live-api">Gemini Live</a></td>
+<td>音频、会话事件、工具或委派结果</td>
+<td>厂商 API；彼此并非自动兼容</td>
+</tr>
+<tr>
+<td>实时通信端点之间</td>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8825">WebRTC</a>、<a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc6455">WebSocket</a>、<a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc3261">SIP</a></td>
+<td>媒体、通用双向消息或呼叫信令</td>
+<td>既有互联网标准；不是新发明的智能体协议</td>
+</tr>
+<tr>
+<td>购物智能体 ↔ 商家／支付体系</td>
+<td><a target="_blank" rel="noopener" href="https://www.agenticcommerce.dev/docs">商务 ACP</a>、<a target="_blank" rel="noopener" href="https://ucp.dev/">UCP</a>、<a target="_blank" rel="noopener" href="https://ap2-protocol.org/">AP2</a></td>
+<td>结账、商务能力、可验证的支付授权</td>
+<td>领域协议；业务职责与覆盖范围不同</td>
+</tr>
+</tbody></table>
+<p>可以把典型系统画成下面这样。线条代表可采用的连接方式，不表示每个系统都要装齐全部协议。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">用户</span><br><span class="line"> ├─ 编辑器 ── Agent Client Protocol ── 编码智能体</span><br><span class="line"> ├─ 业务界面 ── AG-UI ── 智能体后端</span><br><span class="line"> │                 └─ 可承载 A2UI 界面描述</span><br><span class="line"> └─ 语音客户端 ── 实时媒体 + RTVI／厂商会话事件 ── 语音助手</span><br><span class="line">                                                        │</span><br><span class="line">                                      工具和数据 ← MCP ─┤</span><br><span class="line">                                      远程专家   ← A2A ─┤</span><br><span class="line">                                      其他对话助手 ← OFP ┤</span><br><span class="line">                                      商务服务 ← 领域协议┘</span><br></pre></td></tr></table></figure>
+
+<h2 id="二、ACP-到底是哪一个"><a href="#二、ACP-到底是哪一个" class="headerlink" title="二、ACP 到底是哪一个"></a>二、ACP 到底是哪一个</h2><h3 id="1-Agent-Client-Protocol：让编辑器接入不同编码智能体"><a href="#1-Agent-Client-Protocol：让编辑器接入不同编码智能体" class="headerlink" title="1. Agent Client Protocol：让编辑器接入不同编码智能体"></a>1. Agent Client Protocol：让编辑器接入不同编码智能体</h3><p>Zed 于 <strong>2025 年 8 月 27 日</strong>介绍这条 ACP 路线，并以 Gemini CLI 为初始集成之一。<br>它把编辑器与编码智能体之间的交互抽象出来：编辑器提供用户界面，智能体负责自己的执行过程。<br>这样，接入一个智能体不必重新实现整套聊天、改动展示和权限交互。<br>来源：<a target="_blank" rel="noopener" href="https://zed.dev/blog/bring-your-own-agent-to-zed">Zed 发布文章</a>。</p>
+<p>当前 v1 规范采用 JSON-RPC 2.0。一个典型回合包括初始化、建立会话、发送提示、接收进度，<br>必要时由智能体请求文件访问或用户授权，最后返回停止原因。<br><code>session/prompt</code>、<code>session/update</code> 和 <code>session/request_permission</code> 分别对应这条链上的不同职责。<br>文件与终端能力需要按客户端声明使用，不能假定所有客户端全部实现。<br>来源：<a target="_blank" rel="noopener" href="https://agentclientprotocol.com/protocol/v1/overview">ACP v1 概览</a>。</p>
+<p>**版本提醒：**官方 TypeScript SDK 页面已提供实验性 v2 入口，明确标注 v2 仍是草案，<br>稳定入口仍为 v1。SDK 的版本号与协议版本号也不是同一个概念。<br>来源：<a target="_blank" rel="noopener" href="https://agentclientprotocol.github.io/typescript-sdk/">ACP TypeScript SDK</a>。</p>
+<h3 id="2-Agent-Communication-Protocol：已并入-A2A-的旧路线"><a href="#2-Agent-Communication-Protocol：已并入-A2A-的旧路线" class="headerlink" title="2. Agent Communication Protocol：已并入 A2A 的旧路线"></a>2. Agent Communication Protocol：已并入 A2A 的旧路线</h3><p>IBM／BeeAI 相关的 Agent Communication Protocol 也缩写为 ACP。<br>它曾使用 RESTful API 连接智能体，覆盖同步、异步、流式消息与长任务。<br>但其官方首页如今明确说明 ACP 已成为 A2A 的一部分，并提供迁移入口；维护者的合并公告日期为<br><strong>2025 年 8 月 25 日</strong>。<br>来源：<a target="_blank" rel="noopener" href="https://agentcommunicationprotocol.dev/introduction/welcome">旧 ACP 首页</a>、<br><a target="_blank" rel="noopener" href="https://github.com/orgs/i-am-bee/discussions/5">维护者合并公告</a>。</p>
+<p>因此，阅读早期“MCP、ACP、A2A 三选一”文章时，需要先核对文章日期。<br>我的选型判断是：新建跨框架智能体服务先评估 A2A；维护旧 ACP 系统则先做迁移和兼容性盘点。<br>项目合并不代表旧请求报文会自动被 A2A 服务接受。</p>
+<h3 id="3-Agentic-Commerce-Protocol：购物结账的-ACP"><a href="#3-Agentic-Commerce-Protocol：购物结账的-ACP" class="headerlink" title="3. Agentic Commerce Protocol：购物结账的 ACP"></a>3. Agentic Commerce Protocol：购物结账的 ACP</h3><p>第三种常见 ACP 是 OpenAI 与 Stripe 发起的 Agentic Commerce Protocol。<br>它定义买家、购物智能体和商家之间的交易接口，重点包括结账流程和支付凭证传递。<br>它不会让编辑器获得编码能力，也不是通用智能体任务协议。<br>来源：<a target="_blank" rel="noopener" href="https://www.agenticcommerce.dev/">商务 ACP 官方网站</a>、<br><a target="_blank" rel="noopener" href="https://www.agenticcommerce.dev/docs">协议介绍</a>。</p>
+<p>所以，技术文档第一次写 ACP 时，应写出全称和项目链接。<br>“我们支持 ACP”这一句话不足以判断两个系统能否互通。</p>
+<h2 id="三、工具、任务与开放网络：MCP、A2A、ANP"><a href="#三、工具、任务与开放网络：MCP、A2A、ANP" class="headerlink" title="三、工具、任务与开放网络：MCP、A2A、ANP"></a>三、工具、任务与开放网络：MCP、A2A、ANP</h2><h3 id="MCP：把工具和上下文接到应用中"><a href="#MCP：把工具和上下文接到应用中" class="headerlink" title="MCP：把工具和上下文接到应用中"></a>MCP：把工具和上下文接到应用中</h3><p>Model Context Protocol 标准化的是应用与外部能力之间的接口。<br>其主要抽象包括 Tools、Resources 和 Prompts，分别对应可调用能力、上下文数据与提示模板。<br>调用一个知识库或数据库工具时，应用依旧负责把结果纳入自己的推理与工作流。<br>来源：<a target="_blank" rel="noopener" href="https://modelcontextprotocol.io/specification/2026-07-28">MCP 2026-07-28 规范</a>。</p>
+<p>**本轮检索中一个重要更新：**官方 <code>latest</code> 已指向 <strong>2026-07-28</strong>。<br>这一修订移除了协议级会话及原先的初始化握手，改为在请求中携带版本和客户端能力，<br>加入 <code>server/discover</code>，并把实验性 Tasks 从核心移到扩展。<br>因此，不能把 2025 年教程中的初始化和会话流程原样当成当前规范。<br>来源：<a target="_blank" rel="noopener" href="https://modelcontextprotocol.io/specification/2026-07-28/changelog">MCP 修订日志</a>。</p>
+<p>MCP 也在通过扩展覆盖更丰富的用途，例如异步 Tasks、Skills over MCP 和交互式 MCP Apps。<br>这些扩展要求双方支持；“支持 MCP”本身不等于支持所有扩展。<br>来源：<a target="_blank" rel="noopener" href="https://modelcontextprotocol.io/specification/2026-07-28#extensions">MCP 扩展入口及说明</a>。</p>
+<h3 id="A2A：把工作交给一个独立智能体"><a href="#A2A：把工作交给一个独立智能体" class="headerlink" title="A2A：把工作交给一个独立智能体"></a>A2A：把工作交给一个独立智能体</h3><p>Agent2Agent 更适合表达“请你完成这项工作”。<br>对方可以使用自己的模型、工具和内部工作流，对调用者只暴露协议约定的能力与结果。<br>核心概念包括 Agent Card、Message、Task 和 Artifact；任务更新可以通过流式或异步机制传递。<br>当前规范包含 JSON-RPC、gRPC 和 HTTP+JSON／REST 绑定，不能再简单概括成“只有 JSON-RPC”。<br>来源：<a target="_blank" rel="noopener" href="https://a2a-protocol.org/latest/specification/">A2A 规范</a>。</p>
+<p>例如，主助手把一份材料交给远程研究智能体，后者可能继续工作、请求补充信息或交付报告。<br>这个例子体现的是任务委派边界；若主助手只是调用一个查询接口并自行组织答案，MCP 往往更直接。<br>这是架构上的判断，不意味着工具一定同步，也不意味着 MCP 绝对不能包装智能体。</p>
+<p>**最新进展：**A2A 官方文档已提供 v1.0 迁移说明。<br><strong>2026 年 8 月 17 日</strong>，AAIF 宣布 A2A 加入其托管项目，与 MCP 等项目进入同一开放治理体系。<br>共同治理不等于两种协议已经合并。<br>来源：<a target="_blank" rel="noopener" href="https://a2a-protocol.org/latest/whats-new-v1/">A2A v1.0 更新说明</a>、<br><a target="_blank" rel="noopener" href="https://aaif.io/blog/a2a-joins-aaif">AAIF 公告</a>。</p>
+<h3 id="ANP：把身份与发现扩展到开放网络"><a href="#ANP：把身份与发现扩展到开放网络" class="headerlink" title="ANP：把身份与发现扩展到开放网络"></a>ANP：把身份与发现扩展到开放网络</h3><p>Agent Network Protocol 面向跨域智能体网络，涉及 <code>did:wba</code> 身份与认证、能力描述、<br>发现以及跨域消息。它更关心陌生服务如何被找到、识别和连接。<br>当前入门文档以 <strong>ANP 1.1</strong> 为发布线，同时明确说明元协议协商模块仍是草案。<br>来源：<a target="_blank" rel="noopener" href="https://github.com/agent-network-protocol/AgentNetworkProtocol/blob/main/docs/anp-getting-started-guide.md">ANP 入门文档</a>。</p>
+<p>这里需要区分愿景与实现：项目可以提出“智能体互联网”的目标，<br>但这不意味着全球发现、身份治理和所有客户端互通已经解决。<br>我的建议是按实际需要评估身份、发现或消息模块，不因愿景宏大就引入整套协议。</p>
+<h2 id="四、用户怎么参与：AG-UI-与-A2UI"><a href="#四、用户怎么参与：AG-UI-与-A2UI" class="headerlink" title="四、用户怎么参与：AG-UI 与 A2UI"></a>四、用户怎么参与：AG-UI 与 A2UI</h2><h3 id="AG-UI：传递工作过程与用户交互"><a href="#AG-UI：传递工作过程与用户交互" class="headerlink" title="AG-UI：传递工作过程与用户交互"></a>AG-UI：传递工作过程与用户交互</h3><p>Agent–User Interaction Protocol 是事件驱动的前后端交互协议。<br>它让界面接收智能体运行过程中的文本、工具事件和状态变化，也让用户输入进入后端。<br>当产品需要展示进度、维护共享状态或在中途让用户参与时，统一事件语义比只返回一段最终文本更有用。<br>来源：<a target="_blank" rel="noopener" href="https://docs.ag-ui.com/introduction">AG-UI 官方介绍</a>。</p>
+<h3 id="A2UI：描述应该显示什么界面"><a href="#A2UI：描述应该显示什么界面" class="headerlink" title="A2UI：描述应该显示什么界面"></a>A2UI：描述应该显示什么界面</h3><p>A2UI 让智能体输出声明式组件描述和数据，由客户端自己的渲染器显示表单、卡片等界面。<br>它关注界面内容的表达；AG-UI 关注交互事件的流动，两者可以组合。<br>检索日 A2UI 官网标注 <strong>v0.9.1 为 Current，v1.0 为 Candidate</strong>，因此不应把 1.0 候选版写成稳定正式版。<br>来源：<a target="_blank" rel="noopener" href="https://a2ui.org/">A2UI 官方说明与版本表</a>。</p>
+<p>以选择酒店为例，后端可以通过 AG-UI 推送进度，再交付 A2UI 描述的酒店卡片和日期输入框。<br>这是一个组合示例，实际能否工作还取决于客户端支持的组件目录、传输适配和版本。<br>采用声明式界面也不意味着业务动作可以绕过权限检查。</p>
+<h2 id="五、实时语音：先区分四个层次"><a href="#五、实时语音：先区分四个层次" class="headerlink" title="五、实时语音：先区分四个层次"></a>五、实时语音：先区分四个层次</h2><p>语音智能体同时面对媒体传输、实时会话、业务执行和助手交接。<br>将这些问题都塞进“语音协议”一个名词，容易做出错误的技术选择。</p>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>需要解决的问题</th>
+<th>代表方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>媒体与连接</td>
+<td>音频如何传输，连接如何建立</td>
+<td>WebRTC、WebSocket；电话侧 SIP 与媒体通道</td>
+</tr>
+<tr>
+<td>实时会话事件</td>
+<td>谁在说话，转写是否结束，何时停止播放</td>
+<td>RTVI、厂商实时 API</td>
+</tr>
+<tr>
+<td>任务与工具执行</td>
+<td>对话中如何查资料、调用服务、委派工作</td>
+<td>MCP、A2A、应用后端</td>
+</tr>
+<tr>
+<td>多助手会话协作</td>
+<td>如何发现另一助手、引入对话并交接</td>
+<td>Open Floor Protocol</td>
+</tr>
+</tbody></table>
+<h3 id="1-WebRTC、WebSocket、SIP-分别做什么"><a href="#1-WebRTC、WebSocket、SIP-分别做什么" class="headerlink" title="1. WebRTC、WebSocket、SIP 分别做什么"></a>1. WebRTC、WebSocket、SIP 分别做什么</h3><p><strong>WebRTC 是一套实时通信技术与协议组合。</strong><br>媒体使用 RTP／SRTP 等机制，非媒体数据可以走 Data Channel；它还涉及连接协商和网络传输机制。<br>它适合承担浏览器语音连接，但不会规定“工具完成”“用户改了日期”这类业务事件。<br>来源：<a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8825">IETF RFC 8825</a>。</p>
+<p><strong>WebSocket 提供通用双向消息通道。</strong><br>应用可以在上面传送音频块和 JSON 事件，但消息的业务含义仍需上层约定。<br>两个服务都使用 WebSocket，只能说明它们使用了相同的基础通信机制，不能说明消息格式兼容。<br>来源：<a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc6455">IETF RFC 6455</a>。</p>
+<p><strong>SIP 主要负责建立、修改和结束会话。</strong><br>在电话智能体中，它用于对接电话基础设施；音频媒体通常经另外协商的媒体通道传输。<br>所以“接入 SIP”与“设计好智能体对话事件”是两项工作。<br>来源：<a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc3261">IETF RFC 3261</a>。</p>
+<h3 id="2-RTVI：客户端理解对话后端在做什么"><a href="#2-RTVI：客户端理解对话后端在做什么" class="headerlink" title="2. RTVI：客户端理解对话后端在做什么"></a>2. RTVI：客户端理解对话后端在做什么</h3><p>RTVI 在 Pipecat 生态中提供实时语音／多模态交互消息约定。<br>例如 <code>client-ready</code> 和 <code>bot-ready</code> 用于就绪通知，<code>user-started-speaking</code> 表达用户开始说话，<br><code>user-transcription</code> 包含部分或最终转写，<code>bot-output</code> 表达机器人输出文本。<br>这些事件让前端能够显示“正在听”“正在说”或字幕，而不必直接理解后端每个模型服务的内部消息。<br>来源：<a target="_blank" rel="noopener" href="https://docs.pipecat.ai/client/rtvi-standard">RTVI 标准</a>。</p>
+<p>RTVI 应与实际媒体传输配合使用。Pipecat 客户端文档要求同时提供客户端 SDK 和传输实现，<br>说明交互协议与音频通道是可区分的两部分。<br>来源：<a target="_blank" rel="noopener" href="https://github.com/pipecat-ai/pipecat-client-web">Pipecat Web 客户端仓库</a>。</p>
+<p>版本兼容也值得注意：客户端更新日志记录了 RTVI 1.0 对旧 action、service configuration 消息的移除。<br>因此，不宜从旧教程复制消息后，仅替换 SDK 版本就假定兼容。<br>本文不把滚动文档或 <code>latest</code> 源码中的版本常量直接当成所有已发布客户端共同支持的版本。<br>来源：<a target="_blank" rel="noopener" href="https://github.com/pipecat-ai/pipecat-client-web/blob/main/client-js/CHANGELOG.md">Pipecat 客户端更新日志</a>。</p>
+<h3 id="3-模型厂商的实时-API：接口公开，但不是共同标准"><a href="#3-模型厂商的实时-API：接口公开，但不是共同标准" class="headerlink" title="3. 模型厂商的实时 API：接口公开，但不是共同标准"></a>3. 模型厂商的实时 API：接口公开，但不是共同标准</h3><p><strong>OpenAI Realtime</strong> 提供语音到语音会话，支持音频、会话状态和工具调用。<br>官方文档区分浏览器 WebRTC 与服务端 WebSocket 接入；API 参考还覆盖 SIP 呼叫。<br>其事件和对象属于 OpenAI 的服务接口。<br>来源：<a target="_blank" rel="noopener" href="https://developers.openai.com/api/docs/guides/realtime">Realtime 入门</a>、<br><a target="_blank" rel="noopener" href="https://platform.openai.com/docs/api-reference/realtime?lang=javascript">Realtime API 参考</a>。</p>
+<p><strong>OpenAI GPT-Live</strong> 则把持续语音对话与后端委派工作区分开来：<br>前者可以边听边说，后者执行查询和任务。<br>官方文档特别指出，打断语音不会自动取消后台工作。<br>这是一种厂商提供的语音与任务组织方式，不应改称为行业通用协议。<br>来源：<a target="_blank" rel="noopener" href="https://developers.openai.com/api/docs/guides/live">GPT-Live 官方指南</a>。</p>
+<p><strong>Gemini Live API</strong> 通过有状态 WSS 连接处理实时音频、图像和文本，提供打断、工具使用与转写等能力。<br>检索日官网仍标记为 Preview。<br>它与 OpenAI 实时接口在事件、音频要求和会话模型上各有约定；接入相同的底层传输并不能消除这些差异。<br>来源：<a target="_blank" rel="noopener" href="https://ai.google.dev/gemini-api/docs/live-api">Gemini Live API 概览</a>。</p>
+<p>如果使用 Pipecat、LiveKit 等框架封装厂商接口，迁移时也应逐项验证能力映射。<br>本文的工程判断是：统一 SDK 可以减少集成代码，却不能保证不同模型的打断、字幕和工具时序完全一致。</p>
+<h3 id="4-Open-Floor-Protocol：多个对话助手如何接力"><a href="#4-Open-Floor-Protocol：多个对话助手如何接力" class="headerlink" title="4. Open Floor Protocol：多个对话助手如何接力"></a>4. Open Floor Protocol：多个对话助手如何接力</h3><p>Open Voice Interoperability 项目目前将其标准消息体系称为 <strong>Open Floor Protocol，简称 OFP</strong>。<br>它支持寻找具有特定能力的助手、委派用户请求，以及让用户转到其他助手。<br>规范资料包括 Conversational Envelope、Dialog Events 和助手发现相关描述。<br>来源：<a target="_blank" rel="noopener" href="https://voiceinteroperability.ai/">Open Voice Interoperability 官网</a>、<br><a target="_blank" rel="noopener" href="https://github.com/open-voice-interoperability/openfloor-docs/tree/main/specifications">规范目录</a>。</p>
+<p>阅读带有 OVON 或 Open Voice 名称的旧资料时，应沿维护者入口核对现行名称和格式。<br>OFP 更贴近“另一位助手如何加入当前对话”，RTVI 更贴近“客户端如何与对话后端交互”。<br>两者都不能替代音频媒体传输，也没有足够依据称 OFP 已获得所有主流语音助手的普遍支持。</p>
+<h2 id="小样本推演：打断后的状态一致性"><a href="#小样本推演：打断后的状态一致性" class="headerlink" title="小样本推演：打断后的状态一致性"></a>小样本推演：打断后的状态一致性</h2><p>设想助手正在播报：“我找到三家酒店，第一家……”用户插话：“只看可取消的。”<br>下面是本文建议的一组实现检查点，不是某个协议原文规定的统一流程：</p>
+<ol>
+<li>区分检测到声音、得到转写和确认一个用户回合结束，避免把噪声直接当成新意图。</li>
+<li>及时停止旧音频播放，并处理已缓冲、尚未播出的内容。</li>
+<li>让对话上下文区分已生成内容与用户实际听到的内容。</li>
+<li>明确旧查询继续、取消还是复用；停止说话不能被当成后台任务已取消。</li>
+<li>用任务或回合标识处理迟到结果，避免旧结果覆盖用户刚更新的条件。</li>
+</ol>
+<p>这也是为什么“支持音频消息”不能证明“支持低延迟可打断语音”。<br>接入验收应实际测量打断到停止播放的时间，并检查后台副作用和上下文，而不只检查音频能否播放。<br>关于媒体与事件的区分，可参考 <a target="_blank" rel="noopener" href="https://developers.openai.com/api/docs/guides/realtime-conversations">Realtime 会话文档</a>；<br>关于语音与任务取消的边界，可参考 <a target="_blank" rel="noopener" href="https://developers.openai.com/api/docs/guides/live">GPT-Live 指南</a>。</p>
+<h2 id="六、商务场景：ACP、UCP、AP2-的分工"><a href="#六、商务场景：ACP、UCP、AP2-的分工" class="headerlink" title="六、商务场景：ACP、UCP、AP2 的分工"></a>六、商务场景：ACP、UCP、AP2 的分工</h2><p>智能体一旦从查询信息走向购买服务，就需要更明确的交易语义。<br>本节只比较技术接口，不讨论支付合规结论。</p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>全称</th>
+<th>主要关心的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>商务 ACP</td>
+<td>Agentic Commerce Protocol</td>
+<td>买家代理与商家如何完成程序化结账、传递支付凭证</td>
+</tr>
+<tr>
+<td>UCP</td>
+<td>Universal Commerce Protocol</td>
+<td>平台与商家如何发现、协商和组合商务能力</td>
+</tr>
+<tr>
+<td>AP2</td>
+<td>Agent Payments Protocol</td>
+<td>如何以可验证的授权支持智能体发起交易</td>
+</tr>
+</tbody></table>
+<p>商务 ACP 以结账接口为重要切入点；UCP 将能力发现和协商纳入规范，并可采用 REST、MCP 等接入方式。<br>因此，业务协议与底层调用协议可以叠加，不能看到支持 MCP 就认定两种商务系统已经语义互通。<br>来源：<a target="_blank" rel="noopener" href="https://www.agenticcommerce.dev/docs">ACP 文档</a>、<br><a target="_blank" rel="noopener" href="https://ucp.dev/2026-04-08/specification/overview/">UCP 2026-04-08 规范</a>。</p>
+<p>AP2 聚焦授权与可信交易，可作为 A2A 和 UCP 的扩展。<br>其官网列出了 <strong>AP2 v0.2 发布与向 FIDO Alliance 捐赠</strong>的进展入口。<br>阅读早期 AP2 介绍时，也需要核对当前版本和治理变化。<br>来源：<a target="_blank" rel="noopener" href="https://ap2-protocol.org/">AP2 官网</a>。</p>
+<p>我的判断是：先确定业务需要的是工具调用、完整结账生命周期，还是可验证的委托授权，<br>再决定引入哪些协议。它们存在覆盖重叠，不能机械地按一层一个协议堆叠。</p>
+<h2 id="七、截至检索日，哪些更新最值得记住"><a href="#七、截至检索日，哪些更新最值得记住" class="headerlink" title="七、截至检索日，哪些更新最值得记住"></a>七、截至检索日，哪些更新最值得记住</h2><table>
+<thead>
+<tr>
+<th>时间或版本</th>
+<th>已核实变化</th>
+<th>阅读旧资料时需要修正什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2025-08-25</td>
+<td>旧 Agent Communication Protocol 宣布并入 A2A</td>
+<td>不再把它当成完全独立的新建选型路线</td>
+</tr>
+<tr>
+<td>2025-08-27</td>
+<td>Zed 发布 Agent Client Protocol 相关集成</td>
+<td>同为 ACP，但与上面的旧协议不是一个项目</td>
+</tr>
+<tr>
+<td>MCP 2026-07-28</td>
+<td>无状态请求、发现与扩展机制发生调整</td>
+<td>不能默认沿用旧初始化和协议级会话流程</td>
+</tr>
+<tr>
+<td>2026-08-17</td>
+<td>A2A 加入 AAIF</td>
+<td>更新项目治理信息，不据此推断协议合并</td>
+</tr>
+<tr>
+<td>ACP SDK 当前文档</td>
+<td>v1 稳定入口，v2 实验性草案</td>
+<td>不把可导入的实验 API 等同于稳定协议</td>
+</tr>
+<tr>
+<td>A2UI 当前文档</td>
+<td>v0.9.1 Current，v1.0 Candidate</td>
+<td>区分当前版与候选版</td>
+</tr>
+<tr>
+<td>ANP 当前入门文档</td>
+<td>1.1 发布线，元协议仍是草案</td>
+<td>不能把愿景中的所有模块视为已发布能力</td>
+</tr>
+<tr>
+<td>Open Voice 当前官网</td>
+<td>使用 Open Floor Protocol 名称</td>
+<td>沿现行规范理解助手互操作</td>
+</tr>
+</tbody></table>
+<p>表中来源分别见前文各协议章节。这里特意把“事件发生日期”和“检索时版本状态”分开，<br>避免把网页更新时间误当作协议首次发布日。</p>
+<h2 id="工程闭环：如何按需求选型"><a href="#工程闭环：如何按需求选型" class="headerlink" title="工程闭环：如何按需求选型"></a>工程闭环：如何按需求选型</h2><p>下面是基于上述协议边界的工程建议，不是兼容性认证或市场排名。</p>
+<table>
+<thead>
+<tr>
+<th>你的需求</th>
+<th>优先评估</th>
+<th>需要验证的关键点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>给现有助手连接数据库、文件或业务工具</td>
+<td>MCP</td>
+<td>规范版本、工具权限、所需扩展</td>
+</tr>
+<tr>
+<td>让编码智能体进入编辑器</td>
+<td>Agent Client Protocol</td>
+<td>客户端能力、权限交互、会话恢复支持</td>
+</tr>
+<tr>
+<td>把任务交给其他框架或团队的智能体</td>
+<td>A2A</td>
+<td>发现、身份、任务状态、取消与结果交付</td>
+</tr>
+<tr>
+<td>做展示过程并允许用户参与的助手界面</td>
+<td>AG-UI；需要生成组件时再评估 A2UI</td>
+<td>事件映射、共享状态、组件目录</td>
+</tr>
+<tr>
+<td>做网页或移动端语音助手</td>
+<td>实时媒体连接 + RTVI 或厂商会话接口</td>
+<td>打断、播放队列、转写、重连和延迟</td>
+</tr>
+<tr>
+<td>做电话智能体</td>
+<td>SIP／电话网关 + 媒体与对话后端</td>
+<td>编码格式、呼叫生命周期、挂机和转接</td>
+</tr>
+<tr>
+<td>让多个对话助手协作接力</td>
+<td>OFP；独立后台任务另评估 A2A</td>
+<td>助手发现、上下文交接与取消边界</td>
+</tr>
+<tr>
+<td>探索跨域开放智能体网络</td>
+<td>ANP 的适用模块</td>
+<td>身份信任、发现策略、模块发布状态</td>
+</tr>
+<tr>
+<td>做购物和支付代理</td>
+<td>商务 ACP／UCP，按授权需要评估 AP2</td>
+<td>商家实际支持、交易状态、授权范围</td>
+</tr>
+</tbody></table>
+<p>例如，一个语音研究助手可以先用实时接口处理对话，再通过 MCP 获取资料；<br>只有当研究工作被拆给独立远程服务时，才需要进一步评估 A2A。<br>如果一个进程内部已经能完成工作，不必仅为了“多智能体”这个名字额外增加网络边界。</p>
+<p>选型时还应检查四件事：<strong>规范版本是否一致、必选能力是否齐全、权限责任是否明确、失败后能否恢复。</strong><br>一个演示中成功交换消息，只能证明最基本的连通性；可靠互操作还要覆盖超时、重复请求、<br>用户改口、任务取消和迟到结果。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>这次检索给我的判断是，智能体协议正在围绕不同连接边界形成分工。<br>理解每条边上的责任，再选择协议组合，比记住更多缩写更有价值。</p>
+<p>下一步阅读：若关心语音交互的实际验收，可继续阅读<br><a href="/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/">Turn-taking 与打断评测</a>；<br>若关心编码智能体的权限与执行约束，可继续阅读<br><a href="/2026/06/10/Agentic-Coding-Governance/">Agentic Coding 工程治理</a>。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/AI/" rel="tag"># AI</a>
+              <a href="/tags/Agent/" rel="tag"># Agent</a>
+              <a href="/tags/MCP/" rel="tag"># MCP</a>
+              <a href="/tags/ACP/" rel="tag"># ACP</a>
+              <a href="/tags/A2A/" rel="tag"># A2A</a>
+              <a href="/tags/Voice/" rel="tag"># Voice</a>
+              <a href="/tags/WebRTC/" rel="tag"># WebRTC</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/09/09/Agent-Engineering-Radar-2026-09-09/" rel="prev" title="【Agent Engineering Radar】2026-09-09 Agent 工程技术雷达">
+                  <i class="fa fa-angle-left"></i> 【Agent Engineering Radar】2026-09-09 Agent 工程技术雷达
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments giscus-container">
+  <div class="giscus"></div>
+  <script src="https://giscus.app/client.js"
+        data-repo="fclearner/fclearner.github.io"
+        data-repo-id="MDEwOlJlcG9zaXRvcnkxOTQwMTgyMjk="
+        data-category="Announcements"
+        data-category-id="DIC_kwDOC5B7tc4C-7pW"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+  </script>
+</div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Alan Fang</span>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
