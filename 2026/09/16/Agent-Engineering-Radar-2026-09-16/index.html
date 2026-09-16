@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/AlanFangicon32X32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/AlanFangicon16X16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="本期观察窗口为 9 月 2–16 日，收录四条公开信号：Skills 的协议分发、追踪数据保留期限、统一评测环境，以及长任务的边际收益。个人 Agent 栈本周最值得做的是检查证据能保存多久、技能从哪里来、追加预算是否仍然有效。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Agent Engineering Radar】2026-09-16 Agent 工程技术雷达">
+<meta property="og:url" content="https://alanfangblog.com/2026/09/16/Agent-Engineering-Radar-2026-09-16/index.html">
+<meta property="og:site_name" content="AlanFangBlog">
+<meta property="og:description" content="本期观察窗口为 9 月 2–16 日，收录四条公开信号：Skills 的协议分发、追踪数据保留期限、统一评测环境，以及长任务的边际收益。个人 Agent 栈本周最值得做的是检查证据能保存多久、技能从哪里来、追加预算是否仍然有效。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-09-16T01:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-16T14:18:47.452Z">
+<meta property="article:author" content="Alan Fang">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="Benchmark">
+<meta property="article:tag" content="Engineering">
+<meta property="article:tag" content="Governance">
+<meta property="article:tag" content="MCP">
+<meta property="article:tag" content="Observability">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://alanfangblog.com/2026/09/16/Agent-Engineering-Radar-2026-09-16/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2026/09/16/Agent-Engineering-Radar-2026-09-16/","path":"2026/09/16/Agent-Engineering-Radar-2026-09-16/","title":"【Agent Engineering Radar】2026-09-16 Agent 工程技术雷达"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>【Agent Engineering Radar】2026-09-16 Agent 工程技术雷达 | AlanFangBlog</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">AlanFangBlog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#This-Week%E2%80%99s-Signal"><span class="nav-number">1.</span> <span class="nav-text">This Week’s Signal</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Adopt"><span class="nav-number">2.</span> <span class="nav-text">Adopt</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Trial"><span class="nav-number">3.</span> <span class="nav-text">Trial</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Watch"><span class="nav-number">4.</span> <span class="nav-text">Watch</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hold-Risks"><span class="nav-number">5.</span> <span class="nav-text">Hold&#x2F;Risks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Practical-Stack-Adjustments"><span class="nav-number">6.</span> <span class="nav-text">Practical Stack Adjustments</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">7.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">8.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">9.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E5%88%A4%E6%96%AD"><span class="nav-number">10.</span> <span class="nav-text">主线判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B7%E6%9C%AC%E6%8E%A8%E6%BC%94"><span class="nav-number">11.</span> <span class="nav-text">小样本推演</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">12.</span> <span class="nav-text">直接结论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%9D%A5%E6%BA%90"><span class="nav-number">13.</span> <span class="nav-text">参考来源</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Alan Fang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/09/16/Agent-Engineering-Radar-2026-09-16/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Alan Fang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="【Agent Engineering Radar】2026-09-16 Agent 工程技术雷达 | AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【Agent Engineering Radar】2026-09-16 Agent 工程技术雷达
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2026-09-16 09:00:00 / Modified: 22:18:47" itemprop="dateCreated datePublished" datetime="2026-09-16T09:00:00+08:00">2026-09-16</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>本期观察窗口为 9 月 2–16 日，收录四条公开信号：Skills 的协议分发、追踪数据保留期限、统一评测环境，以及长任务的边际收益。个人 Agent 栈本周最值得做的是检查证据能保存多久、技能从哪里来、追加预算是否仍然有效。</p>
+<span id="more"></span>
+
+<h2 id="This-Week’s-Signal"><a href="#This-Week’s-Signal" class="headerlink" title="This Week’s Signal"></a>This Week’s Signal</h2><table>
+<thead>
+<tr>
+<th>日期</th>
+<th>新信号</th>
+<th>工程意义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>9 月 13 日</td>
+<td>MCP Skills Extension 的 SEP-2640 合并</td>
+<td>技能分发有了扩展层的共同约定；不代表客户端已普遍支持。[1]</td>
+</tr>
+<tr>
+<td>9 月 14 日起</td>
+<td>LangSmith SaaS 新摄入的 extended-retention traces 最多保留 180 天</td>
+<td>长期回归所需证据不能只依赖在线追踪存储；自托管和 BYOC 不受此次调整影响。[2]</td>
+</tr>
+<tr>
+<td>9 月 3 日首发、10 日修订</td>
+<td>Harbor Adapters &#x2F; Harbor-Index 公开评测基础设施</td>
+<td>统一环境与 harness 对比让跨基准评测更可操作。[3]</td>
+</tr>
+<tr>
+<td>9 月 14 日</td>
+<td>Elo-per-token 分析论文发布</td>
+<td>在论文实验范围内，长任务追加 token 的边际收益会下降；值得测量何时停止或重启。[4]</td>
+</tr>
+</tbody></table>
+<p>以下分区是本文的工程判断与建议，不是项目方的成熟度认证，也不代表已经完成本地实测。</p>
+<h2 id="Adopt"><a href="#Adopt" class="headerlink" title="Adopt"></a>Adopt</h2><p><strong>先检查追踪证据的保留与恢复路径。</strong> LangSmith 官方明确：原来超过 180 天的配置，对新摄入 trace 按 180 天处理，新的超限配置会被拒绝。[2] 这是已生效的服务规则，成熟度高；风险是长期回归时找不到原始轨迹。使用该服务时，下一步应核查配置，并为获准保留的少量回归样本建立脱敏导出与恢复检查。不要把这一变化误读为历史数据立即全部删除，也不要无差别永久保存工具输出。</p>
+<h2 id="Trial"><a href="#Trial" class="headerlink" title="Trial"></a>Trial</h2><p><strong>在隔离环境试用 MCP Skills 分发。</strong> SEP-2640 在 Extensions Track 定义通过 MCP 提供 Agent Skills 的 <code>skill://</code> 资源约定，扩展标识为 <code>io.modelcontextprotocol/skills</code>。[1] 它有助于减少技能分发的专有接法，但目前应按已合并规范、客户端支持待逐一核实来判断成熟度。风险在于把远端技能文本误当成可信执行授权。下一步只选一个公开、可审阅的技能，固定版本并验证发现、获取和拒绝不受支持扩展的行为；执行权限仍由宿主控制。</p>
+<p><strong>用 Harbor 做小规模、固定条件的 harness 对照。</strong> 论文报告适配了 80 多个 benchmark，并在 54 个 benchmark 上评测 8 个模型；Harbor-Index 则从 29 个 benchmark 中筛选出 82 个任务。[3] 意义是减少环境接入重复工作，而不是给所有个人任务提供统一答案。成熟度属于公开研究与工具阶段；环境依赖、运行成本和任务代表性仍是风险。下一步挑选少量与自身使用场景相近的公开任务，固定模型、预算和环境版本，再比较两种 harness 的成功率、耗时与失败轨迹。</p>
+<h2 id="Watch"><a href="#Watch" class="headerlink" title="Watch"></a>Watch</h2><p><strong>关注预算曲线，暂不照搬论文停止阈值。</strong> Elo-per-token 方法在不同 token 预算处跟踪最佳解，再汇总跨任务的相对表现。研究覆盖四个通用 Agent、四个开放式 benchmark，并观察到相对独立采样参照的边际收益衰减。[4] 它为预算策略提供了可检验方向，但仍是预印本，不能直接推广到所有编码、检索或业务任务。下一步在有可验证中间结果的任务上设置三档预算，记录质量与成本，再决定是否尝试停止后独立重跑。</p>
+<h2 id="Hold-Risks"><a href="#Hold-Risks" class="headerlink" title="Hold&#x2F;Risks"></a>Hold&#x2F;Risks</h2><ul>
+<li><strong>暂缓自动执行远端 Skills</strong>：规范合并只解决互操作的一部分。来源审阅和最小权限仍需独立落实；先通过隔离试验再扩大范围。[1]</li>
+<li><strong>暂缓依赖单一在线平台保存长期评测证据</strong>：服务保留政策会影响可复现性。先验证必要样本可恢复，并控制导出数据的敏感性。[2]</li>
+<li><strong>暂缓以榜单分数或运行时长作为升级理由</strong>：公开评测的成熟度不等于对个人栈的适配度。先复测代表性任务，并比较相同成本下的收益。[3][4]</li>
+</ul>
+<h2 id="Practical-Stack-Adjustments"><a href="#Practical-Stack-Adjustments" class="headerlink" title="Practical Stack Adjustments"></a>Practical Stack Adjustments</h2><p>下面把本周信号转成个人栈的检查问题、最小记录和验证步骤。</p>
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>几个月后还能复现今天的失败吗？远端技能能否安全接入？预算翻倍是否带来可验证收益？这些问题决定本周调整顺序。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>把个人栈分成三个可独立检查的对象：有保留期限的执行证据、有来源与权限边界的技能、带固定预算的评测任务。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><ol>
+<li>列出追踪样本的用途、保留期限和恢复方式；优先验证一个脱敏失败样本能否重放。</li>
+<li>为技能来源记录版本与审阅状态；只在隔离宿主里验证 MCP Skills 兼容性。</li>
+<li>给评测结果附上模型、harness、环境与预算版本，避免把运行条件变化误判成能力提升。</li>
+<li>对一个可评分的长任务测量三档预算，在有数据后再调整停止策略。</li>
+</ol>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>先保证证据可恢复，再比较技能接入与预算策略；缺少一致运行条件时，性能变化难以归因。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>假设同一任务在三档预算下质量接近，而耗时持续增加，那么应试验更早停止；若质量仍稳定提升，则保留较高预算。这里只给出判断规则，不预设节省比例，也不把少量任务外推到全部工作负载。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>本期四条信号达到发布门槛，继续保持周更。执行顺序建议是先保住评测证据，再试技能互操作和预算优化。</p>
+<p>下一步阅读：先核查 <a target="_blank" rel="noopener" href="https://docs.langchain.com/langsmith/changelog">LangSmith 保留策略</a>，再按是否使用 MCP 或自建评测选择下列原始资料。</p>
+<h2 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2640">MCP 官方 SEP-2640 合并记录：Skills Extension</a>，合并日期 2026-09-13。</li>
+<li><a target="_blank" rel="noopener" href="https://docs.langchain.com/langsmith/changelog">LangSmith Cloud 官方更新日志</a>，September 7–14, 2026，Tracing 条目。</li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.04298v3">Harbor Adapters and Harbor-Index</a>，首发 2026-09-03，v3 修订 2026-09-10；本文未将修订单独计算为新信号。</li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.15309v1">When Agents Slow Down: Understanding LLM Agents’ Test-Time Strategies via Elo-per-token Analysis</a>，首发 2026-09-14。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/AI/" rel="tag"># AI</a>
+              <a href="/tags/Agent/" rel="tag"># Agent</a>
+              <a href="/tags/Engineering/" rel="tag"># Engineering</a>
+              <a href="/tags/MCP/" rel="tag"># MCP</a>
+              <a href="/tags/Benchmark/" rel="tag"># Benchmark</a>
+              <a href="/tags/Observability/" rel="tag"># Observability</a>
+              <a href="/tags/Governance/" rel="tag"># Governance</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/09/13/agent-protocols-and-realtime-voice-2026/" rel="prev" title="智能体协议全景：从三种 ACP、MCP、A2A 到实时语音交互">
+                  <i class="fa fa-angle-left"></i> 智能体协议全景：从三种 ACP、MCP、A2A 到实时语音交互
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/09/16/Speech-LLM-Radar-2026-09-16/" rel="next" title="【Speech LLM Radar】2026-09-16 语音大模型与交互系统技术雷达">
+                  【Speech LLM Radar】2026-09-16 语音大模型与交互系统技术雷达 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments giscus-container">
+  <div class="giscus"></div>
+  <script src="https://giscus.app/client.js"
+        data-repo="fclearner/fclearner.github.io"
+        data-repo-id="MDEwOlJlcG9zaXRvcnkxOTQwMTgyMjk="
+        data-category="Announcements"
+        data-category-id="DIC_kwDOC5B7tc4C-7pW"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+  </script>
+</div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Alan Fang</span>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
