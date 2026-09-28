@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/AlanFangicon32X32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/AlanFangicon16X16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="助手正在播报导航，车窗外有风声，副驾在聊天，你轻声说了一句“等一下”。系统应该忽略风声和副驾，及时听见你，又不能被扬声器里自己的声音打断。 这个场景把 VAD（Voice Activity Detection，语音活动检测）的三个问题同时摆在面前：噪声里有没有语音，语音是不是目标用户发出的，以及这次发声是否值得让助手停下来。 只把 VAD 当成静音切分器，很难解释为什么安静房间里的演示很好，真实全">
+<meta property="og:type" content="article">
+<meta property="og:title" content="全双工语音中的 VAD：从抗噪检测到目标说话人聚焦">
+<meta property="og:url" content="https://alanfangblog.com/2026/09/28/Full-Duplex-VAD-Noise-Robustness-Target-Speaker/index.html">
+<meta property="og:site_name" content="AlanFangBlog">
+<meta property="og:description" content="助手正在播报导航，车窗外有风声，副驾在聊天，你轻声说了一句“等一下”。系统应该忽略风声和副驾，及时听见你，又不能被扬声器里自己的声音打断。 这个场景把 VAD（Voice Activity Detection，语音活动检测）的三个问题同时摆在面前：噪声里有没有语音，语音是不是目标用户发出的，以及这次发声是否值得让助手停下来。 只把 VAD 当成静音切分器，很难解释为什么安静房间里的演示很好，真实全">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-09-28T14:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-28T13:54:56.292Z">
+<meta property="article:author" content="Alan Fang">
+<meta property="article:tag" content="Full Duplex">
+<meta property="article:tag" content="Noise Robustness">
+<meta property="article:tag" content="PVAD">
+<meta property="article:tag" content="Speaker Recognition">
+<meta property="article:tag" content="Speech">
+<meta property="article:tag" content="VAD">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://alanfangblog.com/2026/09/28/Full-Duplex-VAD-Noise-Robustness-Target-Speaker/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2026/09/28/Full-Duplex-VAD-Noise-Robustness-Target-Speaker/","path":"2026/09/28/Full-Duplex-VAD-Noise-Robustness-Target-Speaker/","title":"全双工语音中的 VAD：从抗噪检测到目标说话人聚焦"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>全双工语音中的 VAD：从抗噪检测到目标说话人聚焦 | AlanFangBlog</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">AlanFangBlog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A5%E5%BE%80-VAD-%E7%9A%84%E5%BD%A2%E5%BC%8F%EF%BC%9A%E4%BB%BB%E5%8A%A1%E4%B8%8D%E5%8F%98%EF%BC%8C%E5%A3%B0%E5%AD%A6%E6%A8%A1%E5%9E%8B%E9%80%90%E6%AD%A5%E5%A2%9E%E5%BC%BA"><span class="nav-number">2.</span> <span class="nav-text">以往 VAD 的形式：任务不变，声学模型逐步增强</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E5%88%A4%E6%96%AD"><span class="nav-number">3.</span> <span class="nav-text">主线判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%91%E6%9C%9F%E8%AE%BA%E6%96%87%E5%9C%B0%E5%9B%BE%EF%BC%9A%E5%93%AA%E4%BA%9B%E8%BF%9B%E5%B1%95%E4%B8%8E%E5%85%A8%E5%8F%8C%E5%B7%A5%E7%9B%B4%E6%8E%A5%E7%9B%B8%E5%85%B3"><span class="nav-number">4.</span> <span class="nav-text">近期论文地图：哪些进展与全双工直接相关</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%8A%97%E5%99%AA%EF%BC%9A%E5%85%88%E8%AE%A9%E8%A1%A8%E5%BE%81%E5%9C%A8%E4%BD%8E%E4%BF%A1%E5%99%AA%E6%AF%94%E4%B8%8B%E4%BB%8D%E7%84%B6%E6%9C%89%E7%94%A8"><span class="nav-number">4.1.</span> <span class="nav-text">1. 抗噪：先让表征在低信噪比下仍然有用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%81%9A%E7%84%A6%EF%BC%9A%E8%BA%AB%E4%BB%BD%E8%A1%A8%E5%BE%81%E7%9A%84%E8%B4%A8%E9%87%8F%E4%B8%8E%E5%9B%B0%E9%9A%BE%E8%B4%9F%E4%BE%8B%E5%90%8C%E6%A0%B7%E9%87%8D%E8%A6%81"><span class="nav-number">4.2.</span> <span class="nav-text">2. 聚焦：身份表征的质量与困难负例同样重要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E8%87%AA%E9%80%82%E5%BA%94%E4%B8%8E%E9%83%A8%E7%BD%B2%EF%BC%9A%E5%9C%A8%E5%93%AA%E4%B8%AA%E4%BD%8D%E7%BD%AE%E5%BC%95%E5%85%A5%E4%B8%AA%E6%80%A7%E5%8C%96"><span class="nav-number">4.3.</span> <span class="nav-text">3. 自适应与部署：在哪个位置引入个性化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-HyWA%EF%BC%9A%E6%8A%8A%E8%BA%AB%E4%BB%BD%E9%80%89%E6%8B%A9%E6%94%BE%E8%BF%9B%E7%8E%B0%E6%9C%89-VAD-%E6%9D%83%E9%87%8D"><span class="nav-number">4.4.</span> <span class="nav-text">4. HyWA：把身份选择放进现有 VAD 权重</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-S4VAD%EF%BC%9A%E5%88%86%E7%B1%BB%E5%88%86%E6%95%B0%E4%B9%8B%E5%A4%96%EF%BC%8C%E8%BF%98%E8%A6%81%E7%9C%8B%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E5%8F%91%E7%8E%B0%E7%94%A8%E6%88%B7"><span class="nav-number">4.5.</span> <span class="nav-text">5. S4VAD：分类分数之外，还要看什么时候发现用户</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">5.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F%E4%B8%8E%E6%96%B0%E8%8C%83%E5%BC%8F%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="nav-number">6.</span> <span class="nav-text">传统与新范式的对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B7%E6%9C%AC%E6%8E%A8%E6%BC%94"><span class="nav-number">7.</span> <span class="nav-text">小样本推演</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">8.</span> <span class="nav-text">工程闭环</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%EF%BC%9A%E6%8A%8A%E4%B8%89%E7%B1%BB%E5%B9%B2%E6%89%B0%E5%88%86%E5%BC%80%E6%9E%84%E9%80%A0"><span class="nav-number">8.1.</span> <span class="nav-text">训练：把三类干扰分开构造</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%EF%BC%9A%E5%9B%BA%E5%AE%9A%E5%8F%AC%E5%9B%9E%E5%90%8E%EF%BC%8C%E5%86%8D%E6%AF%94%E8%BE%83%E8%AF%AF%E8%A7%A6%E5%8F%91%E5%92%8C%E5%BB%B6%E8%BF%9F"><span class="nav-number">8.2.</span> <span class="nav-text">评测：固定召回后，再比较误触发和延迟</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2%EF%BC%9A%E4%BF%9D%E7%95%99%E6%A6%82%E7%8E%87%E5%92%8C%E7%BC%93%E5%AD%98%EF%BC%8C%E4%B8%8D%E8%A6%81%E8%BF%87%E6%97%A9%E4%B8%A2%E5%A4%B1%E8%AF%81%E6%8D%AE"><span class="nav-number">8.3.</span> <span class="nav-text">部署：保留概率和缓存，不要过早丢失证据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">9.</span> <span class="nav-text">直接结论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB%E4%B8%8E%E5%86%99%E4%BD%9C%E5%8F%82%E8%80%83"><span class="nav-number">10.</span> <span class="nav-text">延伸阅读与写作参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Alan Fang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">34</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">51</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/09/28/Full-Duplex-VAD-Noise-Robustness-Target-Speaker/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Alan Fang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="全双工语音中的 VAD：从抗噪检测到目标说话人聚焦 | AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          全双工语音中的 VAD：从抗噪检测到目标说话人聚焦
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2026-09-28 22:00:00 / Modified: 21:54:56" itemprop="dateCreated datePublished" datetime="2026-09-28T22:00:00+08:00">2026-09-28</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>助手正在播报导航，车窗外有风声，副驾在聊天，你轻声说了一句“等一下”。系统应该忽略风声和副驾，及时听见你，又不能被扬声器里自己的声音打断。</p>
+<p>这个场景把 VAD（Voice Activity Detection，语音活动检测）的三个问题同时摆在面前：<strong>噪声里有没有语音，语音是不是目标用户发出的，以及这次发声是否值得让助手停下来。</strong> 只把 VAD 当成静音切分器，很难解释为什么安静房间里的演示很好，真实全双工交互却频繁误停或漏接。</p>
+<p>本文以截至 <strong>2026 年 9 月 28 日</strong>可核实的公开资料为界，重点整理 2025–2026 年的研究，并回顾必要的早期工作。结论先说：新的方向是让检测具备噪声鲁棒性、说话人条件和可测量的响应速度，再把活动信号交给对话策略。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>全双工意味着系统在说话时仍然接收用户声音。麦克风收到的通常是混合信号：目标用户、其他人、助手播放经房间传播形成的回声，以及环境噪声。</p>
+<table>
+<thead>
+<tr>
+<th>输入情况</th>
+<th>普通 VAD 的合理输出</th>
+<th>交互系统希望发生什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>风扇、键盘、道路噪声</td>
+<td>非语音</td>
+<td>保持播报，不创建用户轮次</td>
+</tr>
+<tr>
+<td>副驾聊天、电视对白</td>
+<td>语音</td>
+<td>判断是否与当前会话有关</td>
+</tr>
+<tr>
+<td>助手自身的播放残留</td>
+<td>语音</td>
+<td>避免自我打断</td>
+</tr>
+<tr>
+<td>目标用户说“等等”</td>
+<td>语音</td>
+<td>尽快让出发言权</td>
+</tr>
+<tr>
+<td>目标用户说“嗯，对”</td>
+<td>语音</td>
+<td>结合语气和上下文判断是否继续播报</td>
+</tr>
+</tbody></table>
+<p>这里有一个容易误诊的地方：<strong>把旁人的话检测成语音，可能说明普通 VAD 正常工作；错误发生在系统把“有人说话”直接解释成“用户要打断”。</strong> 同样，回声里的助手声音确实含有语音，不能指望一个不看身份的分类器把它都判成噪声。</p>
+<p>因此，本文所说的“抗噪”主要指噪声条件下仍能正确检测并减少误触发；“目标说话人聚焦”指只对指定说话人的活动激活。VAD 输出的是概率或时间区间，本身通常不生成更干净的音频。波形降噪、回声消除和目标语音提取各有职责。</p>
+<h2 id="以往-VAD-的形式：任务不变，声学模型逐步增强"><a href="#以往-VAD-的形式：任务不变，声学模型逐步增强" class="headerlink" title="以往 VAD 的形式：任务不变，声学模型逐步增强"></a>以往 VAD 的形式：任务不变，声学模型逐步增强</h2><p>早期方法常从短时能量、过零率、频谱和噪声底估计出发，通过阈值或统计判决区分语音与非语音。它们便宜、易解释，但突发噪声和低声量用户会让阈值难以兼顾误报与漏报。后来的统计模型和神经网络逐步增强了复杂环境中的区分能力。近期 S4VAD 论文的相关工作部分也沿用这条演进线索。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.11110v1">S4VAD，2026</a></p>
+<p>神经 VAD 可以用 CNN、RNN、FSMN 等结构学习频谱与时间上下文；具体实现还会使用不同的特征、缓存和平滑机制。<strong>模型更强，不会自动改变标签定义</strong>：如果训练目标仍然是“任意人声 &#x2F; 非人声”，背景聊天就是应当检出的正例。</p>
+<p>说话人条件建模也并非最近才出现。2019 年公开的 <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1908.04284">Personal VAD</a> 已使用目标说话人表征或验证分数，逐帧区分非语音、目标人声和非目标人声。2022 年的 <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2204.03793">Personal VAD 2.0</a> 进一步处理流式部署、资源预算及无注册条件。</p>
+<p>所以，“新范式”更准确的含义是：<strong>全双工把个性化检测从一个可选的识别前处理，推到了决定交互是否可靠的关键位置。</strong> 最近的论文关注它在噪声、短注册、环境变化和实际误打断中的表现。</p>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>这轮演进有三个相互独立、又需要配合的方向。</p>
+<p>第一，声学表征需要抗噪。目标声音被风声覆盖时，后面的身份判断很难补救前面已经丢掉的语音。</p>
+<p>第二，检测目标需要从任意语音细化到目标语音。其他人的讲话在声学上完全正常，单纯提高语音分类能力不能解决身份选择。</p>
+<p>第三，活动检测必须接受交互层的检验。帧级分数提高后，误打断次数、短指令漏接和实际停播延迟是否变好，仍需单独测量。</p>
+<p>这三条线索分别对应下面的鲁棒训练、个性化建模和时序评测研究。它们不能用一张跨论文排行榜代替。</p>
+<h2 id="近期论文地图：哪些进展与全双工直接相关"><a href="#近期论文地图：哪些进展与全双工直接相关" class="headerlink" title="近期论文地图：哪些进展与全双工直接相关"></a>近期论文地图：哪些进展与全双工直接相关</h2><p>检索覆盖 arXiv、ISCA Archive、ICASSP 会议页面和期刊原文，关键词包括 noise-robust VAD、personalized VAD、target-speaker VAD、short enrollment、full-duplex 和 onset latency。以下是按问题组织的代表性研究梳理，并非穷尽全部文献的系统评价。会议论文、预印本和工程博客分别标注；未在本地复现实验。</p>
+<table>
+<thead>
+<tr>
+<th>工作与时间</th>
+<th>主要变化</th>
+<th>对全双工的意义</th>
+<th>证据边界</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2501.03184">Noise-Robust TS-VAD，2025-01</a></td>
+<td>因果 DN-APC 自监督预训练与说话人条件结合</td>
+<td>改善噪声下的活动分类</td>
+<td>主要是加噪测试，不能直接等同于真实回声测试</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.isca-archive.org/interspeech_2025/lin25_interspeech.html">Robust Personal VAD，Interspeech 2025</a></td>
+<td>辅助解码器、推理时 embedding 更新、困难样本模拟</td>
+<td>面向注册与测试域不匹配、相似声线误接受</td>
+<td>需要按干扰说话人难度检验效果</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.isca-archive.org/interspeech_2025/yu25_interspeech.html">FDE-RNN，Interspeech 2025</a></td>
+<td>可拆卸个性化模块、非语音段跳过计算</td>
+<td>支持普通 VAD 与 PVAD 模式切换</td>
+<td>模型参数节省不能直接换算成整机功耗收益</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2601.12769v1">短注册 embedding 自增强，ICASSP 2026</a></td>
+<td>从混合语音关键帧补充身份表征并迭代更新</td>
+<td>减轻仅用短唤醒词注册时的信息不足</td>
+<td>依赖用于更新的帧是否可靠</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://doi.org/10.3390/electronics15143111">Test-Time Adaptation for PVAD，2026-07</a></td>
+<td>研究 VAD 门控的测试时训练与 embedding 自适应</td>
+<td>应对部署期间的环境与说话方式变化</td>
+<td>此处机制依据公开预印本，未复核期刊版全部实验</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2510.12947v3">HyWA v3，2026-08</a></td>
+<td>注册时生成部分说话人条件权重，保留 VAD 推理拓扑</td>
+<td>直接测试播放残留下的全双工误打断</td>
+<td>首稿为 2025-10；v3 仍为预印本</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.11110v1">S4VAD，2026-09</a></td>
+<td>状态空间 VAD 与考虑标注误差的起点延迟评测</td>
+<td>将“检得准”和“响应快”分开衡量</td>
+<td>普通声学 VAD，不具备目标身份选择；预印本</td>
+</tr>
+</tbody></table>
+<h3 id="1-抗噪：先让表征在低信噪比下仍然有用"><a href="#1-抗噪：先让表征在低信噪比下仍然有用" class="headerlink" title="1. 抗噪：先让表征在低信噪比下仍然有用"></a>1. 抗噪：先让表征在低信噪比下仍然有用</h3><p><a target="_blank" rel="noopener" href="https://arxiv.org/html/2501.03184v1">Noise-Robust TS-VAD</a> 用去噪自回归预测编码 DN-APC 做因果预训练，再训练目标说话人检测。它的作用是改善表示，而非在部署时直接输出去噪波形。</p>
+<p>论文用 LibriSpeech 构造数据，测试 −5 到 20 dB 的加噪条件，并把 café 噪声留作未见噪声。在 −5 dB 下，表 III 报告跨条件注入方法平均的 mAP 增益：已见噪声 <strong>2.63 个百分点</strong>、未见噪声 <strong>2.48 个百分点</strong>。这是特定分类协议下的收益，不能解释成误打断率下降相同比例。</p>
+<p>对工程的启发是分别检验声学表征和身份条件：噪声增强能帮助模型分清语音与非语音，而谁是目标仍需说话人监督。论文测试时主要加背景噪声，也不足以证明它解决了扬声器非线性回声。</p>
+<h3 id="2-聚焦：身份表征的质量与困难负例同样重要"><a href="#2-聚焦：身份表征的质量与困难负例同样重要" class="headerlink" title="2. 聚焦：身份表征的质量与困难负例同样重要"></a>2. 聚焦：身份表征的质量与困难负例同样重要</h3><p><a target="_blank" rel="noopener" href="https://www.isca-archive.org/interspeech_2025/lin25_interspeech.pdf">Robust Personal VAD</a> 把两个部署问题放在一起：注册音频与实际输入来自不同条件，以及干扰者声线接近目标。其方法结合辅助解码器、推理阶段的 embedding 更新和动态困难样本构造。</p>
+<p>这提醒我们：训练集里的“其他人”如果都很容易区分，验证分数可能高估真实能力。对产品更有价值的负例包括同一家庭成员、相似声线、远场电视对白，以及目标离开后持续存在的背景人声。这些具体分桶是本文的评测建议，不是该论文已逐项证明的覆盖范围。</p>
+<p>2026 年的<a target="_blank" rel="noopener" href="https://arxiv.org/html/2601.12769v1">短注册自增强工作</a> 则针对另一个入口问题：一句短唤醒词提供的身份信息有限。作者从混合语音中提取关键帧 embedding，补充初始注册表示，并探索长期迭代更新。</p>
+<p>这里真正的取舍是适应能力与身份漂移。更新得太保守，换设备后跟不上；把干扰者误当目标加入更新，又可能越适应越偏。因此落地时应保留初始注册表征、限制更新幅度，并对重叠和低置信度片段谨慎更新。这是工程推论，需要实验验证。</p>
+<h3 id="3-自适应与部署：在哪个位置引入个性化"><a href="#3-自适应与部署：在哪个位置引入个性化" class="headerlink" title="3. 自适应与部署：在哪个位置引入个性化"></a>3. 自适应与部署：在哪个位置引入个性化</h3><p><a target="_blank" rel="noopener" href="https://www.isca-archive.org/interspeech_2025/yu25_interspeech.pdf">FDE-RNN</a> 关注个性化模块能否按需启用，并利用非语音段跳过计算。它适合启发有注册和无注册两种工作模式的设计，但切换到普通 VAD 后，系统也就失去了同等的身份筛选能力。</p>
+<p>另一条路线是测试时适应。<a target="_blank" rel="noopener" href="https://www.preprints.org/manuscript/202606.1411">2026 年的 PVAD 自适应研究</a> 在 FDE-Mamba 上比较 VAD 门控的测试时训练和说话人 embedding 适应，讨论无标签输入能否缓解分布变化。它已有对应期刊出版记录；本文只作方法级梳理，不引用无法完整复核的期刊版数值。</p>
+<p>对持续交互而言，“会更新”必须同时回答三个问题：更新耗时是否影响当前打断，状态是否跨轮次保留，识别错误后能否恢复。离线平均 F1 无法替代这些验证。</p>
+<h3 id="4-HyWA：把身份选择放进现有-VAD-权重"><a href="#4-HyWA：把身份选择放进现有-VAD-权重" class="headerlink" title="4. HyWA：把身份选择放进现有 VAD 权重"></a>4. HyWA：把身份选择放进现有 VAD 权重</h3><p><a target="_blank" rel="noopener" href="https://arxiv.org/html/2510.12947v3">HyWA v3</a> 用超网络在注册时生成部分说话人条件权重，保留既有 VAD 的声学接口与推理拓扑，不需要逐用户优化。</p>
+<p>最贴近本文场景的是其表 5：测试集包含 <strong>388 段、超过 64 分钟</strong>的助手播放残留，没有目标用户语音。链路已有 AEC 和近距离检测。无 VAD、普通 FSMN-VAD、FSMN-PVAD 分别保留 <strong>3142、2793、310 次</strong>误打断检测。</p>
+<p>论文中的 <strong>88.9% 与 9.9% 是相对无 VAD 基线的误触发保留比例</strong>，分母不是所有对话轮次，也不是 388 段录音。该实验说明个性化可以补充 AEC 后的身份筛选；由于没有真实用户插话，它本身不能证明端到端打断召回。</p>
+<p>同篇的帧级误报时长与事件数量也未在所有骨干上同步改善。这正是上线时要同时检查“误激活多久”和“误激活几次”的原因。</p>
+<h3 id="5-S4VAD：分类分数之外，还要看什么时候发现用户"><a href="#5-S4VAD：分类分数之外，还要看什么时候发现用户" class="headerlink" title="5. S4VAD：分类分数之外，还要看什么时候发现用户"></a>5. S4VAD：分类分数之外，还要看什么时候发现用户</h3><p><a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.11110v1">S4VAD</a> 的重点之一是起点时间标注本身存在偏差。作者把标注起点视作带噪观测，估计偏差后再衡量检测响应，同时提出适合流式推理的状态空间结构。</p>
+<p>这对全双工很直接：检测最终正确，却晚到足以漏掉“停”字，仍然可能造成交互失败。模型一次推理用时、等待足够声学证据的时间，以及真正停播的时间，应分别记录。它并不提供身份条件，因此可以作为时序研究参考，不能直接替代 PVAD。</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>把问题拆成三个可观察的信号，比让一个阈值承担全部责任更清楚：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">声学活动：当前是否有语音？</span><br><span class="line">目标活动：当前语音是否包含指定用户？</span><br><span class="line">交互决策：当前发声是否需要让出发言权？</span><br></pre></td></tr></table></figure>
+
+<p>在保留显式前处理的系统中，可以采用下面的逻辑分工。它是本文的架构建议，不要求所有模型必须串成独立模块：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">麦克风音频 + 扬声器播放参考</span><br><span class="line">              ↓</span><br><span class="line">       AEC / 必要的声学前处理</span><br><span class="line">              ↓</span><br><span class="line">   鲁棒 VAD / PVAD ← 目标身份表征</span><br><span class="line">              ↓</span><br><span class="line">      带时间戳的活动概率与音频缓存</span><br><span class="line">              ↓</span><br><span class="line">   结合韵律、语义和会话状态的打断决策</span><br><span class="line">              ↓</span><br><span class="line">       停播、继续、等待或恢复</span><br></pre></td></tr></table></figure>
+
+<p>AEC 处理与播放参考相关的回声；PVAD 判断残余输入是否符合目标身份。二者可以互补，但目标用户和助手使用接近的声音、注册受污染或残留严重时，身份过滤仍可能失败。</p>
+<p><strong>PVAD 也不等同于目标语音提取。</strong> 目标与旁人同时说话时，目标活动为真，但送给 ASR 的混合波形依然含有旁人。要得到更干净的目标语音，还需要目标说话人提取、空间滤波或能处理重叠的识别模型。不能把目标活动标签为真写成“其他声音已被去掉”。</p>
+<p>文献中的 TS-VAD 命名还可能用于多人说话人分离标注；阅读时应检查输出究竟是单目标活动，还是多个说话人的活动轨迹，以及是否使用未来音频。</p>
+<h2 id="传统与新范式的对比"><a href="#传统与新范式的对比" class="headerlink" title="传统与新范式的对比"></a>传统与新范式的对比</h2><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>普通声学 VAD</th>
+<th>鲁棒神经 VAD</th>
+<th>PVAD &#x2F; 单目标 TS-VAD</th>
+<th>语义与韵律驱动的轮次判断</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心问题</td>
+<td>有没有语音</td>
+<td>复杂环境中有没有语音</td>
+<td>目标用户有没有发声</td>
+<td>是否说完、是否应当让出话轮</td>
+</tr>
+<tr>
+<td>典型输入</td>
+<td>能量、频谱等声学特征</td>
+<td>声学特征与时间上下文</td>
+<td>声学输入 + 身份条件</td>
+<td>音频、文本或会话上下文</td>
+</tr>
+<tr>
+<td>环境噪声</td>
+<td>取决于特征和统计假设</td>
+<td>可通过数据与表示学习增强</td>
+<td>声学鲁棒性仍需单独训练</td>
+<td>不应默认弥补所有前端漏检</td>
+</tr>
+<tr>
+<td>旁人讲话</td>
+<td>通常判语音</td>
+<td>通常仍判语音</td>
+<td>可作为非目标拒绝</td>
+<td>判断是否与交互相关，身份能力取决于具体模型</td>
+</tr>
+<tr>
+<td>用户说“嗯”</td>
+<td>判语音</td>
+<td>判语音</td>
+<td>判目标语音</td>
+<td>可进一步判断是附和还是打断</td>
+</tr>
+<tr>
+<td>主要代价</td>
+<td>阈值维护与噪声误触发</td>
+<td>算力、上下文和泛化</td>
+<td>注册质量、身份漂移、多人策略</td>
+<td>额外决策时间与语言泛化</td>
+</tr>
+<tr>
+<td>必须测量</td>
+<td>漏检与误报</td>
+<td>分噪声和信噪比表现</td>
+<td>目标召回、非目标误接受</td>
+<td>误打断、漏打断、停播与接话延迟</td>
+</tr>
+</tbody></table>
+<p>这些能力可以并存。所谓 semantic VAD 往往描述轮次完成判断，不能仅凭名字推断它具备声纹聚焦或回声消除能力。Pipecat 的 <a target="_blank" rel="noopener" href="https://github.com/pipecat-ai/docs/blob/main/api-reference/server/utilities/turn-detection/smart-turn-overview.mdx">Smart Turn 文档</a> 就明确保留了 VAD 发现停顿、再由模型判断是否完成的分工。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>回到开头的车内场景。下面是设计推演，不是实测结果：</p>
+<ol>
+<li><strong>风声变大</strong>：先看语音与非语音的分离是否失败。提高阈值可能压住风声，也可能漏掉轻声用户，应检查同一噪声条件下的召回曲线。</li>
+<li><strong>副驾开口</strong>：若普通 VAD 输出高语音概率，这是预期行为。加入目标条件后，应观察非目标误接受是否下降，而非要求声学 VAD 把人声当噪声。</li>
+<li><strong>助手声音漏回麦克风</strong>：先检查播放参考、AEC 和残留；若残留仍是可辨识人声，PVAD 可以提供额外身份依据。</li>
+<li><strong>用户说“嗯，对”</strong>：PVAD 正确激活也不代表必须停播。需要打断策略结合韵律和上下文。</li>
+<li><strong>用户低声说“停”</strong>：如果声学前端没保留下来，后续再强的语义模型也没有足够输入。要检查起点缓存、短语音漏检和停播时延。</li>
+</ol>
+<p>这组推演给排障提供了顺序：先确认声音是否被保留，再确认身份判断，最后检查发言权决策。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><h3 id="训练：把三类干扰分开构造"><a href="#训练：把三类干扰分开构造" class="headerlink" title="训练：把三类干扰分开构造"></a>训练：把三类干扰分开构造</h3><p>环境噪声、非目标人声和助手播放残留应分别保留标签。三者对应不同学习难点，也需要不同的错误归因。</p>
+<p>目标与非目标重叠时，应标注目标是否存在，必要时另加重叠标签或多标签输出。不能假设早期互斥三分类天然完整表达了所有重叠情况。注册音频还应与测试内容、设备和环境分开，避免模型借助相同录音条件获得虚假的身份收益。</p>
+<p>建议把初始注册失败、无注册、换设备、目标暂时离开、目标回归纳入同一段长时间流，检查自适应状态是否持续正确。</p>
+<h3 id="评测：固定召回后，再比较误触发和延迟"><a href="#评测：固定召回后，再比较误触发和延迟" class="headerlink" title="评测：固定召回后，再比较误触发和延迟"></a>评测：固定召回后，再比较误触发和延迟</h3><p>以下是建议的最小矩阵：</p>
+<table>
+<thead>
+<tr>
+<th>分桶</th>
+<th>需要改变的条件</th>
+<th>重点指标</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>非语音噪声</td>
+<td>平稳 &#x2F; 突发、不同噪声类型与 SNR</td>
+<td>非语音误报、短语音召回</td>
+</tr>
+<tr>
+<td>非目标单人</td>
+<td>声线相似度、距离、目标完全不在场</td>
+<td>非目标误接受、每小时误激活次数</td>
+</tr>
+<tr>
+<td>目标与干扰重叠</td>
+<td>相对音量、重叠占比</td>
+<td>目标召回、下游转写污染</td>
+</tr>
+<tr>
+<td>助手播放期间</td>
+<td>播放音量、房间、遮挡、回声残留</td>
+<td>误停播、真实插话召回、停播延迟</td>
+</tr>
+<tr>
+<td>注册不匹配</td>
+<td>注册时长、设备、噪声与时间跨度</td>
+<td>身份误判、自适应收益与漂移</td>
+</tr>
+<tr>
+<td>对话行为</td>
+<td>附和、短命令、思考停顿、对旁人说话</td>
+<td>误打断、漏打断、过早接话</td>
+</tr>
+</tbody></table>
+<p>比较时先在独立开发集选定目标召回或误报预算，冻结阈值后再评测。否则一个把阈值抬得很高的模型，也能看起来“抗噪特别好”，代价却是用户插不进话。</p>
+<p>对时序至少保留四个时间点：用户声学起点、目标活动确认、打断决策发出、扬声器实际停止。报告 p50 &#x2F; p95，并同时报告未检出事件，避免延迟只统计容易检出的样本。</p>
+<p>最后做三组消融：去掉身份条件、替换成错误身份、冻结自适应更新。第一组测个性化收益，第二组检查模型是否真的使用身份，第三组判断在线更新究竟带来适应还是漂移。所有组使用相同输入和后处理，保持结论可归因。</p>
+<h3 id="部署：保留概率和缓存，不要过早丢失证据"><a href="#部署：保留概率和缓存，不要过早丢失证据" class="headerlink" title="部署：保留概率和缓存，不要过早丢失证据"></a>部署：保留概率和缓存，不要过早丢失证据</h3><p>一个可调试的实现应记录原始帧分数、平滑后状态、身份表征版本和最终动作。环形缓存可保留触发前音频，让下游补回确认期间的语音开头；它不能消除决策等待，但可以减少起点截断。</p>
+<p>普通 VAD 与 PVAD 的串联也要验证：前一级若漏掉低声量目标，后一级没有机会纠正。联合模型、宽松前级或保留音频旁路都可以作为候选方案，最终由算力和召回预算决定。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>全双工场景让 VAD 的价值从“找到一段语音”扩展到了“为可靠交互提供及时、抗干扰的活动证据”。近期论文最值得关注的变化，是把鲁棒表征、目标身份、注册与自适应、事件级评测放进同一个设计问题里。</p>
+<p>对实际系统，可以按失败类型选择改进：噪声导致漏检，优先改声学表征和数据；旁人频繁触发，评估 PVAD；短注册效果差，检查身份表征与更新；目标附和也触发停播，改进打断策略。上线依据应是目标召回、误触发与实际响应速度的共同改善。</p>
+<p><strong>好的 VAD 让系统在嘈杂环境里仍能发现用户；好的个性化 VAD 让它知道该关注谁；好的全双工系统还知道何时让对方说。</strong></p>
+<h2 id="延伸阅读与写作参考"><a href="#延伸阅读与写作参考" class="headerlink" title="延伸阅读与写作参考"></a>延伸阅读与写作参考</h2><ul>
+<li>历史基础：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/1908.04284">Personal VAD，2019</a>、<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2204.03793">Personal VAD 2.0，2022</a>。</li>
+<li>抗噪相关背景：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2210.13248">Brouhaha，2022 预印本</a>，联合研究 VAD、信噪比与房间声学估计，为按声学条件诊断提供另一条思路。</li>
+<li>工程文章：<a target="_blank" rel="noopener" href="https://livekit.com/blog/solving-end-of-turn-detection">LiveKit 的轮次检测解析</a>、<a target="_blank" rel="noopener" href="https://www.daily.co/blog/announcing-smart-turn-v3-with-cpu-inference-in-just-12ms/">Daily 的 Smart Turn v3 介绍</a>。本文参考其从交互现象解释模型职责、再讨论评测和部署的组织方式；产品结果不作为上述论文的独立验证。</li>
+</ul>
+<p>下一步阅读：<a href="/2026/06/09/PVAD2-engineering-loop/">Personal VAD 2.0 工程化：把目标说话人判断做成闭环</a>，以及<a href="/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/">实时语音 Turn-taking 评测：从端点检测到可接话判断</a>。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Speech/" rel="tag"># Speech</a>
+              <a href="/tags/Full-Duplex/" rel="tag"># Full Duplex</a>
+              <a href="/tags/VAD/" rel="tag"># VAD</a>
+              <a href="/tags/PVAD/" rel="tag"># PVAD</a>
+              <a href="/tags/Noise-Robustness/" rel="tag"># Noise Robustness</a>
+              <a href="/tags/Speaker-Recognition/" rel="tag"># Speaker Recognition</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/09/26/Agent-Engineering-Radar-2026-09-26/" rel="prev" title="【Agent Engineering Radar】2026-09-26 Agent 工程技术雷达">
+                  <i class="fa fa-angle-left"></i> 【Agent Engineering Radar】2026-09-26 Agent 工程技术雷达
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/09/28/Full-Duplex-Speech-Interaction-Survey-2026-09/" rel="next" title="语音全双工交互近两月论文综述：从同时听说到理解插话、恢复现场与完成任务">
+                  语音全双工交互近两月论文综述：从同时听说到理解插话、恢复现场与完成任务 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments giscus-container">
+  <div class="giscus"></div>
+  <script src="https://giscus.app/client.js"
+        data-repo="fclearner/fclearner.github.io"
+        data-repo-id="MDEwOlJlcG9zaXRvcnkxOTQwMTgyMjk="
+        data-category="Announcements"
+        data-category-id="DIC_kwDOC5B7tc4C-7pW"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+  </script>
+</div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Alan Fang</span>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
