@@ -9,5 +9,5 @@
 
 ## 3. Publication
 - [x] 3.1 Run repository verification and inspect generated article output.
-- [ ] 3.2 Commit scoped source and publish generated Pages output with attribution.
-- [ ] 3.3 Verify the public permalink and record publication evidence.
+- [x] 3.2 Commit scoped source and publish generated Pages output with attribution.
+- [x] 3.3 Verify the public permalink and record publication evidence.
