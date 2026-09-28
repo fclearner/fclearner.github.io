@@ -34,3 +34,10 @@ ICASSP acceptance cross-check: https://cmsworkshops.com/ICASSP2026/view_session.
 ## Editorial checks
 
 The article explicitly distinguishes detection from waveform enhancement/extraction, speech noise from non-speech noise, AEC from identity filtering, and PVAD from interruption intent. Deployment advice and illustrative scenarios are labeled as engineering reasoning. No cross-paper ranking, universal best-model claim, or invented local benchmark is included.
+# Survey-linked follow-up, 2026-09-28
+
+- User supplied the title Speaking While Listening: A Survey and Empirical Audit of Full-Duplex Spoken Dialogue Systems after the Zhihu page returned HTTP 403.
+- Official identity: https://github.com/MM-Speech/DuplexSurvey links arXiv:2606.19453. Accessible v1 has the earlier architectural hierarchy title. Section 4.3 explicitly identifies FireRedChat streaming pVAD; do not claim to have read the inaccessible Zhihu text.
+- Primary source: https://arxiv.org/html/2509.06502v1, sections 2.1, 2.2.1 and 3.1, read in full for the amendment. Architecture: causal convolution, concatenated ECAPA-TDNN embedding, GRU, classifier; 10 ms output steps. Training: 2000 h clean Mandarin/English, 5 s mixtures, noise/interferer probability 50% each, 0–30 dB SNR.
+- Table 2: LiveKit 140 ms / 33.4%; Ten 90 ms / 78.1%; FireRedChat 170 ms / 10.2%. T90 is minimum latency reaching 90% successful barge-in. Test: 1000 utterances per language, noise injection probability 50%, noise SNR 5 dB, secondary speaker at primary endpoint ±1 s, speaker SNR 20 dB.
+- Limits: historical full-system configurations, not a controlled pVAD-only ablation; 10 ms is not stopping latency; original waveform is routed downstream using timestamps; target activity does not establish interruption intent. Derived difference vs LiveKit is +30 ms and −23.2 percentage points.

@@ -11,3 +11,7 @@ Publish a Chinese review of VAD in full-duplex speech interaction, emphasizing a
 # Impact
 
 Content only. Preserve existing posts, site behavior, and unrelated active changes.
+
+# Follow-up: identified survey
+
+Use the user-specified Speaking While Listening survey to trace FireRedChat's streaming pVAD to its original paper. Extend the existing article with architecture, training, interruption metrics, and evidence limits, then republish the same permalink.

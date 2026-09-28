@@ -13,3 +13,8 @@ The blog SHALL publish a Chinese article explaining the role of VAD in acoustic 
 - **WHEN** publication completes
 - **THEN** encoding, build, generated-site and strict OpenSpec checks SHALL have been run
 - **AND** the article SHALL be accessible at its public permalink or a publication limitation SHALL be recorded.
+
+#### Scenario: Reader follows the named full-duplex survey
+- **WHEN** the reader consults the survey-linked supplement
+- **THEN** it SHALL identify FireRedChat streaming pVAD and link the survey and original paper
+- **AND** explain model conditioning, training, original-audio routing, interruption results and limits of causal attribution.
