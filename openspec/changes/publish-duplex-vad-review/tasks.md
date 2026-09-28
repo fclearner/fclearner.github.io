@@ -17,3 +17,9 @@
 - [x] 4.2 Extend the article with mechanisms, training, experimental protocol and limitations.
 - [x] 4.3 Validate the updated article and publish scoped source and generated output.
 - [x] 4.4 Verify the updated public article and record evidence.
+
+## 5. Corrected paper: FVAD
+- [x] 5.1 Read arXiv:2609.19856v1 methodology, metrics, results and limitations.
+- [x] 5.2 Replace the mistaken identification and integrate FVAD throughout the article.
+- [x] 5.3 Validate and publish the scoped correction.
+- [ ] 5.4 Verify live FVAD content and retain publication evidence.

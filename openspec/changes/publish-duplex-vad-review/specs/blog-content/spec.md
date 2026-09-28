@@ -14,7 +14,8 @@ The blog SHALL publish a Chinese article explaining the role of VAD in acoustic 
 - **THEN** encoding, build, generated-site and strict OpenSpec checks SHALL have been run
 - **AND** the article SHALL be accessible at its public permalink or a publication limitation SHALL be recorded.
 
-#### Scenario: Reader follows the named full-duplex survey
-- **WHEN** the reader consults the survey-linked supplement
-- **THEN** it SHALL identify FireRedChat streaming pVAD and link the survey and original paper
-- **AND** explain model conditioning, training, original-audio routing, interruption results and limits of causal attribution.
+#### Scenario: Reader compares enrollment-free foreground detection
+- **WHEN** the reader consults the supplement for arXiv:2609.19856
+- **THEN** it SHALL distinguish FVAD's inferred foreground from pVAD's externally specified identity
+- **AND** explain supervision, acoustic augmentation, model structure, BG-FAR, controlled ablations and failure conditions
+- **AND** avoid treating frame false alarms or compute time as measured end-to-end interruption outcomes.

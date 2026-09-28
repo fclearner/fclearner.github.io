@@ -28,3 +28,10 @@ The initial combined verify command stopped at an inaccessible default npm cache
 - Generated article contains the new survey title, ECAPA-TDNN, original-paper link and numeric comparison. Source whitespace checks passed.
 - Published generated commit `7ebdee3` to `master`, rebased without conflict over concurrent publication `fbcd9ca`. Only the VAD page and its search entry changed. Existing navigation and other search entries were preserved; snapshot timestamp and equal-date sorting changes were excluded.
 - Live verification after Pages propagation: HTTP 200, with ECAPA-TDNN, Speaking While Listening and the 23.2-point comparison present. Parsed published search XML contains exactly one updated VAD entry.
+
+## Corrected FVAD paper supplement
+
+- The user corrected the intended paper to arXiv:2609.19856. Replaced the inferred survey/FireRedChat section with FVAD task definition, training recipe, architecture, metric definition, controlled ablation and limitations. Updated the research map, paradigm table, scenario walkthrough and deployment conclusions. FireRedChat remains only a separate context example.
+- Isolated `npm run verify` passed: source encoding, Hexo build, generated-site check (34 posts), dependency audit (zero vulnerabilities), strict OpenSpec (14 passed, zero failed; existing unrelated comments-spec warning).
+- Source whitespace check passed. Generated HTML verified the exact arXiv version, Mamba-FVAD, BG-FAR, 32 ms frame size and Table II values. Removed the old survey-to-FireRedChat identification. Search XML parsed successfully with exactly one updated VAD entry.
+- Generated commit `3909480` pushed to `master`, touching only the VAD page and its search entry. Existing navigation and other published content were preserved.

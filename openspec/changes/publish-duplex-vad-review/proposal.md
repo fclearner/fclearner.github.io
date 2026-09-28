@@ -15,3 +15,7 @@ Content only. Preserve existing posts, site behavior, and unrelated active chang
 # Follow-up: identified survey
 
 Use the user-specified Speaking While Listening survey to trace FireRedChat's streaming pVAD to its original paper. Extend the existing article with architecture, training, interruption metrics, and evidence limits, then republish the same permalink.
+
+## Corrected primary paper
+
+The user clarified that the intended work is arXiv:2609.19856, Foreground Voice Activity Detection: Learning Speaker Selectivity from Supervision. Supersede the inferred survey-to-FireRedChat identification. Center the supplement on enrollment-free FVAD, its supervision recipe, metrics, ablations and limitations; retain FireRedChat only as an independently sourced contextual example.
