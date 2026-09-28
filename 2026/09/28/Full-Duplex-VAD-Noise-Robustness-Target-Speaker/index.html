@@ -28,7 +28,7 @@
 <meta property="og:description" content="助手正在播报导航，车窗外有风声，副驾在聊天，你轻声说了一句“等一下”。系统应该忽略风声和副驾，及时听见你，又不能被扬声器里自己的声音打断。 这个场景把 VAD（Voice Activity Detection，语音活动检测）的三个问题同时摆在面前：噪声里有没有语音，语音是不是目标用户发出的，以及这次发声是否值得让助手停下来。 只把 VAD 当成静音切分器，很难解释为什么安静房间里的演示很好，真实全">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-09-28T14:00:00.000Z">
-<meta property="article:modified_time" content="2026-09-28T13:54:56.292Z">
+<meta property="article:modified_time" content="2026-09-28T14:21:10.243Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="Full Duplex">
 <meta property="article:tag" content="Noise Robustness">
@@ -163,7 +163,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A5%E5%BE%80-VAD-%E7%9A%84%E5%BD%A2%E5%BC%8F%EF%BC%9A%E4%BB%BB%E5%8A%A1%E4%B8%8D%E5%8F%98%EF%BC%8C%E5%A3%B0%E5%AD%A6%E6%A8%A1%E5%9E%8B%E9%80%90%E6%AD%A5%E5%A2%9E%E5%BC%BA"><span class="nav-number">2.</span> <span class="nav-text">以往 VAD 的形式：任务不变，声学模型逐步增强</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E5%88%A4%E6%96%AD"><span class="nav-number">3.</span> <span class="nav-text">主线判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%91%E6%9C%9F%E8%AE%BA%E6%96%87%E5%9C%B0%E5%9B%BE%EF%BC%9A%E5%93%AA%E4%BA%9B%E8%BF%9B%E5%B1%95%E4%B8%8E%E5%85%A8%E5%8F%8C%E5%B7%A5%E7%9B%B4%E6%8E%A5%E7%9B%B8%E5%85%B3"><span class="nav-number">4.</span> <span class="nav-text">近期论文地图：哪些进展与全双工直接相关</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%8A%97%E5%99%AA%EF%BC%9A%E5%85%88%E8%AE%A9%E8%A1%A8%E5%BE%81%E5%9C%A8%E4%BD%8E%E4%BF%A1%E5%99%AA%E6%AF%94%E4%B8%8B%E4%BB%8D%E7%84%B6%E6%9C%89%E7%94%A8"><span class="nav-number">4.1.</span> <span class="nav-text">1. 抗噪：先让表征在低信噪比下仍然有用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%81%9A%E7%84%A6%EF%BC%9A%E8%BA%AB%E4%BB%BD%E8%A1%A8%E5%BE%81%E7%9A%84%E8%B4%A8%E9%87%8F%E4%B8%8E%E5%9B%B0%E9%9A%BE%E8%B4%9F%E4%BE%8B%E5%90%8C%E6%A0%B7%E9%87%8D%E8%A6%81"><span class="nav-number">4.2.</span> <span class="nav-text">2. 聚焦：身份表征的质量与困难负例同样重要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E8%87%AA%E9%80%82%E5%BA%94%E4%B8%8E%E9%83%A8%E7%BD%B2%EF%BC%9A%E5%9C%A8%E5%93%AA%E4%B8%AA%E4%BD%8D%E7%BD%AE%E5%BC%95%E5%85%A5%E4%B8%AA%E6%80%A7%E5%8C%96"><span class="nav-number">4.3.</span> <span class="nav-text">3. 自适应与部署：在哪个位置引入个性化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-HyWA%EF%BC%9A%E6%8A%8A%E8%BA%AB%E4%BB%BD%E9%80%89%E6%8B%A9%E6%94%BE%E8%BF%9B%E7%8E%B0%E6%9C%89-VAD-%E6%9D%83%E9%87%8D"><span class="nav-number">4.4.</span> <span class="nav-text">4. HyWA：把身份选择放进现有 VAD 权重</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-S4VAD%EF%BC%9A%E5%88%86%E7%B1%BB%E5%88%86%E6%95%B0%E4%B9%8B%E5%A4%96%EF%BC%8C%E8%BF%98%E8%A6%81%E7%9C%8B%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E5%8F%91%E7%8E%B0%E7%94%A8%E6%88%B7"><span class="nav-number">4.5.</span> <span class="nav-text">5. S4VAD：分类分数之外，还要看什么时候发现用户</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">5.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F%E4%B8%8E%E6%96%B0%E8%8C%83%E5%BC%8F%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="nav-number">6.</span> <span class="nav-text">传统与新范式的对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B7%E6%9C%AC%E6%8E%A8%E6%BC%94"><span class="nav-number">7.</span> <span class="nav-text">小样本推演</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">8.</span> <span class="nav-text">工程闭环</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%EF%BC%9A%E6%8A%8A%E4%B8%89%E7%B1%BB%E5%B9%B2%E6%89%B0%E5%88%86%E5%BC%80%E6%9E%84%E9%80%A0"><span class="nav-number">8.1.</span> <span class="nav-text">训练：把三类干扰分开构造</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%EF%BC%9A%E5%9B%BA%E5%AE%9A%E5%8F%AC%E5%9B%9E%E5%90%8E%EF%BC%8C%E5%86%8D%E6%AF%94%E8%BE%83%E8%AF%AF%E8%A7%A6%E5%8F%91%E5%92%8C%E5%BB%B6%E8%BF%9F"><span class="nav-number">8.2.</span> <span class="nav-text">评测：固定召回后，再比较误触发和延迟</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2%EF%BC%9A%E4%BF%9D%E7%95%99%E6%A6%82%E7%8E%87%E5%92%8C%E7%BC%93%E5%AD%98%EF%BC%8C%E4%B8%8D%E8%A6%81%E8%BF%87%E6%97%A9%E4%B8%A2%E5%A4%B1%E8%AF%81%E6%8D%AE"><span class="nav-number">8.3.</span> <span class="nav-text">部署：保留概率和缓存，不要过早丢失证据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">9.</span> <span class="nav-text">直接结论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB%E4%B8%8E%E5%86%99%E4%BD%9C%E5%8F%82%E8%80%83"><span class="nav-number">10.</span> <span class="nav-text">延伸阅读与写作参考</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A5%E5%BE%80-VAD-%E7%9A%84%E5%BD%A2%E5%BC%8F%EF%BC%9A%E4%BB%BB%E5%8A%A1%E4%B8%8D%E5%8F%98%EF%BC%8C%E5%A3%B0%E5%AD%A6%E6%A8%A1%E5%9E%8B%E9%80%90%E6%AD%A5%E5%A2%9E%E5%BC%BA"><span class="nav-number">2.</span> <span class="nav-text">以往 VAD 的形式：任务不变，声学模型逐步增强</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E5%88%A4%E6%96%AD"><span class="nav-number">3.</span> <span class="nav-text">主线判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%91%E6%9C%9F%E8%AE%BA%E6%96%87%E5%9C%B0%E5%9B%BE%EF%BC%9A%E5%93%AA%E4%BA%9B%E8%BF%9B%E5%B1%95%E4%B8%8E%E5%85%A8%E5%8F%8C%E5%B7%A5%E7%9B%B4%E6%8E%A5%E7%9B%B8%E5%85%B3"><span class="nav-number">4.</span> <span class="nav-text">近期论文地图：哪些进展与全双工直接相关</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%8A%97%E5%99%AA%EF%BC%9A%E5%85%88%E8%AE%A9%E8%A1%A8%E5%BE%81%E5%9C%A8%E4%BD%8E%E4%BF%A1%E5%99%AA%E6%AF%94%E4%B8%8B%E4%BB%8D%E7%84%B6%E6%9C%89%E7%94%A8"><span class="nav-number">4.1.</span> <span class="nav-text">1. 抗噪：先让表征在低信噪比下仍然有用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%81%9A%E7%84%A6%EF%BC%9A%E8%BA%AB%E4%BB%BD%E8%A1%A8%E5%BE%81%E7%9A%84%E8%B4%A8%E9%87%8F%E4%B8%8E%E5%9B%B0%E9%9A%BE%E8%B4%9F%E4%BE%8B%E5%90%8C%E6%A0%B7%E9%87%8D%E8%A6%81"><span class="nav-number">4.2.</span> <span class="nav-text">2. 聚焦：身份表征的质量与困难负例同样重要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E8%87%AA%E9%80%82%E5%BA%94%E4%B8%8E%E9%83%A8%E7%BD%B2%EF%BC%9A%E5%9C%A8%E5%93%AA%E4%B8%AA%E4%BD%8D%E7%BD%AE%E5%BC%95%E5%85%A5%E4%B8%AA%E6%80%A7%E5%8C%96"><span class="nav-number">4.3.</span> <span class="nav-text">3. 自适应与部署：在哪个位置引入个性化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-HyWA%EF%BC%9A%E6%8A%8A%E8%BA%AB%E4%BB%BD%E9%80%89%E6%8B%A9%E6%94%BE%E8%BF%9B%E7%8E%B0%E6%9C%89-VAD-%E6%9D%83%E9%87%8D"><span class="nav-number">4.4.</span> <span class="nav-text">4. HyWA：把身份选择放进现有 VAD 权重</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-S4VAD%EF%BC%9A%E5%88%86%E7%B1%BB%E5%88%86%E6%95%B0%E4%B9%8B%E5%A4%96%EF%BC%8C%E8%BF%98%E8%A6%81%E7%9C%8B%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E5%8F%91%E7%8E%B0%E7%94%A8%E6%88%B7"><span class="nav-number">4.5.</span> <span class="nav-text">5. S4VAD：分类分数之外，还要看什么时候发现用户</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8E-Speaking-While-Listening-%E7%BB%BC%E8%BF%B0%E8%BF%BD%E5%88%B0-FireRedChat-pVAD"><span class="nav-number">5.</span> <span class="nav-text">从 Speaking While Listening 综述追到 FireRedChat pVAD</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E6%80%8E%E6%A0%B7%E5%90%8C%E6%97%B6%E7%9C%8B%E5%A3%B0%E9%9F%B3%E5%92%8C%E8%BA%AB%E4%BB%BD"><span class="nav-number">5.1.</span> <span class="nav-text">模型怎样同时看声音和身份</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A3%80%E6%B5%8B%E8%B4%9F%E8%B4%A3%E9%80%89%E6%97%B6%E9%97%B4%EF%BC%8C%E5%8E%9F%E5%A7%8B%E9%9F%B3%E9%A2%91%E4%BB%8D%E9%80%81%E5%BE%80%E4%B8%8B%E6%B8%B8"><span class="nav-number">5.2.</span> <span class="nav-text">检测负责选时间，原始音频仍送往下游</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C%E5%A6%82%E4%BD%95%E8%AF%BB%EF%BC%9A%E5%87%8F%E5%B0%91%E8%AF%AF%E6%89%93%E6%96%AD%EF%BC%8C%E4%BB%98%E5%87%BA%E5%A4%9A%E5%B0%91%E7%AD%89%E5%BE%85"><span class="nav-number">5.3.</span> <span class="nav-text">结果如何读：减少误打断，付出多少等待</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E7%8E%B0%E6%9C%89%E5%85%A8%E5%8F%8C%E5%B7%A5%E7%B3%BB%E7%BB%9F%E6%84%8F%E5%91%B3%E7%9D%80%E4%BB%80%E4%B9%88"><span class="nav-number">5.4.</span> <span class="nav-text">对现有全双工系统意味着什么</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">6.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F%E4%B8%8E%E6%96%B0%E8%8C%83%E5%BC%8F%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="nav-number">7.</span> <span class="nav-text">传统与新范式的对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B7%E6%9C%AC%E6%8E%A8%E6%BC%94"><span class="nav-number">8.</span> <span class="nav-text">小样本推演</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">9.</span> <span class="nav-text">工程闭环</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%EF%BC%9A%E6%8A%8A%E4%B8%89%E7%B1%BB%E5%B9%B2%E6%89%B0%E5%88%86%E5%BC%80%E6%9E%84%E9%80%A0"><span class="nav-number">9.1.</span> <span class="nav-text">训练：把三类干扰分开构造</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%EF%BC%9A%E5%9B%BA%E5%AE%9A%E5%8F%AC%E5%9B%9E%E5%90%8E%EF%BC%8C%E5%86%8D%E6%AF%94%E8%BE%83%E8%AF%AF%E8%A7%A6%E5%8F%91%E5%92%8C%E5%BB%B6%E8%BF%9F"><span class="nav-number">9.2.</span> <span class="nav-text">评测：固定召回后，再比较误触发和延迟</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2%EF%BC%9A%E4%BF%9D%E7%95%99%E6%A6%82%E7%8E%87%E5%92%8C%E7%BC%93%E5%AD%98%EF%BC%8C%E4%B8%8D%E8%A6%81%E8%BF%87%E6%97%A9%E4%B8%A2%E5%A4%B1%E8%AF%81%E6%8D%AE"><span class="nav-number">9.3.</span> <span class="nav-text">部署：保留概率和缓存，不要过早丢失证据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">10.</span> <span class="nav-text">直接结论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB%E4%B8%8E%E5%86%99%E4%BD%9C%E5%8F%82%E8%80%83"><span class="nav-number">11.</span> <span class="nav-text">延伸阅读与写作参考</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -242,7 +242,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2026-09-28 22:00:00 / Modified: 21:54:56" itemprop="dateCreated datePublished" datetime="2026-09-28T22:00:00+08:00">2026-09-28</time>
+      <time title="Created: 2026-09-28 22:00:00 / Modified: 22:21:10" itemprop="dateCreated datePublished" datetime="2026-09-28T22:00:00+08:00">2026-09-28</time>
     </span>
 
   
@@ -334,6 +334,12 @@
 <td>模型参数节省不能直接换算成整机功耗收益</td>
 </tr>
 <tr>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2509.06502">FireRedChat pVAD，2025-09</a></td>
+<td>因果卷积、目标声纹条件与 GRU，输出流式目标活动</td>
+<td>在完整语音系统中权衡误打断与响应时间</td>
+<td>系统对比并非仅替换 pVAD 的受控消融</td>
+</tr>
+<tr>
 <td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2601.12769v1">短注册 embedding 自增强，ICASSP 2026</a></td>
 <td>从混合语音关键帧补充身份表征并迭代更新</td>
 <td>减轻仅用短唤醒词注册时的信息不足</td>
@@ -374,6 +380,51 @@
 <p>同篇的帧级误报时长与事件数量也未在所有骨干上同步改善。这正是上线时要同时检查“误激活多久”和“误激活几次”的原因。</p>
 <h3 id="5-S4VAD：分类分数之外，还要看什么时候发现用户"><a href="#5-S4VAD：分类分数之外，还要看什么时候发现用户" class="headerlink" title="5. S4VAD：分类分数之外，还要看什么时候发现用户"></a>5. S4VAD：分类分数之外，还要看什么时候发现用户</h3><p><a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.11110v1">S4VAD</a> 的重点之一是起点时间标注本身存在偏差。作者把标注起点视作带噪观测，估计偏差后再衡量检测响应，同时提出适合流式推理的状态空间结构。</p>
 <p>这对全双工很直接：检测最终正确，却晚到足以漏掉“停”字，仍然可能造成交互失败。模型一次推理用时、等待足够声学证据的时间，以及真正停播的时间，应分别记录。它并不提供身份条件，因此可以作为时序研究参考，不能直接替代 PVAD。</p>
+<h2 id="从-Speaking-While-Listening-综述追到-FireRedChat-pVAD"><a href="#从-Speaking-While-Listening-综述追到-FireRedChat-pVAD" class="headerlink" title="从 Speaking While Listening 综述追到 FireRedChat pVAD"></a>从 Speaking While Listening 综述追到 FireRedChat pVAD</h2><p>《Speaking While Listening: A Survey and Empirical Audit of Full-Duplex Spoken Dialogue Systems》的<a target="_blank" rel="noopener" href="https://github.com/MM-Speech/DuplexSurvey">官方仓库</a>指向 arXiv:2606.19453；目前可读取的 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2606.19453v1">v1 正文</a>仍使用早期标题 <em>A Survey of Full-Duplex Spoken Dialogue Systems: Architectural Hierarchy, Interaction Ontology, and Decision State Machine</em>。其第 4.3 节明确介绍了 <strong>FireRedChat 的 streaming personalized VAD</strong>，正好补上本文从单个检测模型走向完整交互系统的案例。</p>
+<p>综述把 FireRedChat 归为 L0：在生成模型之外，由活动检测、轮次结束判断和调度模块控制交互。这里的“层级”描述决策发生在哪里，并不是效果排行榜。对本文尤其有用的是综述对两种场景的区分：<strong>旁人讲话应被忽略，目标用户附和却需要进一步判断意图</strong>。pVAD 为前者提供身份依据，但不能独自完成后者。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2606.19453v1">综述 §4.3、§5.4–5.5</a></p>
+<h3 id="模型怎样同时看声音和身份"><a href="#模型怎样同时看声音和身份" class="headerlink" title="模型怎样同时看声音和身份"></a>模型怎样同时看声音和身份</h3><p>根据 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2509.06502v1">FireRedChat 原论文 §2.2.1</a>，其计算路径可概括为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">输入音频块 → Mel 频谱 → 因果卷积 ───────┐</span><br><span class="line">                                       ├→ 通道拼接 → GRU → 目标发声概率</span><br><span class="line">目标说话人音频 → ECAPA-TDNN → 声纹向量 ─┘</span><br></pre></td></tr></table></figure>
+
+<p>分类器每个时间步对应 <strong>10 ms</strong> 音频。训练使用 <strong>2000 小时中英文干净语音</strong>，将 5 秒目标片段分别与 5 秒干扰人声或噪声混合，两类干扰各占 50%，混合 SNR 从 0–30 dB 采样。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2509.06502v1">FireRedChat §2.2.1</a></p>
+<p>这条结构可以从三个角度理解。以下是基于模型结构的解释，而非额外的消融结论：</p>
+<ul>
+<li><strong>因果性解决在线等待问题。</strong> 当前预测不能偷看未来音频；卷积和循环状态处理已经到达的声学证据。它允许持续检测，但仍需要时间积累足够可靠的证据。</li>
+<li><strong>身份条件改变“该检出谁”。</strong> 同一段副驾人声，在普通 VAD 中是正例；当目标设为驾驶员时，它应成为非目标。声纹拼接让分类器有机会学习这个条件关系。</li>
+<li><strong>混合训练让两个难点都出现。</strong> 噪声负例用于学习声学区分，干扰人声用于学习身份选择。仅用噪声增强，不能替代非目标说话人的监督。</li>
+</ul>
+<p>10 ms 是输出的时间粒度，不能写成“用户开口后 10 ms 内停播”。实际等待还包括特征计算、目标确认、消息传输和播放缓冲。测试时也应分别覆盖目标更轻、干扰更响以及注册受污染的情况，不能从上述训练配方直接推断这些条件已被解决。</p>
+<h3 id="检测负责选时间，原始音频仍送往下游"><a href="#检测负责选时间，原始音频仍送往下游" class="headerlink" title="检测负责选时间，原始音频仍送往下游"></a>检测负责选时间，原始音频仍送往下游</h3><p>FireRedChat 使用 pVAD 的目标时间戳控制打断，并按时间戳从<strong>原始音频</strong>取片段送往后续理解；EoT 再根据累计转写判断用户是否说完。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2509.06502v1">FireRedChat §2.1–2.2</a></p>
+<p>这个设计把“是否触发交互”和“下游需要听到什么”分开。例如，目标说话的同时出现汽车鸣笛，系统可以确认目标正在发声，同时保留鸣笛供音频模型理解环境。但若同时说话的是副驾，截取后的片段也可能保留副驾声音。<strong>时间筛选不能替代重叠语音分离</strong>；下游是否能正确转写目标，必须另外测试。</p>
+<h3 id="结果如何读：减少误打断，付出多少等待"><a href="#结果如何读：减少误打断，付出多少等待" class="headerlink" title="结果如何读：减少误打断，付出多少等待"></a>结果如何读：减少误打断，付出多少等待</h3><p>原论文构造中英文各 1000 条语句；背景噪声以 50% 概率加入，目标与噪声的 SNR 为 5 dB；次要说话人在目标结束附近的 ±1 秒窗口插入，两人 SNR 为 20 dB。表 2 报告如下历史配置结果：<a target="_blank" rel="noopener" href="https://arxiv.org/html/2509.06502v1">FireRedChat §3.1</a></p>
+<table>
+<thead>
+<tr>
+<th>论文中的系统配置</th>
+<th>T90（ms）</th>
+<th>误打断率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>LiveKit</td>
+<td>140</td>
+<td>33.4%</td>
+</tr>
+<tr>
+<td>Ten</td>
+<td>90</td>
+<td>78.1%</td>
+</tr>
+<tr>
+<td>FireRedChat</td>
+<td>170</td>
+<td>10.2%</td>
+</tr>
+</tbody></table>
+<p><strong>T90 指打断成功率达到 90% 所需的最短延迟</strong>；误打断考察目标静默时被其他声音触发的错误。二者应一起看，而不是只选最快的一列。</p>
+<p>由表中数值计算，FireRedChat 相对该 LiveKit 配置多等待 30 ms，误打断率低 23.2 个百分点。这里最有价值的工程问题是：产品愿意用多少额外等待换取更少误停播？“目标更容易插进话”和“助手不被旁人频繁打断”必须同时满足。</p>
+<p>这张表还有三条边界。第一，各系统使用的组件和控制逻辑不同，它不是保持其他条件不变、只切换 pVAD 的实验，无法把全部差异归因于一个网络。第二，测试中的 20 dB 人声强度关系不代表同音量抢话，也不能外推到所有远场场景。第三，它反映论文当时的配置，并不是这些框架当前版本的排名；本文也未复现这些结果。</p>
+<h3 id="对现有全双工系统意味着什么"><a href="#对现有全双工系统意味着什么" class="headerlink" title="对现有全双工系统意味着什么"></a>对现有全双工系统意味着什么</h3><p>可把 FireRedChat 看作“目标活动控制”的具体案例，把 HyWA 看作“身份条件如何进入模型”的另一条路线。前者在特征通道注入声纹，后者在注册阶段生成部分条件权重。<strong>两篇的测试协议不同，不应直接比较各自的误打断数字。</strong></p>
+<p>落地时，建议先建立三个独立验收场景：助手讲话期间只有旁人发声，系统应继续；目标说“停一下”，系统应及时停止；目标轻声附和“嗯”，系统应结合上下文决定是否继续。前两项检验目标活动与控制链路，第三项检验打断意图。这样才能知道改进来自抗噪、身份选择，还是话轮策略。</p>
 <h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>把问题拆成三个可观察的信号，比让一个阈值承担全部责任更清楚：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">声学活动：当前是否有语音？</span><br><span class="line">目标活动：当前语音是否包含指定用户？</span><br><span class="line">交互决策：当前发声是否需要让出发言权？</span><br></pre></td></tr></table></figure>
 
@@ -520,9 +571,9 @@
     <footer class="post-footer">
           <div class="post-tags">
               <a href="/tags/Speech/" rel="tag"># Speech</a>
-              <a href="/tags/Full-Duplex/" rel="tag"># Full Duplex</a>
               <a href="/tags/VAD/" rel="tag"># VAD</a>
               <a href="/tags/PVAD/" rel="tag"># PVAD</a>
+              <a href="/tags/Full-Duplex/" rel="tag"># Full Duplex</a>
               <a href="/tags/Noise-Robustness/" rel="tag"># Noise Robustness</a>
               <a href="/tags/Speaker-Recognition/" rel="tag"># Speaker Recognition</a>
           </div>
