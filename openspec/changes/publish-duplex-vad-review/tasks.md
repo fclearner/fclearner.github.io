@@ -22,4 +22,4 @@
 - [x] 5.1 Read arXiv:2609.19856v1 methodology, metrics, results and limitations.
 - [x] 5.2 Replace the mistaken identification and integrate FVAD throughout the article.
 - [x] 5.3 Validate and publish the scoped correction.
-- [ ] 5.4 Verify live FVAD content and retain publication evidence.
+- [x] 5.4 Verify live FVAD content and retain publication evidence.

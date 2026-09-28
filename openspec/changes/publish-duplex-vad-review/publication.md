@@ -35,3 +35,4 @@ The initial combined verify command stopped at an inaccessible default npm cache
 - Isolated `npm run verify` passed: source encoding, Hexo build, generated-site check (34 posts), dependency audit (zero vulnerabilities), strict OpenSpec (14 passed, zero failed; existing unrelated comments-spec warning).
 - Source whitespace check passed. Generated HTML verified the exact arXiv version, Mamba-FVAD, BG-FAR, 32 ms frame size and Table II values. Removed the old survey-to-FireRedChat identification. Search XML parsed successfully with exactly one updated VAD entry.
 - Generated commit `3909480` pushed to `master`, touching only the VAD page and its search entry. Existing navigation and other published content were preserved.
+- Source correction commit `e26ae43` pushed to `source`. Live verification after deployment returned HTTP 200 with `2609.19856v1`, `Mamba-FVAD` and `BG-FAR`; the old inferred identification was absent.
