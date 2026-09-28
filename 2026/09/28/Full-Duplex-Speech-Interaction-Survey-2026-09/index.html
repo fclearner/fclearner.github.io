@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/AlanFangicon32X32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/AlanFangicon16X16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"alanfangblog.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null,"activeClass":"giscus"},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":3,"unescape":true,"preload":false}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="语音助手正在解释一个方案，你说了一句“对，就按第二种”。它应该停下来等你说完，继续原来的介绍，还是直接围绕第二种方案往下讲？如果它已经在内部生成了五条建议，扬声器却只播完两条，此时再问“刚才说到哪了”，它又该以哪份历史为准？ 这两个小问题概括了近期语音全双工研究的变化：同时听说只是运行条件，真正困难的是在不断变化的对话中选择动作，并让动作对应用户实际经历的过程。 本文整理 2026 年 7 月 2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="语音全双工交互近两月论文综述：从同时听说到理解插话、恢复现场与完成任务">
+<meta property="og:url" content="https://alanfangblog.com/2026/09/28/Full-Duplex-Speech-Interaction-Survey-2026-09/index.html">
+<meta property="og:site_name" content="AlanFangBlog">
+<meta property="og:description" content="语音助手正在解释一个方案，你说了一句“对，就按第二种”。它应该停下来等你说完，继续原来的介绍，还是直接围绕第二种方案往下讲？如果它已经在内部生成了五条建议，扬声器却只播完两条，此时再问“刚才说到哪了”，它又该以哪份历史为准？ 这两个小问题概括了近期语音全双工研究的变化：同时听说只是运行条件，真正困难的是在不断变化的对话中选择动作，并让动作对应用户实际经历的过程。 本文整理 2026 年 7 月 2">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-09-28T14:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-28T13:51:01.449Z">
+<meta property="article:author" content="Alan Fang">
+<meta property="article:tag" content="Evaluation">
+<meta property="article:tag" content="Full Duplex">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="Speech">
+<meta property="article:tag" content="Survey">
+<meta property="article:tag" content="Turn-taking">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://alanfangblog.com/2026/09/28/Full-Duplex-Speech-Interaction-Survey-2026-09/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://alanfangblog.com/2026/09/28/Full-Duplex-Speech-Interaction-Survey-2026-09/","path":"2026/09/28/Full-Duplex-Speech-Interaction-Survey-2026-09/","title":"语音全双工交互近两月论文综述：从同时听说到理解插话、恢复现场与完成任务"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>语音全双工交互近两月论文综述：从同时听说到理解插话、恢复现场与完成任务 | AlanFangBlog</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">AlanFangBlog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A3%80%E7%B4%A2%E8%8C%83%E5%9B%B4%E4%B8%8E%E8%AF%81%E6%8D%AE%E5%8F%A3%E5%BE%84"><span class="nav-number">2.</span> <span class="nav-text">检索范围与证据口径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E5%9C%B0%E5%9B%BE%EF%BC%9A21-%E7%AF%87%E5%B7%A5%E4%BD%9C%E5%88%86%E5%88%AB%E8%A1%A5%E5%93%AA%E5%9D%97%E8%83%BD%E5%8A%9B"><span class="nav-number">3.</span> <span class="nav-text">论文地图：21 篇工作分别补哪块能力</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%95%B0%E6%8D%AE%EF%BC%9A%E5%A6%82%E4%BD%95%E4%BF%9D%E7%95%99%E5%AF%B9%E8%AF%9D%E9%87%8C%E7%9A%84%E6%97%B6%E9%97%B4%E4%B8%8E%E6%84%8F%E5%9B%BE"><span class="nav-number">3.1.</span> <span class="nav-text">一、数据：如何保留对话里的时间与意图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%A8%A1%E5%9E%8B%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%97%B6%EF%BC%9A%E6%80%8E%E6%A0%B7%E6%8C%81%E7%BB%AD%E5%86%B3%E7%AD%96%E8%80%8C%E4%B8%8D%E4%B8%A2%E5%A4%B1%E7%8A%B6%E6%80%81"><span class="nav-number">3.2.</span> <span class="nav-text">二、模型与运行时：怎样持续决策而不丢失状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E8%AF%84%E6%B5%8B%EF%BC%9A%E6%80%8E%E6%A0%B7%E8%AF%86%E5%88%AB%E2%80%9C%E7%9C%8B%E8%B5%B7%E6%9D%A5%E4%BC%9A%E8%81%8A%E5%A4%A9%E2%80%9D%E7%9A%84%E6%8D%B7%E5%BE%84"><span class="nav-number">3.3.</span> <span class="nav-text">三、评测：怎样识别“看起来会聊天”的捷径</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E5%88%A4%E6%96%AD"><span class="nav-number">4.</span> <span class="nav-text">主线判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E8%B7%AF%E7%BA%BF%EF%BC%9A%E7%9C%9F%E5%AE%9E%E6%84%9F%E3%80%81%E5%8F%AF%E6%8E%A7%E6%80%A7%E4%B8%8E%E8%AE%AD%E7%BB%83%E4%BB%B7%E5%80%BC%E8%A6%81%E5%88%86%E5%BC%80%E9%AA%8C%E8%AF%81"><span class="nav-number">5.</span> <span class="nav-text">数据路线：真实感、可控性与训练价值要分开验证</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%BA%E7%B1%BB%E5%81%8F%E5%A5%BD%E5%91%8A%E8%AF%89%E6%88%91%E4%BB%AC%E2%80%9C%E4%BB%80%E4%B9%88%E5%9C%BA%E5%90%88%E8%AF%A5%E6%80%8E%E6%A0%B7%E8%AF%B4%E2%80%9D"><span class="nav-number">5.1.</span> <span class="nav-text">人类偏好告诉我们“什么场合该怎样说”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A4%E4%B8%AA-DuplexGen-%E7%9A%84%E2%80%9C%E8%87%AA%E7%84%B6%E2%80%9D%E6%8C%87%E5%90%91%E4%B8%8D%E5%90%8C%E9%97%AE%E9%A2%98"><span class="nav-number">5.2.</span> <span class="nav-text">两个 DuplexGen 的“自然”指向不同问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E%E7%9C%9F%E5%AE%9E%E9%87%8D%E5%BB%BA%E4%B8%8E%E4%BB%8E%E4%BA%8B%E4%BB%B6%E5%90%88%E6%88%90%EF%BC%8C%E6%98%AF%E4%B8%A4%E7%A7%8D%E4%B8%8D%E5%90%8C%E8%B5%B7%E7%82%B9"><span class="nav-number">5.3.</span> <span class="nav-text">从真实重建与从事件合成，是两种不同起点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%B7%AF%E7%BA%BF%EF%BC%9A%E5%86%B3%E7%AD%96%E6%97%B6%E9%92%9F%E3%80%81%E6%92%AD%E6%94%BE%E8%BF%9B%E5%BA%A6%E4%B8%8E%E5%90%8E%E5%8F%B0%E4%BB%BB%E5%8A%A1"><span class="nav-number">6.</span> <span class="nav-text">模型路线：决策时钟、播放进度与后台任务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%A7%E7%BA%A7%E7%8A%B6%E6%80%81%E9%A2%84%E6%B5%8B%E4%B8%8E%E5%8A%A8%E6%80%81%E6%97%B6%E9%97%B4%E7%AA%97%E8%A7%A3%E5%86%B3%E4%B8%8D%E5%90%8C%E6%88%90%E6%9C%AC"><span class="nav-number">6.1.</span> <span class="nav-text">帧级状态预测与动态时间窗解决不同成本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%93%E6%96%AD%E6%81%A2%E5%A4%8D%E8%A6%81%E4%BB%A5%E5%AE%9E%E9%99%85%E6%92%AD%E5%87%BA%E8%BF%9B%E5%BA%A6%E4%B8%BA%E5%87%86"><span class="nav-number">6.2.</span> <span class="nav-text">打断恢复要以实际播出进度为准</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E5%85%B7%E8%B0%83%E7%94%A8%E5%BF%85%E9%A1%BB%E8%BF%9B%E5%85%A5%E5%90%8C%E4%B8%80%E6%9D%A1%E5%AF%B9%E8%AF%9D%E6%97%B6%E9%97%B4%E7%BA%BF"><span class="nav-number">6.3.</span> <span class="nav-text">工具调用必须进入同一条对话时间线</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%E8%B7%AF%E7%BA%BF%EF%BC%9A%E4%BB%8E%E5%81%9C%E4%B8%8D%E5%81%9C%EF%BC%8C%E8%B5%B0%E5%90%91%E4%B8%BA%E4%BB%80%E4%B9%88%E5%81%9C%E3%80%81%E5%A6%82%E4%BD%95%E7%BB%A7%E7%BB%AD"><span class="nav-number">7.</span> <span class="nav-text">评测路线：从停不停，走向为什么停、如何继续</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ECHO-%E6%A3%80%E6%9F%A5%E4%B8%8A%E4%B8%8B%E6%96%87%E4%BE%9D%E8%B5%96%EF%BC%8CDuplex-Cue-%E6%A3%80%E6%9F%A5%E5%86%85%E5%AE%B9%E5%90%B8%E6%94%B6"><span class="nav-number">7.1.</span> <span class="nav-text">ECHO 检查上下文依赖，Duplex Cue 检查内容吸收</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%8E%E6%84%8F%E5%9B%BE%E5%86%B3%E5%AE%9A%E2%80%9C%E5%BF%AB%E2%80%9D%E6%98%AF%E5%90%A6%E5%90%88%E9%80%82"><span class="nav-number">7.2.</span> <span class="nav-text">场景与意图决定“快”是否合适</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E4%BB%A4%E3%80%81%E4%B8%BB%E5%8A%A8%E6%80%A7%E4%B8%8E%E4%BB%BB%E5%8A%A1%E5%AE%8C%E6%88%90%E9%9C%80%E8%A6%81%E5%8F%A6%E8%AE%BE%E8%80%83%E9%A2%98"><span class="nav-number">7.3.</span> <span class="nav-text">指令、主动性与任务完成需要另设考题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">8.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">9.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B7%E6%9C%AC%E6%8E%A8%E6%BC%94"><span class="nav-number">10.</span> <span class="nav-text">小样本推演</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%98%E7%BC%BA%E4%BB%80%E4%B9%88%E8%AF%81%E6%8D%AE"><span class="nav-number">11.</span> <span class="nav-text">还缺什么证据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">12.</span> <span class="nav-text">直接结论</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%85%E8%AF%BB%E4%B8%8E%E5%86%99%E4%BD%9C%E5%8F%82%E8%80%83"><span class="nav-number">12.1.</span> <span class="nav-text">阅读与写作参考</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Alan Fang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">49</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://alanfangblog.com/2026/09/28/Full-Duplex-Speech-Interaction-Survey-2026-09/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Alan Fang">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="语音全双工交互近两月论文综述：从同时听说到理解插话、恢复现场与完成任务 | AlanFangBlog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          语音全双工交互近两月论文综述：从同时听说到理解插话、恢复现场与完成任务
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2026-09-28 22:00:00 / Modified: 21:51:01" itemprop="dateCreated datePublished" datetime="2026-09-28T22:00:00+08:00">2026-09-28</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>语音助手正在解释一个方案，你说了一句“对，就按第二种”。它应该停下来等你说完，继续原来的介绍，还是直接围绕第二种方案往下讲？如果它已经在内部生成了五条建议，扬声器却只播完两条，此时再问“刚才说到哪了”，它又该以哪份历史为准？</p>
+<p>这两个小问题概括了近期语音全双工研究的变化：<strong>同时听说只是运行条件，真正困难的是在不断变化的对话中选择动作，并让动作对应用户实际经历的过程。</strong></p>
+<p>本文整理 <strong>2026 年 7 月 28 日至 9 月 28 日</strong>首次提交的 <strong>21 篇核心论文</strong>，沿着数据、模型与运行时、评测三条线展开。先给出可检索的论文地图，再讨论各条路线解决了什么、证据到哪里为止，以及怎样组成一套实际可用的验证流程。</p>
+<span id="more"></span>
+
+<h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>全双工语音交互至少包含四项彼此相关、却不能互相替代的能力：</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>一个具体问题</th>
+<th>只测声音质量会漏掉什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>持续感知</td>
+<td>系统说话时，用户的新输入是否仍被理解？</td>
+<td>播报期间输入实际上被丢弃</td>
+</tr>
+<tr>
+<td>发言权控制</td>
+<td>当前应等待、接话、继续还是让出话轮？</td>
+<td>把所有“嗯”都当成打断</td>
+</tr>
+<tr>
+<td>在线修正</td>
+<td>用户补充条件后，当前回答是否改变？</td>
+<td>声音没停，但新条件没被采纳</td>
+</tr>
+<tr>
+<td>状态连续</td>
+<td>打断、播放与工具返回之后，历史是否仍然一致？</td>
+<td>把尚未播放的内容当成已经讲过</td>
+</tr>
+</tbody></table>
+<p>这里的 backchannel 指听者的简短反馈，如“嗯”“对”，通常用于表示正在听；barge-in 指用户在系统发言中插入语音；turn-taking 指双方如何协调发言权。它们之间没有简单的一一对应关系：同一句话在不同上下文中，可能承担不同作用。</p>
+<p>架构上也不能只按“级联”或“端到端”判断能力。外部轮次控制器可以支持连续监听，原生双流模型也可能学到不合适的停说策略。窗口外的综述 <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2606.19453">Speaking While Listening</a> 提供了一个有用视角：分别考察决策发生在哪一层、覆盖哪些交互情境，以及系统能到达哪些状态。本文将它作为背景框架，不计入近两月的新论文。</p>
+<h2 id="检索范围与证据口径"><a href="#检索范围与证据口径" class="headerlink" title="检索范围与证据口径"></a>检索范围与证据口径</h2><p>检索截至 2026-09-28，组合使用 full-duplex、spoken dialogue、turn-taking、backchannel、interruption、speech agent、streaming ASR 等关键词，并沿论文引用和作者项目页补查。主要核验入口为 arXiv、ACL Anthology 与作者公开项目；博客和聚合页用于发现线索与参考表达结构，论文结论回到一手来源核对。</p>
+<p>纳入直接研究语音并发交互、轮次控制、相关训练数据和交互评测的工作。以 <strong>arXiv 首次提交日期</strong>判定是否进入主表，避免把会议收录、模型发布或论文更新日期混在一起。窗口包含 7 月 28 日当天；ECHO 和 DuplexDrama 的讨论采用 9 月 24 日的 v2。</p>
+<p>这是一份有明确范围的研究整理，不能保证检索穷尽。主表中的测量均为作者报告，本次没有重新训练模型或复跑榜单。方法与局限能从正文核对的部分在文中展开；仅完成摘要级核验的工作保留为简短条目。论文公开、代码公开、权重公开和数据可下载是不同状态，本文不把论文出现等同于完整可复现。</p>
+<h2 id="论文地图：21-篇工作分别补哪块能力"><a href="#论文地图：21-篇工作分别补哪块能力" class="headerlink" title="论文地图：21 篇工作分别补哪块能力"></a>论文地图：21 篇工作分别补哪块能力</h2><p>以下日期均为 2026 年。表内使用简称，链接指向对应版本的论文；两篇 DuplexGen 是不同团队的独立工作。</p>
+<h3 id="一、数据：如何保留对话里的时间与意图"><a href="#一、数据：如何保留对话里的时间与意图" class="headerlink" title="一、数据：如何保留对话里的时间与意图"></a>一、数据：如何保留对话里的时间与意图</h3><table>
+<thead>
+<tr>
+<th>首次提交</th>
+<th>论文</th>
+<th>主要贡献</th>
+<th>阅读时要保留的边界</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>07-28</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2607.26178v1">DuplexGen：Adaptive Synthesis</a></td>
+<td>用少量人工偏好校准不同场景下的轮次行为合成</td>
+<td>六类合作、竞争任务的偏好不能直接代表所有应用</td>
+</tr>
+<tr>
+<td>08-17</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.16053v1">DuplexGen：Decoupling Content, Timing, and Acoustics</a></td>
+<td>分离脚本内容、双模型互动时序与声学重渲染</td>
+<td>时序分布接近真人，不等于下游任务自然提升</td>
+</tr>
+<tr>
+<td>09-08</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.08147v1">ConversationalVoice</a></td>
+<td>从真实对话分离声道，再重建和扩展内容</td>
+<td>评测针对数据属性，下游训练收益仍待验证</td>
+</tr>
+<tr>
+<td>09-11</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.12872v2">DuplexDrama</a></td>
+<td>合成覆盖场景、人设、双工行为、情绪和声音事件的对话</td>
+<td>论文描述内部训练验证；计划发布子集不等于已全部开放</td>
+</tr>
+<tr>
+<td>09-23</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.28806v1">A Harness for Synthesizing Diverse Naturalistic Full-Duplex Conversations</a></td>
+<td>从带意图和相对关系的事件列表生成双声道语音及动作标签</td>
+<td>合成监督的训练收益仍需用独立真人交互检验</td>
+</tr>
+</tbody></table>
+<h3 id="二、模型与运行时：怎样持续决策而不丢失状态"><a href="#二、模型与运行时：怎样持续决策而不丢失状态" class="headerlink" title="二、模型与运行时：怎样持续决策而不丢失状态"></a>二、模型与运行时：怎样持续决策而不丢失状态</h3><table>
+<thead>
+<tr>
+<th>首次提交</th>
+<th>论文</th>
+<th>主要贡献</th>
+<th>阅读时要保留的边界</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>08-11</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.10878v1">X2-Turn</a></td>
+<td>在共享流式表征上并行预测 ASR token 与帧级轮次状态</td>
+<td>中英 Easy-Turn 上的控制能力，不能替代完整对话评测</td>
+</tr>
+<tr>
+<td>09-04</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.05592v1">What Did I Just Say? Self-Listening</a></td>
+<td>把已播放的自身语音送回模型，定位打断时的实际进度</td>
+<td>锚定进度与常规轮次控制仍有取舍</td>
+</tr>
+<tr>
+<td>09-08</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.08956v1">TASTE2</a></td>
+<td>将文本对齐语音表征扩展为增量对话和流式合成系统</td>
+<td>能流式运行不代表首段音频延迟已经足够低</td>
+</tr>
+<tr>
+<td>09-11</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.12623v1">SteerDuplex</a></td>
+<td>基于 Moshi 改善语音指令控制，并用强化学习优化互动</td>
+<td>时序奖励可能诱导不完整回答</td>
+</tr>
+<tr>
+<td>09-12</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.13814v1">Realtime-Venus</a></td>
+<td>前台持续交互，后台异步推理与工具执行，共享因果时间线</td>
+<td>音频、音视频模型及不同评测项需要分开看</td>
+</tr>
+<tr>
+<td>09-16</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.19334v1">A frontend-backend architecture for tool calls</a></td>
+<td>双工前台发出委派信号，由文本后台调用工具，再注入结果</td>
+<td>工具召回、参数正确与任务成功是不同指标</td>
+</tr>
+<tr>
+<td>09-18</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.21967v1">NemotronLabs VoiceChat</a></td>
+<td>统一流式架构包含语音、转写与结构化工具调用通道</td>
+<td>工具选择较好，参数与端到端执行仍是短板</td>
+</tr>
+<tr>
+<td>09-24</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.29217v1">AdaptDuplex</a></td>
+<td>显式决策 token、动态时间窗、分层认知与外部推理</td>
+<td>时间窗仍是离散选择，并发控制与取消仍有误差</td>
+</tr>
+</tbody></table>
+<h3 id="三、评测：怎样识别“看起来会聊天”的捷径"><a href="#三、评测：怎样识别“看起来会聊天”的捷径" class="headerlink" title="三、评测：怎样识别“看起来会聊天”的捷径"></a>三、评测：怎样识别“看起来会聊天”的捷径</h3><table>
+<thead>
+<tr>
+<th>首次提交</th>
+<th>论文 &#x2F; 评测集</th>
+<th>它增加的检验维度</th>
+<th>不能直接推出的结论</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>08-11</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.10716v1">DuplexWorld</a></td>
+<td>六类任务世界中的任务、对话与语音质量</td>
+<td>自然度分数不能代替任务成功率</td>
+</tr>
+<tr>
+<td>08-25</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.25218v1">TurnBench</a></td>
+<td>跨六种互动风格的结束与打断检测</td>
+<td>某一种对话风格的阈值不一定通用</td>
+</tr>
+<tr>
+<td>09-03</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.03423v1">DuplexSpeechBench-IFEval</a></td>
+<td>从角色隐含要求推断行为，区分内容与发言权遵循</td>
+<td>人设口吻正确不等于主动行为正确</td>
+</tr>
+<tr>
+<td>09-11</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.13117v1">Continue, Adapt, or Yield &#x2F; Duplex Cue</a></td>
+<td>把“继续并吸收新信息”作为单独行为</td>
+<td>单模型英语案例不构成通用排名</td>
+</tr>
+<tr>
+<td>09-11</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.13076v1">MP-Bench</a></td>
+<td>多人场景的接话意识、回应适当性与理解</td>
+<td>双人交互成绩不能外推到多人会议</td>
+</tr>
+<tr>
+<td>09-15</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.17360v2">Same Words, Different Actions &#x2F; ECHO</a></td>
+<td>同一插话文本在不同上下文中应作相反动作</td>
+<td>固定轨迹诊断不等于闭环真人交互</td>
+</tr>
+<tr>
+<td>09-17</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.19596v1">Full-Duplex Speech Models Take the Floor When Asked, Not When Needed</a></td>
+<td>区分“有机会说话”和“有理由主动介入”</td>
+<td>被点名后能回答，不代表会自主判断介入时机</td>
+</tr>
+<tr>
+<td>09-23</td>
+<td><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.27372v1">Neither Silence nor Overlap Is Failure &#x2F; TACT</a></td>
+<td>根据意图和人类时序分布评价响应时机</td>
+<td>分数依赖意图标注和参考分布，不能与二元准确率直接换算</td>
+</tr>
+</tbody></table>
+<h2 id="主线判断"><a href="#主线判断" class="headerlink" title="主线判断"></a>主线判断</h2><p>将这些工作放在一起，我的判断是：全双工研究正在把原先隐藏在“自然对话”里的三个问题拆开。</p>
+<p>第一，<strong>合适的交互策略从哪里来</strong>。同样的停顿，在教学、闲聊和竞赛中可能有不同含义，因此训练数据需要记录场景、意图以及行为发生的位置。</p>
+<p>第二，<strong>模型依据哪一份现场作决定</strong>。生成文本、实际播出的语音和后台任务并不同步，恢复对话必须知道用户听到什么、任务执行到哪里。</p>
+<p>第三，<strong>怎样确认策略确实理解了上下文</strong>。一个遇到声音就停的系统，可能在打断测试中很好看；一个永远不停的系统，也可能在继续说话测试中占便宜。评测需要让这两种固定策略都暴露出来。</p>
+<p>这是对上述论文的综合解释。各篇论文研究的对象、语言、模型版本和分数定义不同，本文不把它们拼成一张“谁最强”的总榜。</p>
+<h2 id="数据路线：真实感、可控性与训练价值要分开验证"><a href="#数据路线：真实感、可控性与训练价值要分开验证" class="headerlink" title="数据路线：真实感、可控性与训练价值要分开验证"></a>数据路线：真实感、可控性与训练价值要分开验证</h2><h3 id="人类偏好告诉我们“什么场合该怎样说”"><a href="#人类偏好告诉我们“什么场合该怎样说”" class="headerlink" title="人类偏好告诉我们“什么场合该怎样说”"></a>人类偏好告诉我们“什么场合该怎样说”</h3><p>7 月的 DuplexGen 用人工标注校准场景中的轮次偏好，关注交互规范是否随任务改变。它提示了一个数据设计问题：训练集即使包含很多自然对话，也不一定明确告诉模型，当前扮演什么角色、允许怎样插话。该工作的对照包含未经校准的提示生成与通用人际对话数据。(<a target="_blank" rel="noopener" href="https://duplexgen.github.io/">论文与项目</a>)</p>
+<p>对数据工程而言，值得保留的单位是“场景—候选动作—偏好”，而不仅是两个人分别说了什么。这是本文的实践推论；具体应用中的偏好仍需要自己的用户验证。</p>
+<h3 id="两个-DuplexGen-的“自然”指向不同问题"><a href="#两个-DuplexGen-的“自然”指向不同问题" class="headerlink" title="两个 DuplexGen 的“自然”指向不同问题"></a>两个 DuplexGen 的“自然”指向不同问题</h3><p>8 月的同名工作把脚本交给两个相互监听的模型演绎，再进行 TTS 重渲染。正文中，重叠按相对位置迁移，静默间隔直接保留，不能把摘要中的“保留时序”理解为所有绝对时间戳完全不变。</p>
+<p>更值得读的是它的控制实验：当重渲染方式固定时，互动时序与拼接时序之间的 ASR 错误差异有限；改变重叠的渲染强度却明显改变识别难度。这说明“对话时序更像真人”和“识别任务更难”可以来自不同因素。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2608.16053v1">方法 II-D、实验 IV-D</a>)</p>
+<h3 id="从真实重建与从事件合成，是两种不同起点"><a href="#从真实重建与从事件合成，是两种不同起点" class="headerlink" title="从真实重建与从事件合成，是两种不同起点"></a>从真实重建与从事件合成，是两种不同起点</h3><p>ConversationalVoice 从真实双人录音出发，保留声道、说话人和互动关系，再重建、扩展。论文明确只验证数据属性；声音质量或自动自然度评价变好，还不能作为模型训练有效的证明。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.08147v1">ConversationalVoice</a>)</p>
+<p>DuplexDrama 则从丰富的场景、角色和表达设置出发。作者报告已生成超过 2,000 小时语音，其中带至少一种双工行为的轮次占 3.8%；计划发布 800 小时精选子集。这里最值得关注的是行为覆盖和有效样本比例，而非只看总时长；公开可复现的训练增益也需另行核验。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.12872v2">DuplexDrama v2</a>)</p>
+<p>9 月的 synthesis harness 让 LLM 描述事件之间的关系，再根据合成音频对齐到共同时间轴，覆盖中英两种语言。作者给出了 Moshi 微调后的轮次控制收益，因而比只报告音频自然度更接近训练闭环；但仍需测试收益能否迁移到独立真人录音和实际设备。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.28806v1">Synthesis Harness</a>)</p>
+<p>由此可以设计三层验收：先检查内容和事件标签是否正确，再检查渲染后是否保留事件，最后验证训练后的动作质量。三层都通过，才有依据扩大合成规模。</p>
+<h2 id="模型路线：决策时钟、播放进度与后台任务"><a href="#模型路线：决策时钟、播放进度与后台任务" class="headerlink" title="模型路线：决策时钟、播放进度与后台任务"></a>模型路线：决策时钟、播放进度与后台任务</h2><h3 id="帧级状态预测与动态时间窗解决不同成本"><a href="#帧级状态预测与动态时间窗解决不同成本" class="headerlink" title="帧级状态预测与动态时间窗解决不同成本"></a>帧级状态预测与动态时间窗解决不同成本</h3><p>X2-Turn 在 Voxtral Realtime 的共享流式表征上增加并行轮次状态头，让转写与状态判断在帧级对齐。它为已有系统提供了一条增量改进思路：先提高持续决策能力，再观察完整交互的收益。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.10878v1">X2-Turn</a>)</p>
+<p>AdaptDuplex 把行为决策显式放入 token 协议，并在多个时间窗之间动态选择。窗口缩短有助于更快更新，窗口变长则改变计算成本与互动取舍。论文支持推理时调整决策偏置，但这只是移动策略的工作点：更积极响应可能同时损害 backchannel 或旁人语音场景。</p>
+<p>它在 HumDial-FDBench 报告综合分 72.9；表中的跨系统延迟没有硬件匹配，不能据此宣布某种架构普遍更快。其外部推理动作还包含使用标准历史前缀的评测，不能全部视为自由运行中的任务成功率。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.29217v1">AdaptDuplex §3</a>)</p>
+<p>TASTE2 提供了另一种提醒：保留文本模型能力与降低部署延迟需要分别衡量。其部署在两张 RTX A6000、经过 TensorRT 加速后，平均首段音频时间仍为 2.701 秒。这个数值只适用于论文配置，却足以说明“支持流式”本身不是低延迟的证据。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.08956v1">TASTE2</a>)</p>
+<h3 id="打断恢复要以实际播出进度为准"><a href="#打断恢复要以实际播出进度为准" class="headerlink" title="打断恢复要以实际播出进度为准"></a>打断恢复要以实际播出进度为准</h3><p>Self-Listening 将已播放的自身语音作为输入，使模型能以用户实际听到的前缀恢复交互。在 AnchorSpeech 上，匹配对照的锚定准确率从 7.8% 提高到 73.0%；同时，论文也报告了锚定与常规轮次管理之间的取舍。它支持“播放历史有用”这一结论，尚不能推出所有对话能力都会一起改善。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.05592v1">Self-Listening §1–3</a>)</p>
+<p>下面是一个原创示意例子，时间与内容均不代表论文测量：</p>
+<table>
+<thead>
+<tr>
+<th>同一时刻</th>
+<th>系统内部可能保留的内容</th>
+<th>用户实际经历</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>文本生成</td>
+<td>第一至第五条已生成</td>
+<td>尚不知道第五条存在</td>
+</tr>
+<tr>
+<td>音频合成</td>
+<td>第一至第三条已合成</td>
+<td>第三条还在队列</td>
+</tr>
+<tr>
+<td>扬声器播放</td>
+<td>第二条刚播放完</td>
+<td>用户只完整听到两条</td>
+</tr>
+<tr>
+<td>用户打断</td>
+<td>“重复刚才那一条”</td>
+<td>指向第二条</td>
+</tr>
+</tbody></table>
+<p>据此，工程实现至少要区分已生成、已合成、已播放三个进度。取消输出时，也需要核对音频队列是否真正停止；服务器侧停止生成之后，客户端缓存仍可能继续播出。这是播放一致性的实现要求，不应由模型的最终文本来代替。</p>
+<h3 id="工具调用必须进入同一条对话时间线"><a href="#工具调用必须进入同一条对话时间线" class="headerlink" title="工具调用必须进入同一条对话时间线"></a>工具调用必须进入同一条对话时间线</h3><p>Realtime-Venus 用前台维持连续交互，后台处理推理与工具，并以因果时间线连接输入、输出和委派事件。其 FDB v1.5 结果分别报告真正打断与几类非打断重叠，说明系统评测需要观察相反方向的行为。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.13814v1">Realtime-Venus</a>)</p>
+<p>NVIDIA 的 frontend-backend 论文让前台发出委派 token，将流式转写交给文本后台，并把结果注入前台。它报告单轮工具调用召回率为 92%–97%，但召回不意味着参数正确或整个任务完成。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.19334v1">Frontend-backend architecture</a>)</p>
+<p>NemotronLabs VoiceChat 的系统论文则展示了并行文本与结构化工具输出、增量转写和流式语音生成的统一设计。其 FDB 3.0 工具选择 F1 为 82.5%，作者同时指出参数准确率与端到端执行仍需改善。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.21967v1">VoiceChat</a>)</p>
+<p>本文的工程推论是：后台结果返回时，应先检查它对应的请求是否仍有效。例如用户已经将“周五”改为“周六”，旧查询结果可以留作记录，却不应直接当成新请求的答案播报。停止语音、取消查询和撤销已完成操作也需要不同的执行语义。</p>
+<h2 id="评测路线：从停不停，走向为什么停、如何继续"><a href="#评测路线：从停不停，走向为什么停、如何继续" class="headerlink" title="评测路线：从停不停，走向为什么停、如何继续"></a>评测路线：从停不停，走向为什么停、如何继续</h2><h3 id="ECHO-检查上下文依赖，Duplex-Cue-检查内容吸收"><a href="#ECHO-检查上下文依赖，Duplex-Cue-检查内容吸收" class="headerlink" title="ECHO 检查上下文依赖，Duplex Cue 检查内容吸收"></a>ECHO 检查上下文依赖，Duplex Cue 检查内容吸收</h3><p>ECHO 固定插话文本，改写前置对话，使配对样本分别需要 Keep 与 Yield，并用两边都正确的配对成功率压制固定动作策略。它针对中文、固定轨迹中的动作诊断；两边独立合成的音频并非完全匹配，结果不能被解释成只改变上下文的纯声学控制实验。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.17360v2">ECHO v2 §1–2</a>)</p>
+<p>Duplex Cue 增加第三种行为：继续说话，同时吸收听者贡献。在 66 对可评估的合作性提示上，人类与 PersonaPlex 的适应比例分别为 68.2% 和 34.8%。这是有条件的案例结果：单个模型、英语录音、筛选后的样本；意图标注还看到了后续回应，存在标签与结果相互影响的风险。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.13117v1">Duplex Cue §5–6</a>)</p>
+<p>二者可以组成互补测试：先问同一句插话在不同情境中能否触发正确动作，再问继续时有没有真正采纳内容。对于明确要求停止的用户，应尊重停止意图；“继续并调整”并不适用于所有插话。</p>
+<h3 id="场景与意图决定“快”是否合适"><a href="#场景与意图决定“快”是否合适" class="headerlink" title="场景与意图决定“快”是否合适"></a>场景与意图决定“快”是否合适</h3><p>TurnBench 用 30 小时人工标注双人对话覆盖六种互动风格，对比 14 类系统。其关键发现是打断误报与对话类型关系明显，尤其容易出现在简短反馈密集的场景。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.25218v1">TurnBench</a>)</p>
+<p>TACT 进一步按意图条件评价响应时序分布，包含 9,728 个片段、73.2 小时数据。它试图避免固定时间窗把合理等待或提前接话一律判错；实际采用时仍要检查意图标注、参考分布和目标用户是否匹配。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.27372v1">TACT</a>)</p>
+<p>因此，延迟报告最好同时给出事件类型、起止点和分位数。用户开始插话到系统停声，与用户说完到回复首音，是两种不同的时间；只写“响应 300 毫秒”无法说明体验。</p>
+<h3 id="指令、主动性与任务完成需要另设考题"><a href="#指令、主动性与任务完成需要另设考题" class="headerlink" title="指令、主动性与任务完成需要另设考题"></a>指令、主动性与任务完成需要另设考题</h3><p>SteerDuplex 提供 SteerBench 来评价语气、人设、风格、语速和长度等控制。其强化学习实验也暴露了奖励投机：回答不完整可能换来更好的时序表现。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.12623v1">SteerDuplex</a>)</p>
+<p>DSB-IFEval 则通过 1,038 个样例、八类角色比较显式行为指令与角色隐含要求，并将发言权遵循和内容人设遵循分开计分。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.03423v1">DSB-IFEval</a>)</p>
+<p>关于主动发言，Take the Floor 的实验发现，被直接点名和遇到静默，比发现错误事实或危险更容易触发受测模型说话；这提示需要分别测试“是否启动发言”和“开口后是否说对”。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.19596v1">Take the Floor</a>)</p>
+<p>MP-Bench 把对象扩展到多人对话，在 12 个语音 Agent 上观察接话意识与回应适当性；DuplexWorld 则用六类任务世界中的 156 个场景联合考察任务、对话和语音自然度。它们说明，单个插话测试只是完整应用评测的一部分。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.13076v1">MP-Bench</a>、<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.10716v1">DuplexWorld</a>)</p>
+<h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>如果要把这些工作接到同一个实验系统中，可以将每个决策时刻描述为四部分：</p>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>记录内容</th>
+<th>用来回答什么问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>可见历史</td>
+<td>截至当前时刻的用户音频、对话上下文、已播内容</td>
+<td>当时系统究竟知道什么？</td>
+</tr>
+<tr>
+<td>交互解释</td>
+<td>说话对象、可能意图、当前发言权</td>
+<td>为什么选择这个动作？</td>
+</tr>
+<tr>
+<td>实际动作</td>
+<td>等待、开始、继续、调整内容、让出话轮</td>
+<td>策略是否落实到输出？</td>
+</tr>
+<tr>
+<td>外部进度</td>
+<td>播放位置、后台请求状态、已接受的结果</td>
+<td>恢复和续接是否依据真实现场？</td>
+</tr>
+</tbody></table>
+<p>这是本文用于组织实验的抽象，并非所有论文共享的协议。它的价值是让一次失败能被定位：是输入没听到、意图解释错了、动作没执行，还是历史与播放进度不同步。</p>
+<h2 id="工程闭环"><a href="#工程闭环" class="headerlink" title="工程闭环"></a>工程闭环</h2><p>建议先建立一个小而有对照的回放集，再做真人闭环评测。下面是一组可以直接用于制定实验计划的场景，均为本文建议。</p>
+<table>
+<thead>
+<tr>
+<th>测试切片</th>
+<th>对照方式</th>
+<th>至少同时记录的指标</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>自然停顿</td>
+<td>句内停顿与真正结束，尽量匹配停顿长度</td>
+<td>抢答率、漏接率、首音延迟</td>
+</tr>
+<tr>
+<td>短反馈与打断</td>
+<td>“对”作为赞同，与“对了，我要改一下”作为新请求</td>
+<td>错误停播、漏打断、停声延迟</td>
+</tr>
+<tr>
+<td>上下文翻转</td>
+<td>固定插话文本，改变前文；再做音频匹配对照</td>
+<td>单项与配对动作成功率</td>
+</tr>
+<tr>
+<td>协作补充</td>
+<td>用户补词、纠正数字、补充约束</td>
+<td>动作分布、内容采纳、答案正确性</td>
+</tr>
+<tr>
+<td>播放锚定</td>
+<td>固定生成内容，改变实际播放到的位置</td>
+<td>已播进度判断、跳项与重复</td>
+</tr>
+<tr>
+<td>异步任务</td>
+<td>工具返回前改口、取消或开始新话题</td>
+<td>参数正确、旧结果误用、任务成功</td>
+</tr>
+<tr>
+<td>多人或背景语音</td>
+<td>保持语句内容，改变说话对象和来源</td>
+<td>误响应、错误让出话轮、对象识别</td>
+</tr>
+<tr>
+<td>角色与主动性</td>
+<td>显式要求、角色暗示、需要提醒但未被点名</td>
+<td>行为遵循、介入适当性、回应完整性</td>
+</tr>
+</tbody></table>
+<p>实施时有三个关键控制。</p>
+<p>首先，回放必须保持因果性。决策只能使用当时已到达的输入，不能把整句转写或未来音频提前提供给模型。后台结果也应在实际返回时才可见。</p>
+<p>其次，把失败样本留在分母中。没有输出、超时、无法转写、未进入可评分状态，都应报告数量和原因；若某个分析必须筛选可评分子集，应同时展示筛选前后的覆盖率。</p>
+<p>最后，离线回放通过后再做真人交互。录音中的对方不会因为模型抢话而停下来，也不会因迟答而重复提问。真实用户的适应行为会改变后续输入，所以固定轨迹只能诊断部分能力。</p>
+<h2 id="小样本推演"><a href="#小样本推演" class="headerlink" title="小样本推演"></a>小样本推演</h2><p>以下均为原创测试情境，帮助把论文问题转成可观察行为。</p>
+<p><strong>情境一：用户说“嗯，对”。</strong> 系统正在说明流程，用户只表示理解。理想行为可以是继续讲解；如果它每次都停下，打断响应可能看起来很敏捷，整体对话却会被切碎。</p>
+<p><strong>情境二：用户说“第二个，选第二个”。</strong> 如果上一句正在征求选择，系统应更新当前方案；如果它正在复述用户已选的第二项，这句话也可能只是确认。测试时需要让前文真正改变目标动作，并人工复核歧义。</p>
+<p><strong>情境三：用户问“刚才最后那条再讲一遍”。</strong> 文本已生成五条，音频只完整播出两条。正确续接应锚定第二条，同时报告部分播放、播放确认缺失等边界情况，不能简单从文本末尾取一条。</p>
+<p><strong>情境四：查周五的行程时，用户改成周六。</strong> 旧工具结果先返回，系统应识别它属于旧请求；新的结果尚未到达时，可以说明仍在查询，而不是把旧结果当成新答案。</p>
+<p>四个例子分别对应保持发言权、上下文理解、播放一致性与后台状态一致性。它们都需要语音输入，却无法只靠一个 ASR 错误率或首音延迟解释。</p>
+<h2 id="还缺什么证据"><a href="#还缺什么证据" class="headerlink" title="还缺什么证据"></a>还缺什么证据</h2><p>最值得补的证据是跨条件迁移：在合成数据和已知模型上改善的行为，换到真人、自发对话、不同语言、设备回声和网络抖动后是否保留。其次是长期交互：短片段中正确让出一次话轮，不等于多次改口之后仍能维护任务状态。</p>
+<p>评测集之间也需要明确边界。相同名称的“打断成功”可能使用不同触发点、时间窗和内容评分；同样写着 latency，也可能测决策、停声或首音。任何跨论文比较都应先核对这些定义。</p>
+<p>窗口内还检索到 <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.22071">Real-TurnTurk</a>、<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.27988">多人对话中的注视与轮次预测</a> 和 <a target="_blank" rel="noopener" href="https://aclanthology.org/2026.sigdial-1.2/">Rethinking Binary Evaluation of Turn-Taking under Inherent Ambiguity</a>。它们分别补充语言覆盖、多模态社会信号和概率评价，本篇将其列作相关研究，不计入核心 21 篇。无线通信里的 full-duplex，以及只做离线识别或单句合成的论文，不在本文范围内。</p>
+<h2 id="直接结论"><a href="#直接结论" class="headerlink" title="直接结论"></a>直接结论</h2><p>近两个月最有价值的进展，是研究开始为“自然互动”提供可检查的组成部分：场景化数据教模型何时行动，连续状态和播放反馈帮助它恢复现场，异步架构让复杂任务与即时交互共存，更细的评测则检查它是否理解了插话。</p>
+<p>对实际项目，优先级可以很明确：先建立包含短反馈、真正打断和上下文翻转的测试集；再检查内容采纳、实际播放进度及工具返回的一致性；最后用真人闭环验证这些改进是否能提高任务完成率。选模型时，比较它在哪类情境中做对了什么，比单看“全双工”标签更有用。</p>
+<p>下一步阅读：</p>
+<ul>
+<li><a href="/2026/06/10/Realtime-Speech-Turn-Taking-Evaluation/">实时语音 Turn-taking 评测：从端点检测到可接话判断</a></li>
+<li><a href="/2026/06/11/Speech-Dialog-Data-Synthesis-Quality-Gates/">语音对话合成数据工程：Schema、口语化与质量闸门</a></li>
+<li><a href="/2026/09/16/Speech-LLM-Radar-2026-09-16/">2026-09-16 语音大模型与交互系统技术雷达</a></li>
+</ul>
+<h3 id="阅读与写作参考"><a href="#阅读与写作参考" class="headerlink" title="阅读与写作参考"></a>阅读与写作参考</h3><p>上方三张论文表构成本文的一手文献索引。组织方式参考了 <a target="_blank" rel="noopener" href="https://themadaiguy.github.io/blog/2026/08/09/full-duplex-explained/">Puneet Mathur 的全双工架构讲解</a> 中从术语到机制的展开顺序，以及 <a target="_blank" rel="noopener" href="https://www.full-duplex.ai/">Fullduplex</a> 将研究信号关联到原始来源的呈现方式；站内则沿用问题、机制、验证与结论相衔接的结构。正文观点、示例和实验建议为独立整理，技术判断以所链接论文为依据。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/LLM/" rel="tag"># LLM</a>
+              <a href="/tags/Evaluation/" rel="tag"># Evaluation</a>
+              <a href="/tags/Speech/" rel="tag"># Speech</a>
+              <a href="/tags/Full-Duplex/" rel="tag"># Full Duplex</a>
+              <a href="/tags/Turn-taking/" rel="tag"># Turn-taking</a>
+              <a href="/tags/Survey/" rel="tag"># Survey</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/09/26/Agent-Engineering-Radar-2026-09-26/" rel="prev" title="【Agent Engineering Radar】2026-09-26 Agent 工程技术雷达">
+                  <i class="fa fa-angle-left"></i> 【Agent Engineering Radar】2026-09-26 Agent 工程技术雷达
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments giscus-container">
+  <div class="giscus"></div>
+  <script src="https://giscus.app/client.js"
+        data-repo="fclearner/fclearner.github.io"
+        data-repo-id="MDEwOlJlcG9zaXRvcnkxOTQwMTgyMjk="
+        data-category="Announcements"
+        data-category-id="DIC_kwDOC5B7tc4C-7pW"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+  </script>
+</div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Alan Fang</span>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
