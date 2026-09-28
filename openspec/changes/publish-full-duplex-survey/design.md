@@ -8,4 +8,8 @@ All reported measurements are paper-author results. Avoid a cross-paper leaderbo
 
 # Publication
 
+## Requested depth revision
+
+The reader supplied https://zhuanlan.zhihu.com/p/2065890986446868838 as the missing survey, possibly outside the date window. Resolve its identity before attributing claims to it. Expand the article with background architecture, mechanism-level comparisons, training and ablation evidence, and explicit metric denominators. Keep the existing permalink and 21-paper date-window inventory. Unavailable source content must remain visibly unresolved in the research record rather than being silently replaced by a different survey.
+
 Use the existing Hexo checks and `.deploy_publish` Pages clone. Preserve unrelated untracked files and private material. Add `Codex-Authored: true` to publication commits. Verify the public permalink after pushing.

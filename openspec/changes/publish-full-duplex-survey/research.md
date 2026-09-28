@@ -62,7 +62,24 @@
 - Self-Listening's 7.8% to 73.0% is the matched anchoring comparison, not a general dialogue accuracy gain.
 - No weights/data release status is inferred from a paper being public. DuplexDrama's planned subset remains explicitly future tense.
 
-## Publication evidence
+## Reader-requested depth revision, 2026-09-28
+
+- User supplied https://zhuanlan.zhihu.com/p/2065890986446868838 and then https://github.com/MM-Speech/DuplexSurvey. The second link establishes the intended underlying survey. Zhihu returned HTTP 403; the alternative public reading route returned an error page, and browser inventory failed. No claim is made to have read that article or verified its publication date or wording.
+- Official repository identifies Speaking While Listening, EMNLP 2026 Main, with an August acceptance/migration notice. arXiv still presents the original title and June 17 first submission. The article now explains this distinction and treats it as background outside the 21-paper count.
+- Read survey sections 4–6 and the beginning of 7; official README architecture, ontology and state-machine summaries. Added L0–L3 placement, six diagnostic scenarios, example state trajectories, and an explicitly editorial mapping to recent papers. The paper's broad data-bottleneck thesis is not presented as experimentally isolated causation.
+- Upgraded X2-Turn to method-level reading (§2): 80 ms frame step, dual-head shared hidden state, ASR-anchored labels, independent target delay, and no feedback from state predictions into ASR decoding.
+- Upgraded frontend-backend tool paper to §3–4: tc_bos/filler/tc_eos dispatch, prefill loss masking and repetition. Corrected the potential implication that its frontend keeps talking while tools run: the paper explicitly specifies silence during execution.
+- Upgraded SteerDuplex to §3–5: SFT and two RL stages; text and padding action loss without direct audio-codebook policy loss; sample versus rubric pass rates; disclosed CANDOR overlap and source-clean tests.
+- Upgraded synthesis harness to §II–III: relational event graph, word-boundary alignment, interruption tail truncation, intent-derived labels. Kept reference-history F1 separate from autonomous-generation precision.
+- Rechecked AdaptDuplex tables 3–4: matched serialization P50 and fixed/dynamic window ablations with metric definitions; no universal speed ranking.
+- Read TurnBench corpus/taxonomy and TACT episode/intent definitions for the protocol comparison. Did not add unverified new outcome claims.
+- Added original data-validation comparisons, runtime failure localization, matched-pair arithmetic example, and separate latency definitions. Other papers retain their previously recorded reading depth.
+- Revision validation: complete npm run verify passed with a project-local npm cache: 187 generated files, 34 posts, zero production dependency audit findings, 17 OpenSpec items passed. Existing informational Giscus archive warning remains unrelated.
+- Before publishing, fast-forwarded the Pages clone to the concurrent VAD publication at `7a490c6`. Compared all 34 search-index entries: only this survey's content changed. Preserved existing generated CSS, other pages, and navigation to avoid unrelated filesystem-mtime and same-date ordering churn. Final deployment diff contains only the survey HTML and search.xml (whose entry ordering also changed).
+- Revised Pages commit `fbcd9ca` pushed successfully. Generated article contains 13 tables, the official survey repository link, escaped control tokens, and no Unicode replacement characters. The first live check still served the previous seven-table version while deployment was propagating.
+- GitHub Pages run https://github.com/fclearner/fclearner.github.io/actions/runs/36435395870 completed successfully for `fbcd9ca0f2bef7d48afd6f7ca165197f4e28fdda`. Subsequent live HTTP check of the same article's index.html returned 200 with the background section, MM-Speech/DuplexSurvey reference, event-graph mechanism section, and all 13 tables.
+
+## Initial publication evidence
 
 - Source encoding check passed; Hexo build generated 184 files; generated-site validation passed for 33 posts.
 - Local production dependency audit reported 0 vulnerabilities.
