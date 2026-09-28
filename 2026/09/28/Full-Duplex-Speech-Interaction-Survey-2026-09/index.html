@@ -28,7 +28,7 @@
 <meta property="og:description" content="语音助手正在解释一个方案，你说了一句“对，就按第二种”。它应该停下来等你说完，继续原来的介绍，还是直接围绕第二种方案往下讲？如果它已经在内部生成了五条建议，扬声器却只播完两条，此时再问“刚才说到哪了”，它又该以哪份历史为准？ 这两个小问题概括了近期语音全双工研究的变化：同时听说只是运行条件，真正困难的是在不断变化的对话中选择动作，并让动作对应用户实际经历的过程。 本文整理 2026 年 7 月 2">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-09-28T14:00:00.000Z">
-<meta property="article:modified_time" content="2026-09-28T13:51:01.449Z">
+<meta property="article:modified_time" content="2026-09-28T14:19:35.988Z">
 <meta property="article:author" content="Alan Fang">
 <meta property="article:tag" content="Evaluation">
 <meta property="article:tag" content="Full Duplex">
@@ -163,7 +163,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A3%80%E7%B4%A2%E8%8C%83%E5%9B%B4%E4%B8%8E%E8%AF%81%E6%8D%AE%E5%8F%A3%E5%BE%84"><span class="nav-number">2.</span> <span class="nav-text">检索范围与证据口径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E5%9C%B0%E5%9B%BE%EF%BC%9A21-%E7%AF%87%E5%B7%A5%E4%BD%9C%E5%88%86%E5%88%AB%E8%A1%A5%E5%93%AA%E5%9D%97%E8%83%BD%E5%8A%9B"><span class="nav-number">3.</span> <span class="nav-text">论文地图：21 篇工作分别补哪块能力</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%95%B0%E6%8D%AE%EF%BC%9A%E5%A6%82%E4%BD%95%E4%BF%9D%E7%95%99%E5%AF%B9%E8%AF%9D%E9%87%8C%E7%9A%84%E6%97%B6%E9%97%B4%E4%B8%8E%E6%84%8F%E5%9B%BE"><span class="nav-number">3.1.</span> <span class="nav-text">一、数据：如何保留对话里的时间与意图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%A8%A1%E5%9E%8B%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%97%B6%EF%BC%9A%E6%80%8E%E6%A0%B7%E6%8C%81%E7%BB%AD%E5%86%B3%E7%AD%96%E8%80%8C%E4%B8%8D%E4%B8%A2%E5%A4%B1%E7%8A%B6%E6%80%81"><span class="nav-number">3.2.</span> <span class="nav-text">二、模型与运行时：怎样持续决策而不丢失状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E8%AF%84%E6%B5%8B%EF%BC%9A%E6%80%8E%E6%A0%B7%E8%AF%86%E5%88%AB%E2%80%9C%E7%9C%8B%E8%B5%B7%E6%9D%A5%E4%BC%9A%E8%81%8A%E5%A4%A9%E2%80%9D%E7%9A%84%E6%8D%B7%E5%BE%84"><span class="nav-number">3.3.</span> <span class="nav-text">三、评测：怎样识别“看起来会聊天”的捷径</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E5%88%A4%E6%96%AD"><span class="nav-number">4.</span> <span class="nav-text">主线判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E8%B7%AF%E7%BA%BF%EF%BC%9A%E7%9C%9F%E5%AE%9E%E6%84%9F%E3%80%81%E5%8F%AF%E6%8E%A7%E6%80%A7%E4%B8%8E%E8%AE%AD%E7%BB%83%E4%BB%B7%E5%80%BC%E8%A6%81%E5%88%86%E5%BC%80%E9%AA%8C%E8%AF%81"><span class="nav-number">5.</span> <span class="nav-text">数据路线：真实感、可控性与训练价值要分开验证</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%BA%E7%B1%BB%E5%81%8F%E5%A5%BD%E5%91%8A%E8%AF%89%E6%88%91%E4%BB%AC%E2%80%9C%E4%BB%80%E4%B9%88%E5%9C%BA%E5%90%88%E8%AF%A5%E6%80%8E%E6%A0%B7%E8%AF%B4%E2%80%9D"><span class="nav-number">5.1.</span> <span class="nav-text">人类偏好告诉我们“什么场合该怎样说”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A4%E4%B8%AA-DuplexGen-%E7%9A%84%E2%80%9C%E8%87%AA%E7%84%B6%E2%80%9D%E6%8C%87%E5%90%91%E4%B8%8D%E5%90%8C%E9%97%AE%E9%A2%98"><span class="nav-number">5.2.</span> <span class="nav-text">两个 DuplexGen 的“自然”指向不同问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E%E7%9C%9F%E5%AE%9E%E9%87%8D%E5%BB%BA%E4%B8%8E%E4%BB%8E%E4%BA%8B%E4%BB%B6%E5%90%88%E6%88%90%EF%BC%8C%E6%98%AF%E4%B8%A4%E7%A7%8D%E4%B8%8D%E5%90%8C%E8%B5%B7%E7%82%B9"><span class="nav-number">5.3.</span> <span class="nav-text">从真实重建与从事件合成，是两种不同起点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%B7%AF%E7%BA%BF%EF%BC%9A%E5%86%B3%E7%AD%96%E6%97%B6%E9%92%9F%E3%80%81%E6%92%AD%E6%94%BE%E8%BF%9B%E5%BA%A6%E4%B8%8E%E5%90%8E%E5%8F%B0%E4%BB%BB%E5%8A%A1"><span class="nav-number">6.</span> <span class="nav-text">模型路线：决策时钟、播放进度与后台任务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%A7%E7%BA%A7%E7%8A%B6%E6%80%81%E9%A2%84%E6%B5%8B%E4%B8%8E%E5%8A%A8%E6%80%81%E6%97%B6%E9%97%B4%E7%AA%97%E8%A7%A3%E5%86%B3%E4%B8%8D%E5%90%8C%E6%88%90%E6%9C%AC"><span class="nav-number">6.1.</span> <span class="nav-text">帧级状态预测与动态时间窗解决不同成本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%93%E6%96%AD%E6%81%A2%E5%A4%8D%E8%A6%81%E4%BB%A5%E5%AE%9E%E9%99%85%E6%92%AD%E5%87%BA%E8%BF%9B%E5%BA%A6%E4%B8%BA%E5%87%86"><span class="nav-number">6.2.</span> <span class="nav-text">打断恢复要以实际播出进度为准</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E5%85%B7%E8%B0%83%E7%94%A8%E5%BF%85%E9%A1%BB%E8%BF%9B%E5%85%A5%E5%90%8C%E4%B8%80%E6%9D%A1%E5%AF%B9%E8%AF%9D%E6%97%B6%E9%97%B4%E7%BA%BF"><span class="nav-number">6.3.</span> <span class="nav-text">工具调用必须进入同一条对话时间线</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%E8%B7%AF%E7%BA%BF%EF%BC%9A%E4%BB%8E%E5%81%9C%E4%B8%8D%E5%81%9C%EF%BC%8C%E8%B5%B0%E5%90%91%E4%B8%BA%E4%BB%80%E4%B9%88%E5%81%9C%E3%80%81%E5%A6%82%E4%BD%95%E7%BB%A7%E7%BB%AD"><span class="nav-number">7.</span> <span class="nav-text">评测路线：从停不停，走向为什么停、如何继续</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ECHO-%E6%A3%80%E6%9F%A5%E4%B8%8A%E4%B8%8B%E6%96%87%E4%BE%9D%E8%B5%96%EF%BC%8CDuplex-Cue-%E6%A3%80%E6%9F%A5%E5%86%85%E5%AE%B9%E5%90%B8%E6%94%B6"><span class="nav-number">7.1.</span> <span class="nav-text">ECHO 检查上下文依赖，Duplex Cue 检查内容吸收</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%8E%E6%84%8F%E5%9B%BE%E5%86%B3%E5%AE%9A%E2%80%9C%E5%BF%AB%E2%80%9D%E6%98%AF%E5%90%A6%E5%90%88%E9%80%82"><span class="nav-number">7.2.</span> <span class="nav-text">场景与意图决定“快”是否合适</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E4%BB%A4%E3%80%81%E4%B8%BB%E5%8A%A8%E6%80%A7%E4%B8%8E%E4%BB%BB%E5%8A%A1%E5%AE%8C%E6%88%90%E9%9C%80%E8%A6%81%E5%8F%A6%E8%AE%BE%E8%80%83%E9%A2%98"><span class="nav-number">7.3.</span> <span class="nav-text">指令、主动性与任务完成需要另设考题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">8.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">9.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B7%E6%9C%AC%E6%8E%A8%E6%BC%94"><span class="nav-number">10.</span> <span class="nav-text">小样本推演</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%98%E7%BC%BA%E4%BB%80%E4%B9%88%E8%AF%81%E6%8D%AE"><span class="nav-number">11.</span> <span class="nav-text">还缺什么证据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">12.</span> <span class="nav-text">直接结论</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%85%E8%AF%BB%E4%B8%8E%E5%86%99%E4%BD%9C%E5%8F%82%E8%80%83"><span class="nav-number">12.1.</span> <span class="nav-text">阅读与写作参考</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">要解决的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E7%BB%BC%E8%BF%B0%EF%BC%9ASpeaking-While-Listening-%E6%8F%90%E4%BE%9B%E7%9A%84%E4%B8%89%E6%8A%8A%E5%B0%BA%E5%AD%90"><span class="nav-number">2.</span> <span class="nav-text">背景综述：Speaking While Listening 提供的三把尺子</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-L0%E2%80%93L3%EF%BC%9A%E5%86%B3%E7%AD%96%E5%8F%91%E7%94%9F%E5%9C%A8%E5%93%AA%E9%87%8C"><span class="nav-number">2.1.</span> <span class="nav-text">1. L0–L3：决策发生在哪里</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-T-%C3%97-I-%C3%97-R%EF%BC%9A%E5%A3%B0%E9%9F%B3%E9%87%8D%E5%8F%A0%E5%8F%AA%E6%98%AF%E7%8E%B0%E8%B1%A1"><span class="nav-number">2.2.</span> <span class="nav-text">2. T × I × R：声音重叠只是现象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E7%8A%B6%E6%80%81%E6%9C%BA%EF%BC%9A%E5%8A%A8%E4%BD%9C%E5%A6%82%E4%BD%95%E9%9A%8F%E6%97%B6%E9%97%B4%E5%B1%95%E5%BC%80"><span class="nav-number">2.3.</span> <span class="nav-text">3. 状态机：动作如何随时间展开</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8%E8%BF%99%E5%A5%97%E6%A1%86%E6%9E%B6%E9%87%8D%E6%96%B0%E7%9C%8B%E8%BF%91%E4%B8%A4%E4%B8%AA%E6%9C%88%E7%9A%84%E8%BF%9B%E5%B1%95"><span class="nav-number">2.4.</span> <span class="nav-text">用这套框架重新看近两个月的进展</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A3%80%E7%B4%A2%E8%8C%83%E5%9B%B4%E4%B8%8E%E8%AF%81%E6%8D%AE%E5%8F%A3%E5%BE%84"><span class="nav-number">3.</span> <span class="nav-text">检索范围与证据口径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E5%9C%B0%E5%9B%BE%EF%BC%9A21-%E7%AF%87%E5%B7%A5%E4%BD%9C%E5%88%86%E5%88%AB%E8%A1%A5%E5%93%AA%E5%9D%97%E8%83%BD%E5%8A%9B"><span class="nav-number">4.</span> <span class="nav-text">论文地图：21 篇工作分别补哪块能力</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%95%B0%E6%8D%AE%EF%BC%9A%E5%A6%82%E4%BD%95%E4%BF%9D%E7%95%99%E5%AF%B9%E8%AF%9D%E9%87%8C%E7%9A%84%E6%97%B6%E9%97%B4%E4%B8%8E%E6%84%8F%E5%9B%BE"><span class="nav-number">4.1.</span> <span class="nav-text">一、数据：如何保留对话里的时间与意图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%A8%A1%E5%9E%8B%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%97%B6%EF%BC%9A%E6%80%8E%E6%A0%B7%E6%8C%81%E7%BB%AD%E5%86%B3%E7%AD%96%E8%80%8C%E4%B8%8D%E4%B8%A2%E5%A4%B1%E7%8A%B6%E6%80%81"><span class="nav-number">4.2.</span> <span class="nav-text">二、模型与运行时：怎样持续决策而不丢失状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E8%AF%84%E6%B5%8B%EF%BC%9A%E6%80%8E%E6%A0%B7%E8%AF%86%E5%88%AB%E2%80%9C%E7%9C%8B%E8%B5%B7%E6%9D%A5%E4%BC%9A%E8%81%8A%E5%A4%A9%E2%80%9D%E7%9A%84%E6%8D%B7%E5%BE%84"><span class="nav-number">4.3.</span> <span class="nav-text">三、评测：怎样识别“看起来会聊天”的捷径</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E5%88%A4%E6%96%AD"><span class="nav-number">5.</span> <span class="nav-text">主线判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E8%B7%AF%E7%BA%BF%EF%BC%9A%E7%9C%9F%E5%AE%9E%E6%84%9F%E3%80%81%E5%8F%AF%E6%8E%A7%E6%80%A7%E4%B8%8E%E8%AE%AD%E7%BB%83%E4%BB%B7%E5%80%BC%E8%A6%81%E5%88%86%E5%BC%80%E9%AA%8C%E8%AF%81"><span class="nav-number">6.</span> <span class="nav-text">数据路线：真实感、可控性与训练价值要分开验证</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%BA%E7%B1%BB%E5%81%8F%E5%A5%BD%E5%91%8A%E8%AF%89%E6%88%91%E4%BB%AC%E2%80%9C%E4%BB%80%E4%B9%88%E5%9C%BA%E5%90%88%E8%AF%A5%E6%80%8E%E6%A0%B7%E8%AF%B4%E2%80%9D"><span class="nav-number">6.1.</span> <span class="nav-text">人类偏好告诉我们“什么场合该怎样说”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A4%E4%B8%AA-DuplexGen-%E7%9A%84%E2%80%9C%E8%87%AA%E7%84%B6%E2%80%9D%E6%8C%87%E5%90%91%E4%B8%8D%E5%90%8C%E9%97%AE%E9%A2%98"><span class="nav-number">6.2.</span> <span class="nav-text">两个 DuplexGen 的“自然”指向不同问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E%E7%9C%9F%E5%AE%9E%E9%87%8D%E5%BB%BA%E4%B8%8E%E4%BB%8E%E4%BA%8B%E4%BB%B6%E5%90%88%E6%88%90%EF%BC%8C%E6%98%AF%E4%B8%A4%E7%A7%8D%E4%B8%8D%E5%90%8C%E8%B5%B7%E7%82%B9"><span class="nav-number">6.3.</span> <span class="nav-text">从真实重建与从事件合成，是两种不同起点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E4%BB%B6%E5%9B%BE%E5%A6%82%E4%BD%95%E5%8F%98%E6%88%90%E2%80%9C%E7%8E%B0%E5%9C%A8%E8%AF%A5%E5%81%9C%E2%80%9D%E7%9A%84%E7%9B%91%E7%9D%A3"><span class="nav-number">6.4.</span> <span class="nav-text">事件图如何变成“现在该停”的监督</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%B7%AF%E7%BA%BF%EF%BC%9A%E5%86%B3%E7%AD%96%E6%97%B6%E9%92%9F%E3%80%81%E6%92%AD%E6%94%BE%E8%BF%9B%E5%BA%A6%E4%B8%8E%E5%90%8E%E5%8F%B0%E4%BB%BB%E5%8A%A1"><span class="nav-number">7.</span> <span class="nav-text">模型路线：决策时钟、播放进度与后台任务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%A7%E7%BA%A7%E7%8A%B6%E6%80%81%E9%A2%84%E6%B5%8B%E4%B8%8E%E5%8A%A8%E6%80%81%E6%97%B6%E9%97%B4%E7%AA%97%E8%A7%A3%E5%86%B3%E4%B8%8D%E5%90%8C%E6%88%90%E6%9C%AC"><span class="nav-number">7.1.</span> <span class="nav-text">帧级状态预测与动态时间窗解决不同成本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%93%E6%96%AD%E6%81%A2%E5%A4%8D%E8%A6%81%E4%BB%A5%E5%AE%9E%E9%99%85%E6%92%AD%E5%87%BA%E8%BF%9B%E5%BA%A6%E4%B8%BA%E5%87%86"><span class="nav-number">7.2.</span> <span class="nav-text">打断恢复要以实际播出进度为准</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E5%85%B7%E8%B0%83%E7%94%A8%E5%BF%85%E9%A1%BB%E8%BF%9B%E5%85%A5%E5%90%8C%E4%B8%80%E6%9D%A1%E5%AF%B9%E8%AF%9D%E6%97%B6%E9%97%B4%E7%BA%BF"><span class="nav-number">7.3.</span> <span class="nav-text">工具调用必须进入同一条对话时间线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%86%E5%9B%9B%E7%A7%8D%E8%BF%90%E8%A1%8C%E6%97%B6%E6%94%B9%E5%8A%A8%E6%94%BE%E5%88%B0%E5%90%8C%E4%B8%80%E5%BC%A0%E5%9B%BE%E9%87%8C%E7%9C%8B"><span class="nav-number">7.4.</span> <span class="nav-text">将四种运行时改动放到同一张图里看</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%84%E6%B5%8B%E8%B7%AF%E7%BA%BF%EF%BC%9A%E4%BB%8E%E5%81%9C%E4%B8%8D%E5%81%9C%EF%BC%8C%E8%B5%B0%E5%90%91%E4%B8%BA%E4%BB%80%E4%B9%88%E5%81%9C%E3%80%81%E5%A6%82%E4%BD%95%E7%BB%A7%E7%BB%AD"><span class="nav-number">8.</span> <span class="nav-text">评测路线：从停不停，走向为什么停、如何继续</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ECHO-%E6%A3%80%E6%9F%A5%E4%B8%8A%E4%B8%8B%E6%96%87%E4%BE%9D%E8%B5%96%EF%BC%8CDuplex-Cue-%E6%A3%80%E6%9F%A5%E5%86%85%E5%AE%B9%E5%90%B8%E6%94%B6"><span class="nav-number">8.1.</span> <span class="nav-text">ECHO 检查上下文依赖，Duplex Cue 检查内容吸收</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%8E%E6%84%8F%E5%9B%BE%E5%86%B3%E5%AE%9A%E2%80%9C%E5%BF%AB%E2%80%9D%E6%98%AF%E5%90%A6%E5%90%88%E9%80%82"><span class="nav-number">8.2.</span> <span class="nav-text">场景与意图决定“快”是否合适</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E4%BB%A4%E3%80%81%E4%B8%BB%E5%8A%A8%E6%80%A7%E4%B8%8E%E4%BB%BB%E5%8A%A1%E5%AE%8C%E6%88%90%E9%9C%80%E8%A6%81%E5%8F%A6%E8%AE%BE%E8%80%83%E9%A2%98"><span class="nav-number">8.3.</span> <span class="nav-text">指令、主动性与任务完成需要另设考题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%88%E5%AF%B9%E9%BD%90%E5%8D%8F%E8%AE%AE%EF%BC%8C%E5%86%8D%E6%AF%94%E8%BE%83%E6%95%B0%E5%AD%97"><span class="nav-number">8.4.</span> <span class="nav-text">先对齐协议，再比较数字</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%8A%BD%E8%B1%A1"><span class="nav-number">9.</span> <span class="nav-text">最小抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AD%E7%8E%AF"><span class="nav-number">10.</span> <span class="nav-text">工程闭环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B7%E6%9C%AC%E6%8E%A8%E6%BC%94"><span class="nav-number">11.</span> <span class="nav-text">小样本推演</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%98%E7%BC%BA%E4%BB%80%E4%B9%88%E8%AF%81%E6%8D%AE"><span class="nav-number">12.</span> <span class="nav-text">还缺什么证据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E7%BB%93%E8%AE%BA"><span class="nav-number">13.</span> <span class="nav-text">直接结论</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%85%E8%AF%BB%E4%B8%8E%E5%86%99%E4%BD%9C%E5%8F%82%E8%80%83"><span class="nav-number">13.1.</span> <span class="nav-text">阅读与写作参考</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -242,7 +242,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2026-09-28 22:00:00 / Modified: 21:51:01" itemprop="dateCreated datePublished" datetime="2026-09-28T22:00:00+08:00">2026-09-28</time>
+      <time title="Created: 2026-09-28 22:00:00 / Modified: 22:19:35" itemprop="dateCreated datePublished" datetime="2026-09-28T22:00:00+08:00">2026-09-28</time>
     </span>
 
   
@@ -256,7 +256,7 @@
     
     <div class="post-body" itemprop="articleBody"><p>语音助手正在解释一个方案，你说了一句“对，就按第二种”。它应该停下来等你说完，继续原来的介绍，还是直接围绕第二种方案往下讲？如果它已经在内部生成了五条建议，扬声器却只播完两条，此时再问“刚才说到哪了”，它又该以哪份历史为准？</p>
 <p>这两个小问题概括了近期语音全双工研究的变化：<strong>同时听说只是运行条件，真正困难的是在不断变化的对话中选择动作，并让动作对应用户实际经历的过程。</strong></p>
-<p>本文整理 <strong>2026 年 7 月 28 日至 9 月 28 日</strong>首次提交的 <strong>21 篇核心论文</strong>，沿着数据、模型与运行时、评测三条线展开。先给出可检索的论文地图，再讨论各条路线解决了什么、证据到哪里为止，以及怎样组成一套实际可用的验证流程。</p>
+<p>本文整理 <strong>2026 年 7 月 28 日至 9 月 28 日</strong>首次提交的 <strong>21 篇核心论文</strong>，并以 6 月的全双工综述搭建背景框架。沿着架构与交互定义、数据、模型与运行时、评测展开，比较方法怎样工作、实验究竟支持什么，以及怎样组成实际可用的验证流程。</p>
 <span id="more"></span>
 
 <h2 id="要解决的问题"><a href="#要解决的问题" class="headerlink" title="要解决的问题"></a>要解决的问题</h2><p>全双工语音交互至少包含四项彼此相关、却不能互相替代的能力：</p>
@@ -290,7 +290,77 @@
 </tr>
 </tbody></table>
 <p>这里的 backchannel 指听者的简短反馈，如“嗯”“对”，通常用于表示正在听；barge-in 指用户在系统发言中插入语音；turn-taking 指双方如何协调发言权。它们之间没有简单的一一对应关系：同一句话在不同上下文中，可能承担不同作用。</p>
-<p>架构上也不能只按“级联”或“端到端”判断能力。外部轮次控制器可以支持连续监听，原生双流模型也可能学到不合适的停说策略。窗口外的综述 <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2606.19453">Speaking While Listening</a> 提供了一个有用视角：分别考察决策发生在哪一层、覆盖哪些交互情境，以及系统能到达哪些状态。本文将它作为背景框架，不计入近两月的新论文。</p>
+<p>架构上也不能只按“级联”或“端到端”判断能力。外部轮次控制器可以支持连续监听，原生双流模型也可能学到不合适的停说策略。下面先展开这个区别，再阅读近期论文。</p>
+<h2 id="背景综述：Speaking-While-Listening-提供的三把尺子"><a href="#背景综述：Speaking-While-Listening-提供的三把尺子" class="headerlink" title="背景综述：Speaking While Listening 提供的三把尺子"></a>背景综述：Speaking While Listening 提供的三把尺子</h2><p>补充阅读线索来自读者提到的语音之家综述及其<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/2065890986446868838">知乎链接</a>，读者进一步提供了 <a target="_blank" rel="noopener" href="https://github.com/MM-Speech/DuplexSurvey">MM-Speech&#x2F;DuplexSurvey 官方仓库</a>。知乎正文未能直接读取，以下技术概括依据官方仓库和论文，不转述未核实的公众号措辞。</p>
+<p>仓库使用题名 <strong>Speaking While Listening: A Survey and Empirical Audit of Full-Duplex Spoken Dialogue Systems</strong>；arXiv v1 题名为 <strong>A Survey of Full-Duplex Spoken Dialogue Systems: Architectural Hierarchy, Interaction Ontology, and Decision State Machine</strong>，首次提交于 <strong>2026 年 6 月 17 日</strong>。仓库记录了 8 月 EMNLP 2026 主会接收信息。这是同一项工作的题名与发布阶段差异，不应重复计数，也不计入本文近两个月的 21 篇。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2606.19453">论文记录</a>)</p>
+<h3 id="1-L0–L3：决策发生在哪里"><a href="#1-L0–L3：决策发生在哪里" class="headerlink" title="1. L0–L3：决策发生在哪里"></a>1. L0–L3：决策发生在哪里</h3><table>
+<thead>
+<tr>
+<th>层级</th>
+<th>决策位置</th>
+<th>综述中的代表或定位</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>L0</td>
+<td>外部模块或控制器</td>
+<td>FireRedChat、FlexDuo</td>
+</tr>
+<tr>
+<td>L1</td>
+<td>读取模型隐藏状态的预测器</td>
+<td>MinMo、Freeze-Omni</td>
+</tr>
+<tr>
+<td>L2</td>
+<td>token 流中的同步与生成</td>
+<td>Moshi、OmniFlatten、SyncLLM</td>
+</tr>
+<tr>
+<td>L3</td>
+<td>共享潜在表示中的双工建模</td>
+<td>尚未实现的研究设想</td>
+</tr>
+</tbody></table>
+<p>这个分类不是性能等级。它定位“谁决定听、说、等”，不能仅凭 L2 标签断言系统优于 L0，也不能把已有流式系统直接归为 L3。(<a target="_blank" rel="noopener" href="https://github.com/MM-Speech/DuplexSurvey#architectural-hierarchy-and-cross-system-audit">官方仓库：架构分层</a>)</p>
+<h3 id="2-T-×-I-×-R：声音重叠只是现象"><a href="#2-T-×-I-×-R：声音重叠只是现象" class="headerlink" title="2. T × I × R：声音重叠只是现象"></a>2. T × I × R：声音重叠只是现象</h3><p>T 表示时间关系，I 表示用户意图，R 表示系统应答动作。例如，同为重叠语音，短反馈要求继续，争取发言权要求停说，旁人声音可能要求忽略。综述选出六类关键检验：常规接话、近零间隔接话、插话打断、说话中的短反馈、第三方声音、带长停顿的犹豫。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2606.19453v1#S5">论文 §5</a>)</p>
+<h3 id="3-状态机：动作如何随时间展开"><a href="#3-状态机：动作如何随时间展开" class="headerlink" title="3. 状态机：动作如何随时间展开"></a>3. 状态机：动作如何随时间展开</h3><p>五个状态是 Idle、Listen、Speak、Wait、Dual。它们区分无人发言、倾听、发言、等待和双方同时发声并持续处理输入；论文用十一条转换描述行为。两个最有用的轨迹是：真正打断时 <code>Speak → Dual → Listen</code>，支持性短反馈时 <code>Speak → Dual → Speak</code>。这是一种观察和比较行为的框架，不要求每个模型实现同一套控制代码。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2606.19453v1#S6">论文 §6</a>)</p>
+<h3 id="用这套框架重新看近两个月的进展"><a href="#用这套框架重新看近两个月的进展" class="headerlink" title="用这套框架重新看近两个月的进展"></a>用这套框架重新看近两个月的进展</h3><p>下面是本文基于各篇论文作出的对应分析，并非原综述对后来论文的评价。</p>
+<table>
+<thead>
+<tr>
+<th>背景框架提出的问题</th>
+<th>近期工作怎样推进</th>
+<th>仍不能省掉的检查</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>决策放在哪一层？</td>
+<td>X2-Turn 联合输出转写与状态；AdaptDuplex 显式输出动作并调整更新窗口</td>
+<td>更新频率、决策耗时与实际停声是否一致</td>
+</tr>
+<tr>
+<td>相同重叠对应什么意图？</td>
+<td>ECHO 让同一句插话随上下文翻转动作；Duplex Cue 检查继续时是否吸收信息</td>
+<td>动作正确以后，内容是否也正确</td>
+</tr>
+<tr>
+<td>数据是否覆盖目标行为？</td>
+<td>两篇 DuplexGen 与 Synthesis Harness 分别从偏好、时序、事件标签构造监督</td>
+<td>合成样本的行为收益能否迁移到真人</td>
+</tr>
+<tr>
+<td>到达某状态是否等于真正会用？</td>
+<td>SteerDuplex 用后训练调整互动；TurnBench 按场景暴露检测误差</td>
+<td>训练来源重叠、风格迁移与奖励投机</td>
+</tr>
+<tr>
+<td>状态机还缺哪些现场信息？</td>
+<td>Self-Listening 引入已播放前缀；工具架构引入后台任务与返回事件</td>
+<td>用户改口后，旧输出和旧任务怎样失效</td>
+</tr>
+</tbody></table>
+<p>我的理解是，这篇综述的最大价值在于把架构能力、行为覆盖和实际表现分开。近期论文继续追问：同样能进入“双方同时发声”的状态，究竟能否理解对方、更新当前内容并保持任务连续？因此，本文既保留它的分类，也额外检查播放进度和工具状态；仅看听、说状态仍不足以解释这两类失败。</p>
 <h2 id="检索范围与证据口径"><a href="#检索范围与证据口径" class="headerlink" title="检索范围与证据口径"></a>检索范围与证据口径</h2><p>检索截至 2026-09-28，组合使用 full-duplex、spoken dialogue、turn-taking、backchannel、interruption、speech agent、streaming ASR 等关键词，并沿论文引用和作者项目页补查。主要核验入口为 arXiv、ACL Anthology 与作者公开项目；博客和聚合页用于发现线索与参考表达结构，论文结论回到一手来源核对。</p>
 <p>纳入直接研究语音并发交互、轮次控制、相关训练数据和交互评测的工作。以 <strong>arXiv 首次提交日期</strong>判定是否进入主表，避免把会议收录、模型发布或论文更新日期混在一起。窗口包含 7 月 28 日当天；ECHO 和 DuplexDrama 的讨论采用 9 月 24 日的 v2。</p>
 <p>这是一份有明确范围的研究整理，不能保证检索穷尽。主表中的测量均为作者报告，本次没有重新训练模型或复跑榜单。方法与局限能从正文核对的部分在文中展开；仅完成摘要级核验的工作保留为简短条目。论文公开、代码公开、权重公开和数据可下载是不同状态，本文不把论文出现等同于完整可复现。</p>
@@ -456,7 +526,49 @@
 <p>第二，<strong>模型依据哪一份现场作决定</strong>。生成文本、实际播出的语音和后台任务并不同步，恢复对话必须知道用户听到什么、任务执行到哪里。</p>
 <p>第三，<strong>怎样确认策略确实理解了上下文</strong>。一个遇到声音就停的系统，可能在打断测试中很好看；一个永远不停的系统，也可能在继续说话测试中占便宜。评测需要让这两种固定策略都暴露出来。</p>
 <p>这是对上述论文的综合解释。各篇论文研究的对象、语言、模型版本和分数定义不同，本文不把它们拼成一张“谁最强”的总榜。</p>
-<h2 id="数据路线：真实感、可控性与训练价值要分开验证"><a href="#数据路线：真实感、可控性与训练价值要分开验证" class="headerlink" title="数据路线：真实感、可控性与训练价值要分开验证"></a>数据路线：真实感、可控性与训练价值要分开验证</h2><h3 id="人类偏好告诉我们“什么场合该怎样说”"><a href="#人类偏好告诉我们“什么场合该怎样说”" class="headerlink" title="人类偏好告诉我们“什么场合该怎样说”"></a>人类偏好告诉我们“什么场合该怎样说”</h3><p>7 月的 DuplexGen 用人工标注校准场景中的轮次偏好，关注交互规范是否随任务改变。它提示了一个数据设计问题：训练集即使包含很多自然对话，也不一定明确告诉模型，当前扮演什么角色、允许怎样插话。该工作的对照包含未经校准的提示生成与通用人际对话数据。(<a target="_blank" rel="noopener" href="https://duplexgen.github.io/">论文与项目</a>)</p>
+<h2 id="数据路线：真实感、可控性与训练价值要分开验证"><a href="#数据路线：真实感、可控性与训练价值要分开验证" class="headerlink" title="数据路线：真实感、可控性与训练价值要分开验证"></a>数据路线：真实感、可控性与训练价值要分开验证</h2><p>先把数据流水线拆成三个问题：谁决定对话内容，谁决定事件时序，最后怎样得到监督标签。这比按总小时数排序更有解释力。</p>
+<table>
+<thead>
+<tr>
+<th>路线</th>
+<th>内容与时序怎样产生</th>
+<th>监督来自哪里</th>
+<th>最需要做的对照</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>7 月 DuplexGen</td>
+<td>场景化生成，再用人工偏好校准互动</td>
+<td>人对不同场景中行为的偏好</td>
+<td>同一场景校准前后；换场景后是否仍成立</td>
+</tr>
+<tr>
+<td>8 月 DuplexGen</td>
+<td>脚本约束内容，双模型演绎时序，再重渲染声音</td>
+<td>演绎出的双声道互动轨迹</td>
+<td>固定声音换时序；固定时序换声音</td>
+</tr>
+<tr>
+<td>ConversationalVoice</td>
+<td>真实对话经分离、重建与扩展</td>
+<td>原始互动结构与重建结果</td>
+<td>原录音与重建录音的事件一致性</td>
+</tr>
+<tr>
+<td>DuplexDrama</td>
+<td>场景、人设与声音事件驱动合成</td>
+<td>合成过程中描述的对话行为</td>
+<td>稀有事件覆盖、标签正确率、下游训练收益</td>
+</tr>
+<tr>
+<td>Synthesis Harness</td>
+<td>先写事件关系，再合成、强制对齐到共同时间轴</td>
+<td>事件意图转换成帧级动作</td>
+<td>事件标签是否可学；模型自己生成时是否仍受益</td>
+</tr>
+</tbody></table>
+<p>表中最后一列是本文建议的验证设计。各路线的技术依据见下文对应论文。一个有用的数据清单应同时记录小时数、独立对话数、事件数和来源去重情况：重复采样一个长对话能增加训练步数，却没有增加同等数量的交互情境。</p>
+<h3 id="人类偏好告诉我们“什么场合该怎样说”"><a href="#人类偏好告诉我们“什么场合该怎样说”" class="headerlink" title="人类偏好告诉我们“什么场合该怎样说”"></a>人类偏好告诉我们“什么场合该怎样说”</h3><p>7 月的 DuplexGen 用人工标注校准场景中的轮次偏好，关注交互规范是否随任务改变。它提示了一个数据设计问题：训练集即使包含很多自然对话，也不一定明确告诉模型，当前扮演什么角色、允许怎样插话。该工作的对照包含未经校准的提示生成与通用人际对话数据。(<a target="_blank" rel="noopener" href="https://duplexgen.github.io/">论文与项目</a>)</p>
 <p>对数据工程而言，值得保留的单位是“场景—候选动作—偏好”，而不仅是两个人分别说了什么。这是本文的实践推论；具体应用中的偏好仍需要自己的用户验证。</p>
 <h3 id="两个-DuplexGen-的“自然”指向不同问题"><a href="#两个-DuplexGen-的“自然”指向不同问题" class="headerlink" title="两个 DuplexGen 的“自然”指向不同问题"></a>两个 DuplexGen 的“自然”指向不同问题</h3><p>8 月的同名工作把脚本交给两个相互监听的模型演绎，再进行 TTS 重渲染。正文中，重叠按相对位置迁移，静默间隔直接保留，不能把摘要中的“保留时序”理解为所有绝对时间戳完全不变。</p>
 <p>更值得读的是它的控制实验：当重渲染方式固定时，互动时序与拼接时序之间的 ASR 错误差异有限；改变重叠的渲染强度却明显改变识别难度。这说明“对话时序更像真人”和“识别任务更难”可以来自不同因素。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2608.16053v1">方法 II-D、实验 IV-D</a>)</p>
@@ -464,9 +576,48 @@
 <p>DuplexDrama 则从丰富的场景、角色和表达设置出发。作者报告已生成超过 2,000 小时语音，其中带至少一种双工行为的轮次占 3.8%；计划发布 800 小时精选子集。这里最值得关注的是行为覆盖和有效样本比例，而非只看总时长；公开可复现的训练增益也需另行核验。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.12872v2">DuplexDrama v2</a>)</p>
 <p>9 月的 synthesis harness 让 LLM 描述事件之间的关系，再根据合成音频对齐到共同时间轴，覆盖中英两种语言。作者给出了 Moshi 微调后的轮次控制收益，因而比只报告音频自然度更接近训练闭环；但仍需测试收益能否迁移到独立真人录音和实际设备。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.28806v1">Synthesis Harness</a>)</p>
 <p>由此可以设计三层验收：先检查内容和事件标签是否正确，再检查渲染后是否保留事件，最后验证训练后的动作质量。三层都通过，才有依据扩大合成规模。</p>
+<h3 id="事件图如何变成“现在该停”的监督"><a href="#事件图如何变成“现在该停”的监督" class="headerlink" title="事件图如何变成“现在该停”的监督"></a>事件图如何变成“现在该停”的监督</h3><p>Synthesis Harness 的关键中间表示是事件关系。例如，先规定用户在系统说到某个词之后插话，再对每条语音独立合成和强制对齐，用实际词边界求插入时刻；成功打断还会裁去系统被打断后的尾部。它不要求文本模型提前猜中 TTS 的绝对时间。</p>
+<p>随后，同一段声音可以按意图映射为占据、取得、释放、不占据发言权等标签。短反馈虽然包含用户声音，却不自动对应“系统释放发言权”。作者在模型自行生成的评测中报告，占据发言权的帧级 precision 从 0.46 提升到 0.88；使用标准对话历史时报告的是另一项 floor F1。两组结果不能混成一个分数。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.28806v1">方法 II–III、实验 IV-C</a>)</p>
+<p>这也暴露了合成数据的一个风险：如果“打断”总在固定词位出现，或者所有短反馈都很短，模型可能学会位置或时长捷径。可以固定同一句插话，交换前文、说话对象和插入位置，再检查行为是否随真正的意图变化。这个对照也把数据设计与后面的 ECHO 评测连起来。</p>
 <h2 id="模型路线：决策时钟、播放进度与后台任务"><a href="#模型路线：决策时钟、播放进度与后台任务" class="headerlink" title="模型路线：决策时钟、播放进度与后台任务"></a>模型路线：决策时钟、播放进度与后台任务</h2><h3 id="帧级状态预测与动态时间窗解决不同成本"><a href="#帧级状态预测与动态时间窗解决不同成本" class="headerlink" title="帧级状态预测与动态时间窗解决不同成本"></a>帧级状态预测与动态时间窗解决不同成本</h3><p>X2-Turn 在 Voxtral Realtime 的共享流式表征上增加并行轮次状态头，让转写与状态判断在帧级对齐。它为已有系统提供了一条增量改进思路：先提高持续决策能力，再观察完整交互的收益。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.10878v1">X2-Turn</a>)</p>
+<p>具体来说，X2-Turn 每 80 毫秒更新一次，共享隐藏状态同时送入 ASR 头和状态头；训练目标是两项交叉熵的加权和。词级轮次标签被投射到 ASR token 的帧位置。推理时只有 ASR 输出回到自回归输入，状态预测不反馈给 ASR 解码环路。</p>
+<p>它区分静默、刚开始说但语义尚不足、语义未完成、语义完成、短反馈五类状态。其中 <code>noidle</code> 指刚开始的语音，不能误读成背景噪声。80 毫秒是更新步长，目标延迟还由独立参数控制，因此不能把它写成端到端响应延迟。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2608.10878v1">X2-Turn §2</a>)</p>
 <p>AdaptDuplex 把行为决策显式放入 token 协议，并在多个时间窗之间动态选择。窗口缩短有助于更快更新，窗口变长则改变计算成本与互动取舍。论文支持推理时调整决策偏置，但这只是移动策略的工作点：更积极响应可能同时损害 backchannel 或旁人语音场景。</p>
 <p>它在 HumDial-FDBench 报告综合分 72.9；表中的跨系统延迟没有硬件匹配，不能据此宣布某种架构普遍更快。其外部推理动作还包含使用标准历史前缀的评测，不能全部视为自由运行中的任务成功率。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.29217v1">AdaptDuplex §3</a>)</p>
+<p>阅读 AdaptDuplex 时，比总分更有解释力的是同一模型内部的时间窗消融：</p>
+<table>
+<thead>
+<tr>
+<th>同一检查点的窗口设置</th>
+<th>打断行为分</th>
+<th>短反馈行为分</th>
+<th>打断后停声延迟（秒）</th>
+<th>平均回应延迟（秒）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>固定 0.48 秒</td>
+<td>0.82</td>
+<td>0.52</td>
+<td>1.19</td>
+<td>0.32</td>
+</tr>
+<tr>
+<td>固定 0.96 秒</td>
+<td>0.76</td>
+<td>0.56</td>
+<td>2.61</td>
+<td>0.66</td>
+</tr>
+<tr>
+<td>动态选择</td>
+<td>0.79</td>
+<td>0.55</td>
+<td>1.32</td>
+<td>0.37</td>
+</tr>
+</tbody></table>
+<p>这组实验支持的是速度与行为之间的取舍：动态窗口接近短窗口的速度，但并非每一项都最好。行为分使用 FDB-v1.5 的场景映射，回应延迟按四类场景等权平均。它还有一个独立的协议消融：相同语义记录改用紧凑序列，解码 P50 从 789.4 降到 418.5 毫秒；这是序列化成本，不能当成完整语音链路延迟。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.29217v1">AdaptDuplex 表 3–4</a>)</p>
 <p>TASTE2 提供了另一种提醒：保留文本模型能力与降低部署延迟需要分别衡量。其部署在两张 RTX A6000、经过 TensorRT 加速后，平均首段音频时间仍为 2.701 秒。这个数值只适用于论文配置，却足以说明“支持流式”本身不是低延迟的证据。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.08956v1">TASTE2</a>)</p>
 <h3 id="打断恢复要以实际播出进度为准"><a href="#打断恢复要以实际播出进度为准" class="headerlink" title="打断恢复要以实际播出进度为准"></a>打断恢复要以实际播出进度为准</h3><p>Self-Listening 将已播放的自身语音作为输入，使模型能以用户实际听到的前缀恢复交互。在 AnchorSpeech 上，匹配对照的锚定准确率从 7.8% 提高到 73.0%；同时，论文也报告了锚定与常规轮次管理之间的取舍。它支持“播放历史有用”这一结论，尚不能推出所有对话能力都会一起改善。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.05592v1">Self-Listening §1–3</a>)</p>
 <p>下面是一个原创示意例子，时间与内容均不代表论文测量：</p>
@@ -502,8 +653,14 @@
 <p>据此，工程实现至少要区分已生成、已合成、已播放三个进度。取消输出时，也需要核对音频队列是否真正停止；服务器侧停止生成之后，客户端缓存仍可能继续播出。这是播放一致性的实现要求，不应由模型的最终文本来代替。</p>
 <h3 id="工具调用必须进入同一条对话时间线"><a href="#工具调用必须进入同一条对话时间线" class="headerlink" title="工具调用必须进入同一条对话时间线"></a>工具调用必须进入同一条对话时间线</h3><p>Realtime-Venus 用前台维持连续交互，后台处理推理与工具，并以因果时间线连接输入、输出和委派事件。其 FDB v1.5 结果分别报告真正打断与几类非打断重叠，说明系统评测需要观察相反方向的行为。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.13814v1">Realtime-Venus</a>)</p>
 <p>NVIDIA 的 frontend-backend 论文让前台发出委派 token，将流式转写交给文本后台，并把结果注入前台。它报告单轮工具调用召回率为 92%–97%，但召回不意味着参数正确或整个任务完成。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.19334v1">Frontend-backend architecture</a>)</p>
+<p>它的执行顺序值得单独写清楚：前台预测 <code>&lt;tc_bos&gt;</code>，说一小段等待提示，再输出 <code>&lt;tc_eos&gt;</code>；随后将转写交给后台执行。后台结果先作为上下文预填充，再由前台复述为语音。训练时预填充区域不计算损失，后面的复述区域参与训练。论文明确说明，<strong>工具执行期间前台保持静默</strong>。因此这套方法证明了模块化委派和结果回注的可行性，不能据此宣称已经解决等待期间持续交互。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.19334v1">架构与训练 §3–4</a>)</p>
 <p>NemotronLabs VoiceChat 的系统论文则展示了并行文本与结构化工具输出、增量转写和流式语音生成的统一设计。其 FDB 3.0 工具选择 F1 为 82.5%，作者同时指出参数准确率与端到端执行仍需改善。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.21967v1">VoiceChat</a>)</p>
 <p>本文的工程推论是：后台结果返回时，应先检查它对应的请求是否仍有效。例如用户已经将“周五”改为“周六”，旧查询结果可以留作记录，却不应直接当成新请求的答案播报。停止语音、取消查询和撤销已完成操作也需要不同的执行语义。</p>
+<h3 id="将四种运行时改动放到同一张图里看"><a href="#将四种运行时改动放到同一张图里看" class="headerlink" title="将四种运行时改动放到同一张图里看"></a>将四种运行时改动放到同一张图里看</h3><p>下面是本文用于比较机制的逻辑图，各论文不必采用全部组件：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">用户音频 → 流式编码 → 当前语义与轮次状态 → 动作决定</span><br><span class="line">                                  ↓          ↓</span><br><span class="line">                           后台任务状态   文本 → 语音 → 播放队列</span><br><span class="line">                                  ↑                      ↓</span><br><span class="line">                           工具返回事件 ← 对话历史 ← 已播放前缀</span><br></pre></td></tr></table></figure>
+
+<p>X2-Turn 主要改变“当前语义与轮次状态”的生成方式；AdaptDuplex 改变决策协议和更新时机；Self-Listening 为历史补入播放证据；前后台工具系统补入委派与返回路径。按这个图定位以后，就能解释为什么它们可能互补，也能避免把一个局部改进描述成完整解决方案。</p>
+<p>例如，同样是“及时打断”，可能在四处失败：用户声音没有进入模型；模型误判为短反馈；已决定停说但音频队列没清空；停说成功但恢复时依据了未播出的文本。四种失败需要不同实验，单一平均延迟无法区分。</p>
 <h2 id="评测路线：从停不停，走向为什么停、如何继续"><a href="#评测路线：从停不停，走向为什么停、如何继续" class="headerlink" title="评测路线：从停不停，走向为什么停、如何继续"></a>评测路线：从停不停，走向为什么停、如何继续</h2><h3 id="ECHO-检查上下文依赖，Duplex-Cue-检查内容吸收"><a href="#ECHO-检查上下文依赖，Duplex-Cue-检查内容吸收" class="headerlink" title="ECHO 检查上下文依赖，Duplex Cue 检查内容吸收"></a>ECHO 检查上下文依赖，Duplex Cue 检查内容吸收</h3><p>ECHO 固定插话文本，改写前置对话，使配对样本分别需要 Keep 与 Yield，并用两边都正确的配对成功率压制固定动作策略。它针对中文、固定轨迹中的动作诊断；两边独立合成的音频并非完全匹配，结果不能被解释成只改变上下文的纯声学控制实验。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.17360v2">ECHO v2 §1–2</a>)</p>
 <p>Duplex Cue 增加第三种行为：继续说话，同时吸收听者贡献。在 66 对可评估的合作性提示上，人类与 PersonaPlex 的适应比例分别为 68.2% 和 34.8%。这是有条件的案例结果：单个模型、英语录音、筛选后的样本；意图标注还看到了后续回应，存在标签与结果相互影响的风险。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.13117v1">Duplex Cue §5–6</a>)</p>
 <p>二者可以组成互补测试：先问同一句插话在不同情境中能否触发正确动作，再问继续时有没有真正采纳内容。对于明确要求停止的用户，应尊重停止意图；“继续并调整”并不适用于所有插话。</p>
@@ -511,9 +668,53 @@
 <p>TACT 进一步按意图条件评价响应时序分布，包含 9,728 个片段、73.2 小时数据。它试图避免固定时间窗把合理等待或提前接话一律判错；实际采用时仍要检查意图标注、参考分布和目标用户是否匹配。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.27372v1">TACT</a>)</p>
 <p>因此，延迟报告最好同时给出事件类型、起止点和分位数。用户开始插话到系统停声，与用户说完到回复首音，是两种不同的时间；只写“响应 300 毫秒”无法说明体验。</p>
 <h3 id="指令、主动性与任务完成需要另设考题"><a href="#指令、主动性与任务完成需要另设考题" class="headerlink" title="指令、主动性与任务完成需要另设考题"></a>指令、主动性与任务完成需要另设考题</h3><p>SteerDuplex 提供 SteerBench 来评价语气、人设、风格、语速和长度等控制。其强化学习实验也暴露了奖励投机：回答不完整可能换来更好的时序表现。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.12623v1">SteerDuplex</a>)</p>
+<p>其训练分工是：SFT 学会按指令控制表达，第一阶段 RL 增加回答连续性约束，第二阶段特别采样用户短反馈并奖励继续表达。策略损失作用于文本通道，也包括承载等待时间的 padding 动作；音频码本动作没有直接的策略损失。这个细节说明，改进声音中的时序行为，不一定要直接对全部声学 token 做 RL。</p>
+<p>SteerBench 又区分单项 rubric 通过率与整例通过率。假设一条回答满足四项要求中的三项，前者可记为 75%，后者仍为失败。正文还披露部分 FDB 样本来源与训练对话重叠，因此应优先看作者排除来源重叠的测试结果。(<a target="_blank" rel="noopener" href="https://arxiv.org/html/2609.12623v1">SteerDuplex §3–5</a>)</p>
 <p>DSB-IFEval 则通过 1,038 个样例、八类角色比较显式行为指令与角色隐含要求，并将发言权遵循和内容人设遵循分开计分。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.03423v1">DSB-IFEval</a>)</p>
 <p>关于主动发言，Take the Floor 的实验发现，被直接点名和遇到静默，比发现错误事实或危险更容易触发受测模型说话；这提示需要分别测试“是否启动发言”和“开口后是否说对”。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.19596v1">Take the Floor</a>)</p>
 <p>MP-Bench 把对象扩展到多人对话，在 12 个语音 Agent 上观察接话意识与回应适当性；DuplexWorld 则用六类任务世界中的 156 个场景联合考察任务、对话和语音自然度。它们说明，单个插话测试只是完整应用评测的一部分。(<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2609.13076v1">MP-Bench</a>、<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2608.10716v1">DuplexWorld</a>)</p>
+<h3 id="先对齐协议，再比较数字"><a href="#先对齐协议，再比较数字" class="headerlink" title="先对齐协议，再比较数字"></a>先对齐协议，再比较数字</h3><table>
+<thead>
+<tr>
+<th>评测对象</th>
+<th>实际问的是什么</th>
+<th>容易误读的地方</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TurnBench 的事件检测</td>
+<td>对人工标注的结束或打断事件，何时发出检测信号？</td>
+<td>检测信号正确，不等于后续回答正确</td>
+</tr>
+<tr>
+<td>ECHO 的配对动作</td>
+<td>同一句插话换上下文后，两种相反动作是否都选对？</td>
+<td>单项平均正确率会掩盖固定策略</td>
+</tr>
+<tr>
+<td>Duplex Cue 的适应行为</td>
+<td>系统继续说时，有没有吸收协作性贡献？</td>
+<td>“有回应”不等于采纳信息，更不等于采纳正确</td>
+</tr>
+<tr>
+<td>TACT 的条件时序</td>
+<td>对当前意图和说话人，何时回应或保持沉默更合适？</td>
+<td>合理时间是一种分布，不能直接换算成二元正确率</td>
+</tr>
+<tr>
+<td>DSB-IFEval 的指令遵循</td>
+<td>角色和行为要求是否影响了发言决策？</td>
+<td>内容人设得分不能替代行为遵循得分</td>
+</tr>
+<tr>
+<td>DuplexWorld 的任务</td>
+<td>互动最终有没有推进并完成任务？</td>
+<td>自然度、轮次质量和任务成功应分开报告</td>
+</tr>
+</tbody></table>
+<p>这些差异来自前述各论文的评测定义。用于项目验收时，可以保留三个分母：全部测试案例、成功触发动作的案例、成功完成任务的案例。否则，把失败触发的样本排除以后，剩余回答的质量和延迟都可能显得很好。</p>
+<p>举一个原创计分例子：100 对上下文翻转样本共 200 条，模型始终选择“停”。如果每对恰好一条应停、一条应继续，单条准确率就是 50%，但两条同时正确的配对成功率为 0%。这说明配对指标在检验对上下文变化的敏感性，而不是多加一个形式相近的分数。</p>
+<p>时间指标也要拆开报告：<strong>音频更新步长、动作决策耗时、插话到停声、用户结束到回复首音、工具请求到可用结果</strong>分别处在不同环节。更短的模型更新步长，不保证客户端更快停止播放；工具很快返回，也不保证回答采纳了用户最后一次改口。</p>
 <h2 id="最小抽象"><a href="#最小抽象" class="headerlink" title="最小抽象"></a>最小抽象</h2><p>如果要把这些工作接到同一个实验系统中，可以将每个决策时刻描述为四部分：</p>
 <table>
 <thead>
